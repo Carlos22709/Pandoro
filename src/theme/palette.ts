@@ -1,0 +1,40 @@
+export const palette = {
+  ink: '#51405D',
+  inkSoft: '#75657F',
+  cream: '#FFF8EA',
+  creamStrong: '#F8EBD7',
+  white: '#FFFCF5',
+  green: '#86B19A',
+  greenSoft: '#DCE9CF',
+  greenDeep: '#648B73',
+  lilac: '#C9B8EA',
+  lilacSoft: '#EEE7F8',
+  lilacDeep: '#947BB3',
+  blue: '#AFCDF2',
+  blueSoft: '#E4F0FA',
+  blueDeep: '#789EC8',
+  pink: '#F1BCC3',
+  pinkSoft: '#FBE4E3',
+  pinkDeep: '#CA7F8D',
+  yellow: '#F2D293',
+  yellowSoft: '#FAEED1',
+  yellowDeep: '#C49A51',
+  sky: '#CFE8F3',
+  onboardingSky: '#EAF6FF',
+  onboardingSkyPink: '#EDF7FF',
+  onboardingSkyBlue: '#E8F4FE',
+  onboardingSkyYellow: '#EFF7FC',
+  pond: '#9DCFD2',
+  rock: '#B8B2BD',
+  pandaDark: '#4F3A53',
+} as const;
+
+export type PaletteTone = 'green' | 'lilac' | 'blue' | 'pink' | 'yellow';
+
+export const toneColors: Record<PaletteTone, { main: string; soft: string; deep: string }> = {
+  green: { main: palette.green, soft: palette.greenSoft, deep: palette.greenDeep },
+  lilac: { main: palette.lilac, soft: palette.lilacSoft, deep: palette.lilacDeep },
+  blue: { main: palette.blue, soft: palette.blueSoft, deep: palette.blueDeep },
+  pink: { main: palette.pink, soft: palette.pinkSoft, deep: palette.pinkDeep },
+  yellow: { main: palette.yellow, soft: palette.yellowSoft, deep: palette.yellowDeep },
+};
