@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Pandoro",
+    "slug": "pandoro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "pandoro",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {},
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
