@@ -1,11 +1,20 @@
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { palette } from '@/theme/palette';
+import { fontAssets } from '@/theme/typography';
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
+
+  // Si la carga falla, la app sigue con la fuente del sistema en lugar de quedarse en blanco.
+  if (!fontsLoaded && !fontError) {
+    return <View style={styles.root} />;
+  }
+
   return (
     <SafeAreaProvider>
       <View style={styles.root}>
