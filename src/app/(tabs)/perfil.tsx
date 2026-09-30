@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/components/screens/ScreenPlaceholder';
+import { ProfileScreen } from '@/screens/ProfileScreen';
 
 export default function ProfileRoute() {
-  return <ScreenPlaceholder title="Perfil" tone="pink" symbol="profile" />;
+  return <ProfileScreen />;
 }
