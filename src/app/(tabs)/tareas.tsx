@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/components/screens/ScreenPlaceholder';
+import { TasksScreen } from '@/screens/TasksScreen';
 
 export default function TasksRoute() {
-  return <ScreenPlaceholder title="Tareas" tone="lilac" symbol="checklist" />;
+  return <TasksScreen />;
 }
