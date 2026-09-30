@@ -4,17 +4,20 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon, type AppIconName } from '@/components/icons/AppIcon';
-import { palette, type PaletteTone, toneColors } from '@/theme/palette';
+import { palette } from '@/theme/palette';
+import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type BottomTabBarProps = Parameters<
   NonNullable<ComponentProps<typeof Tabs>['tabBar']>
 >[0];
 
-const tabs: Record<string, { label: string; icon: AppIconName; tone: PaletteTone }> = {
-  inicio: { label: 'Inicio', icon: 'home', tone: 'green' },
-  tareas: { label: 'Tareas', icon: 'checklist', tone: 'lilac' },
-  progreso: { label: 'Progreso', icon: 'sprout', tone: 'yellow' },
-  perfil: { label: 'Perfil', icon: 'profile', tone: 'pink' },
+const tabs: Record<string, { label: string; icon: AppIconName }> = {
+  inicio: { label: 'Inicio', icon: 'home' },
+  tareas: { label: 'Tareas', icon: 'checklist' },
+  progreso: { label: 'Progreso', icon: 'sprout' },
+  perfil: { label: 'Perfil', icon: 'profile' },
+  settings: { label: 'Ajustes', icon: 'settings' },
 };
 
 export function BottomNavigation({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -23,11 +26,9 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
   return (
     <View style={[styles.positioner, { paddingBottom: Math.max(insets.bottom, 8) }]} pointerEvents="box-none">
       <View style={styles.bar}>
-        <View pointerEvents="none" style={styles.barWash} />
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const config = tabs[route.name];
-          const colors = toneColors[config.tone];
           const label = descriptors[route.key]?.options.title ?? config.label;
 
           const onPress = () => {
@@ -55,17 +56,16 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
                 style={[
                   styles.activePill,
                   focused && styles.activePillFocused,
-                  focused && { backgroundColor: colors.soft, borderColor: colors.main },
                 ]}
               >
                 <AppIcon
                   name={config.icon}
-                  size={focused ? 27 : 25}
-                  color={focused ? colors.deep : colors.main}
-                  strokeWidth={focused ? 2.7 : 2.35}
+                  size={focused ? 25 : 23}
+                  color={focused ? palette.lilacDeep : palette.inkSoft}
+                  strokeWidth={focused ? 2.55 : 2.2}
                 />
               </View>
-              <Text style={[styles.label, { color: focused ? colors.deep : palette.inkSoft }, focused && styles.activeLabel]}>
+              <Text style={[styles.label, focused && styles.activeLabel]}>
                 {String(label)}
               </Text>
             </Pressable>
@@ -82,67 +82,47 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
   },
   bar: {
-    height: 76,
+    height: 72,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 7,
-    borderRadius: 29,
-    backgroundColor: palette.cream,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 250, 240, 0.98)',
     borderWidth: 1,
-    borderColor: 'rgba(123, 91, 104, 0.12)',
+    borderColor: ui.surface.border,
     shadowColor: '#675866',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.11,
-    shadowRadius: 9,
-    elevation: 4,
-  },
-  barWash: {
-    position: 'absolute',
-    top: 7,
-    left: 18,
-    right: 18,
-    height: 24,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 17,
-    borderBottomRightRadius: 24,
-    borderBottomLeftRadius: 15,
-    backgroundColor: palette.white,
-    opacity: 0.52,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 3,
   },
   tab: {
     flex: 1,
-    height: 66,
+    height: 62,
     alignItems: 'center',
     justifyContent: 'center',
   },
   activePill: {
-    width: 54,
-    height: 36,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 16,
-    borderBottomRightRadius: 21,
-    borderBottomLeftRadius: 15,
-    borderWidth: 1,
-    borderColor: 'transparent',
+    width: 42,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
   activePillFocused: {
-    shadowColor: palette.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    borderBottomWidth: 2,
+    borderBottomColor: palette.lilacDeep,
   },
   label: {
+    ...typeScale.caption,
+    fontFamily: fonts.semibold,
     marginTop: 2,
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: '500',
+    color: palette.inkSoft,
   },
   activeLabel: {
-    fontWeight: '700',
+    fontFamily: fonts.bold,
+    color: palette.lilacDeep,
   },
 });

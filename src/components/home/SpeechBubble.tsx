@@ -1,13 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { palette } from '@/theme/palette';
+import { fonts, typeScale } from '@/theme/typography';
 
-export function SpeechBubble() {
+type SpeechBubbleProps = {
+  bottomOffset: number;
+};
+
+export function SpeechBubble({ bottomOffset }: SpeechBubbleProps) {
   return (
-    <View style={styles.wrapper} pointerEvents="none">
+    <View style={[styles.wrapper, { bottom: bottomOffset }]} pointerEvents="none">
       <View style={styles.bubble}>
-        <View style={styles.wash} />
-        <Text style={styles.text}>¿Qué te gustaría organizar hoy?</Text>
+        <Text style={styles.text}>¿Qué organizamos hoy?</Text>
       </View>
       <View style={styles.tail} />
     </View>
@@ -16,46 +20,36 @@ export function SpeechBubble() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignSelf: 'flex-end',
-    marginRight: 20,
-    zIndex: 2,
+    position: 'absolute',
+    right: 20,
+    zIndex: 3,
   },
   bubble: {
-    width: 202,
-    paddingHorizontal: 22,
-    paddingVertical: 15,
-    borderRadius: 29,
+    maxWidth: 178,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
     backgroundColor: palette.cream,
     borderWidth: 1,
-    borderColor: 'rgba(166, 136, 126, 0.1)',
-    overflow: 'hidden',
+    borderColor: 'rgba(81, 64, 93, 0.1)',
   },
-  wash: {
-    position: 'absolute',
-    top: -10,
-    right: -12,
-    width: 112,
-    height: 58,
-    borderRadius: 32,
-    backgroundColor: palette.pinkSoft,
-    opacity: 0.28,
-    transform: [{ rotate: '5deg' }],
-  },
+  // Lo que dice Pandoro va en la tipografía de los títulos: es su voz, no la de la interfaz.
   text: {
-    zIndex: 1,
+    ...typeScale.body,
+    fontFamily: fonts.display,
+    lineHeight: 21,
     color: palette.ink,
-    textAlign: 'center',
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 23,
+    textAlign: 'left',
   },
   tail: {
-    width: 22,
-    height: 22,
-    marginLeft: 31,
-    marginTop: -11,
+    width: 12,
+    height: 12,
+    marginTop: -6,
+    marginLeft: 24,
     backgroundColor: palette.cream,
-    borderBottomLeftRadius: 20,
-    transform: [{ rotate: '34deg' }],
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(81, 64, 93, 0.1)',
+    transform: [{ rotate: '45deg' }],
   },
 });

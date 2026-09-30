@@ -23,6 +23,7 @@ export function HomeScreen() {
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <ForestScene />
       </View>
+      <View style={styles.backgroundWash} pointerEvents="none" />
 
       <View style={[styles.safeContent, { paddingTop: insets.top + 9 }]}>
         <View style={styles.topRow}>
@@ -30,9 +31,8 @@ export function HomeScreen() {
         </View>
 
         <View style={[styles.main, compact && styles.mainCompact]}>
-          <SpeechBubble />
-
           <View style={styles.characterStage} pointerEvents="box-none">
+            <SpeechBubble bottomOffset={pandaSize * 0.82} />
             <View style={[styles.companionBird, compact && styles.companionBirdCompact]} pointerEvents="none">
               <VoiceBird size={compact ? 48 : 58} />
             </View>
@@ -41,30 +41,29 @@ export function HomeScreen() {
 
           <View style={[styles.actions, { marginBottom: Math.max(insets.bottom, 8) + 84 }]}>
             <AnimatedActionButton
-              label="Mis tareas"
-              tone="lilac"
-              onPress={() => router.push('/tareas')}
-            >
-              <AppIcon name="checklist" color={palette.lilacDeep} size={42} />
-            </AnimatedActionButton>
-
-            <AnimatedActionButton
               label="Hablar con Pandoro"
               accessibilityLabel="Hablar con Pandoro"
-              tone="blue"
-              emphasized
+              variant="primary"
               onPress={() => router.push('/hablar')}
             >
-              <VoiceBird size={62} />
+              <VoiceBird size={36} />
             </AnimatedActionButton>
 
-            <AnimatedActionButton
-              label="Nueva tarea"
-              tone="pink"
-              onPress={() => router.push('/nueva-tarea')}
-            >
-              <AppIcon name="plus" color={palette.pinkDeep} size={49} strokeWidth={2.8} />
-            </AnimatedActionButton>
+            <View style={styles.secondaryActions}>
+              <AnimatedActionButton
+                label="Mis tareas"
+                onPress={() => router.push('/tareas')}
+              >
+                <AppIcon name="checklist" color={palette.lilacDeep} size={24} />
+              </AnimatedActionButton>
+
+              <AnimatedActionButton
+                label="Nueva tarea"
+                onPress={() => router.push('/nueva-tarea')}
+              >
+                <AppIcon name="plus" color={palette.lilacDeep} size={25} strokeWidth={2.5} />
+              </AnimatedActionButton>
+            </View>
           </View>
         </View>
       </View>
@@ -81,25 +80,33 @@ const styles = StyleSheet.create({
   safeContent: {
     flex: 1,
   },
+  backgroundWash: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(247, 250, 244, 0.24)',
+  },
   topRow: {
-    height: 72,
+    height: 52,
     paddingHorizontal: 20,
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
   },
   main: {
     flex: 1,
-    paddingTop: 10,
+    paddingTop: 8,
   },
   mainCompact: {
     paddingTop: 0,
   },
   characterStage: {
     flex: 1,
-    minHeight: 226,
+    minHeight: 210,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginTop: -9,
+    marginTop: -4,
   },
   companionBird: {
     position: 'absolute',
@@ -112,10 +119,13 @@ const styles = StyleSheet.create({
     bottom: '14%',
   },
   actions: {
-    minHeight: 132,
+    minHeight: 122,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    gap: 10,
+  },
+  secondaryActions: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 12,
-    paddingTop: 4,
+    gap: 10,
   },
 });

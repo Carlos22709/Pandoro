@@ -4,8 +4,7 @@ export default function NewTaskRoute() {
   return (
     <ScreenPlaceholder
       title="Nueva tarea"
-      subtitle="Este espacio está listo para crear tu próxima tarea."
-      tone="pink"
+      subtitle="Esta pantalla aún no existe. Mientras tanto, crea la tarea con el + de Tareas."
       symbol="plus"
       secondary
     />
