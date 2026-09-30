@@ -1,16 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 
-import { type PaletteTone, toneColors } from '@/theme/palette';
+import { palette } from '@/theme/palette';
 
 type PaginationDotsProps = {
   activeIndex: number;
   total?: number;
-  tone: Extract<PaletteTone, 'pink' | 'lilac' | 'blue' | 'yellow'>;
 };
 
-export function PaginationDots({ activeIndex, total = 4, tone }: PaginationDotsProps) {
-  const colors = toneColors[tone];
-
+export function PaginationDots({ activeIndex, total = 4 }: PaginationDotsProps) {
   return (
     <View
       accessibilityRole="progressbar"
@@ -26,8 +23,8 @@ export function PaginationDots({ activeIndex, total = 4, tone }: PaginationDotsP
             style={[
               styles.dot,
               {
-                width: active ? 24 : 8,
-                backgroundColor: active ? colors.deep : colors.soft,
+                width: active ? 18 : 6,
+                backgroundColor: active ? palette.lilacDeep : palette.lilacSoft,
               },
             ]}
           />
@@ -39,14 +36,14 @@ export function PaginationDots({ activeIndex, total = 4, tone }: PaginationDotsP
 
 const styles = StyleSheet.create({
   container: {
-    height: 16,
+    height: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    justifyContent: 'flex-start',
+    gap: 6,
   },
   dot: {
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 3,
   },
 });

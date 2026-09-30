@@ -14,7 +14,9 @@ import { AuthBackdrop } from '@/components/art/AuthBackdrop';
 import type { PandoroHeadVariant } from '@/components/art/PandoroHead';
 import { PandoroBrandMark } from '@/components/auth/PandoroBrandMark';
 import { PrimaryButton } from '@/components/onboarding/PrimaryButton';
-import { type PaletteTone, palette, toneColors } from '@/theme/palette';
+import { type PaletteTone, palette } from '@/theme/palette';
+import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 export type AuthTone = Extract<PaletteTone, 'blue' | 'pink'>;
 
@@ -63,18 +65,20 @@ export function AuthLayout({
           >
             <View style={styles.content}>
               <View style={styles.header}>
-                <PandoroBrandMark variant={scene.head} size={Math.min(116, height * 0.14)} />
+                <View style={styles.brandMark}>
+                  <PandoroBrandMark variant={scene.head} size={Math.min(116, height * 0.14)} />
+                </View>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.subtitle}>{subtitle}</Text>
               </View>
 
               <View style={styles.form}>{children}</View>
 
-              <PrimaryButton label={submitLabel} tone={tone} onPress={onSubmit} />
+              <PrimaryButton label={submitLabel} onPress={onSubmit} />
 
               <View style={styles.switchRow}>
                 <Text style={styles.switchPrompt}>{switchPrompt}</Text>
-                <AuthLink label={switchLabel} tone={tone} emphasized onPress={onSwitch} />
+                <AuthLink label={switchLabel} emphasized onPress={onSwitch} />
               </View>
             </View>
           </ScrollView>
@@ -86,13 +90,11 @@ export function AuthLayout({
 
 type AuthLinkProps = {
   label: string;
-  tone: AuthTone;
   onPress: () => void;
-  // Destacado: texto intenso con un trazo de acuarela del tono debajo.
   emphasized?: boolean;
 };
 
-export function AuthLink({ label, tone, onPress, emphasized = false }: AuthLinkProps) {
+export function AuthLink({ label, onPress, emphasized = false }: AuthLinkProps) {
   return (
     <Pressable
       accessibilityRole="link"
@@ -101,9 +103,6 @@ export function AuthLink({ label, tone, onPress, emphasized = false }: AuthLinkP
       onPress={onPress}
       style={({ pressed }) => pressed && styles.pressed}
     >
-      {emphasized && (
-        <View pointerEvents="none" style={[styles.linkWash, { backgroundColor: toneColors[tone].main }]} />
-      )}
       <Text style={[styles.link, emphasized && styles.linkEmphasized]}>{label}</Text>
     </Pressable>
   );
@@ -119,8 +118,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 28,
+    paddingHorizontal: ui.space.xl,
+    paddingVertical: ui.space.xl,
   },
   content: {
     width: '100%',
@@ -128,65 +127,50 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 30,
+    alignItems: 'flex-start',
+    marginBottom: ui.space.xl,
+  },
+  brandMark: {
+    alignSelf: 'center',
   },
   title: {
-    marginTop: 18,
+    ...typeScale.title,
+    marginTop: ui.space.lg,
     color: palette.ink,
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '800',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   subtitle: {
+    ...typeScale.body,
     maxWidth: 320,
     marginTop: 8,
     color: palette.inkSoft,
-    fontSize: 16,
-    lineHeight: 23,
-    fontWeight: '500',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   form: {
-    gap: 18,
-    marginBottom: 28,
+    gap: 14,
+    marginBottom: ui.space.xl,
   },
   switchRow: {
     marginTop: 22,
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     columnGap: 6,
     rowGap: 4,
   },
   switchPrompt: {
+    ...typeScale.small,
     color: palette.inkSoft,
-    fontSize: 15,
-    fontWeight: '500',
   },
   link: {
+    ...typeScale.small,
+    fontFamily: fonts.semibold,
     color: palette.inkSoft,
-    fontSize: 15,
-    fontWeight: '600',
   },
   linkEmphasized: {
-    color: palette.ink,
-    fontWeight: '800',
-  },
-  linkWash: {
-    position: 'absolute',
-    left: -4,
-    right: -4,
-    bottom: 1,
-    height: 10,
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 7,
-    borderBottomLeftRadius: 5,
-    opacity: 0.6,
-    transform: [{ rotate: '-1.5deg' }],
+    fontFamily: fonts.bold,
+    color: palette.lilacDeep,
   },
   pressed: {
     opacity: 0.7,

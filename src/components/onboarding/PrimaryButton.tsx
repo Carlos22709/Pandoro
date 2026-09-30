@@ -1,18 +1,16 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { type PaletteTone, palette, toneColors } from '@/theme/palette';
+import { palette } from '@/theme/palette';
+import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type PrimaryButtonProps = {
   label: string;
-  tone: Extract<PaletteTone, 'pink' | 'lilac' | 'blue' | 'yellow'>;
   onPress: () => void;
-  // "soft": fondo crema con borde del tono, para la acción secundaria.
-  variant?: 'filled' | 'soft';
+  variant?: 'filled' | 'soft' | 'text';
 };
 
-export function PrimaryButton({ label, tone, onPress, variant = 'filled' }: PrimaryButtonProps) {
-  const colors = toneColors[tone];
-
+export function PrimaryButton({ label, onPress, variant = 'filled' }: PrimaryButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -20,13 +18,15 @@ export function PrimaryButton({ label, tone, onPress, variant = 'filled' }: Prim
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        variant === 'filled'
-          ? { backgroundColor: colors.main }
-          : [styles.soft, { borderColor: colors.main }],
+        variant === 'filled' && styles.filled,
+        variant === 'soft' && styles.soft,
+        variant === 'text' && styles.textButton,
         pressed && styles.pressed,
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, variant === 'filled' ? styles.filledLabel : styles.secondaryLabel]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -34,19 +34,33 @@ export function PrimaryButton({ label, tone, onPress, variant = 'filled' }: Prim
 const styles = StyleSheet.create({
   button: {
     width: '100%',
-    height: 56,
-    borderRadius: 22,
+    minHeight: ui.size.control,
+    borderRadius: ui.radius.control,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: ui.space.lg,
+  },
+  filled: {
+    backgroundColor: palette.lilacDeep,
   },
   soft: {
-    backgroundColor: palette.white,
-    borderWidth: 1.5,
+    backgroundColor: ui.surface.base,
+    borderWidth: 1,
+    borderColor: ui.surface.borderStrong,
+  },
+  textButton: {
+    minHeight: ui.size.touch,
   },
   label: {
-    color: palette.ink,
-    fontSize: 16,
-    fontWeight: '700',
+    ...typeScale.body,
+    fontFamily: fonts.bold,
+    lineHeight: 20,
+  },
+  filledLabel: {
+    color: palette.white,
+  },
+  secondaryLabel: {
+    color: palette.lilacDeep,
   },
   pressed: {
     opacity: 0.78,

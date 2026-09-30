@@ -1,17 +1,17 @@
 import { type Ref, useState } from 'react';
 import { StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
 
-import { type PaletteTone, palette, toneColors } from '@/theme/palette';
+import { palette } from '@/theme/palette';
+import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type AuthInputProps = Omit<TextInputProps, 'style'> & {
   label: string;
-  tone: PaletteTone;
   ref?: Ref<TextInput>;
 };
 
-export function AuthInput({ label, tone, ref, onFocus, onBlur, ...inputProps }: AuthInputProps) {
+export function AuthInput({ label, ref, onFocus, onBlur, ...inputProps }: AuthInputProps) {
   const [focused, setFocused] = useState(false);
-  const colors = toneColors[tone];
 
   return (
     <View style={styles.field}>
@@ -20,8 +20,8 @@ export function AuthInput({ label, tone, ref, onFocus, onBlur, ...inputProps }: 
         ref={ref}
         accessibilityLabel={label}
         placeholderTextColor={palette.inkSoft}
-        selectionColor={colors.deep}
-        cursorColor={colors.deep}
+        selectionColor={palette.lilacDeep}
+        cursorColor={palette.lilacDeep}
         onFocus={(event) => {
           setFocused(true);
           onFocus?.(event);
@@ -30,7 +30,7 @@ export function AuthInput({ label, tone, ref, onFocus, onBlur, ...inputProps }: 
           setFocused(false);
           onBlur?.(event);
         }}
-        style={[styles.input, focused && { borderColor: colors.deep, backgroundColor: palette.white }]}
+        style={[styles.input, focused && styles.inputFocused]}
         {...inputProps}
       />
     </View>
@@ -39,27 +39,30 @@ export function AuthInput({ label, tone, ref, onFocus, onBlur, ...inputProps }: 
 
 const styles = StyleSheet.create({
   field: {
-    gap: 8,
+    gap: 6,
   },
   label: {
-    marginLeft: 6,
+    ...typeScale.small,
+    fontFamily: fonts.semibold,
     color: palette.ink,
-    fontSize: 14,
-    fontWeight: '700',
   },
   input: {
-    height: 58,
-    paddingHorizontal: 20,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: 'rgba(81, 64, 93, 0.1)',
-    backgroundColor: palette.cream,
+    height: ui.size.control,
+    paddingHorizontal: ui.space.lg,
+    borderRadius: ui.radius.control,
+    borderWidth: 1,
+    borderColor: ui.surface.border,
+    backgroundColor: ui.surface.base,
     color: palette.ink,
-    fontSize: 16,
-    fontWeight: '500',
+    fontFamily: fonts.regular,
+    fontSize: typeScale.body.fontSize,
     // En web, el anillo de foco "auto" del navegador ignora el ancho; con estilo sólido
     // y ancho 0 desaparece y el borde del tono hace de indicador de foco.
     outlineStyle: 'solid',
     outlineWidth: 0,
+  },
+  inputFocused: {
+    borderColor: palette.lilacDeep,
+    backgroundColor: palette.white,
   },
 });

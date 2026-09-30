@@ -16,16 +16,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PandoroHead, type PandoroHeadVariant } from '@/components/art/PandoroHead';
 import { PaginationDots } from '@/components/onboarding/PaginationDots';
 import { PrimaryButton } from '@/components/onboarding/PrimaryButton';
-import { type PaletteTone, palette } from '@/theme/palette';
-
-type OnboardingTone = Extract<PaletteTone, 'pink' | 'lilac' | 'blue' | 'yellow'>;
+import { palette } from '@/theme/palette';
+import { typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type OnboardingPage = {
   id: string;
   title: string;
   description: string;
   variant: PandoroHeadVariant;
-  tone: OnboardingTone;
   backgroundColor: string;
 };
 
@@ -33,33 +32,29 @@ const PAGES: readonly OnboardingPage[] = [
   {
     id: 'welcome',
     title: 'PANDORO',
-    description: 'Tu compañero para organizarte sin complicarte.',
+    description: 'Un panda que te echa una pata con los pendientes.',
     variant: 'splash',
-    tone: 'pink',
     backgroundColor: palette.onboardingSky,
   },
   {
     id: 'organize',
-    title: 'Organiza sin complicarte',
-    description: 'Reúne tus tareas en un lugar sencillo, amable y hecho para ti.',
+    title: 'Anota lo que te ronda la cabeza',
+    description: 'El informe, el correo que llevas días posponiendo, las compras. Todo en una sola lista.',
     variant: 'pink',
-    tone: 'lilac',
     backgroundColor: palette.onboardingSkyPink,
   },
   {
     id: 'prioritize',
-    title: 'Encuentra por dónde empezar',
-    description: 'Pandoro te ayuda a ver lo importante y dar el siguiente paso.',
+    title: 'Empieza por una sola cosa',
+    description: 'En «Ahora», Pandoro pone arriba la tarea que conviene hacer primero. Las demás pueden esperar.',
     variant: 'blue',
-    tone: 'blue',
     backgroundColor: palette.onboardingSkyBlue,
   },
   {
     id: 'progress',
-    title: 'Avanza a tu ritmo',
-    description: 'Celebra cada pequeño progreso mientras construyes tu rutina.',
+    title: 'Cada tarea es un paso',
+    description: 'Al terminarlas, Pandoro recorre su mundo: del estanque al bosque de origami, y después a sitios más raros.',
     variant: 'yellow',
-    tone: 'yellow',
     backgroundColor: palette.onboardingSkyYellow,
   },
 ];
@@ -78,14 +73,23 @@ export function WelcomeScreen() {
   };
 
   const renderPage: ListRenderItem<OnboardingPage> = ({ item }) => (
-    <View style={[styles.page, { width, backgroundColor: item.backgroundColor }]}>
+    <View
+      style={[
+        styles.page,
+        {
+          width,
+          height: Math.max(480, height - 160),
+          backgroundColor: item.backgroundColor,
+        },
+      ]}
+    >
       <View style={styles.artArea}>
-        <Animated.View entering={ZoomIn.duration(380)}>
+        <Animated.View entering={ZoomIn.duration(220)}>
           <PandoroHead size={pandoroSize} variant={item.variant} />
         </Animated.View>
       </View>
 
-      <Animated.View entering={FadeIn.duration(420)} style={styles.copyArea}>
+      <Animated.View entering={FadeIn.duration(220)} style={styles.copyArea}>
         <Text style={[styles.title, item.id === 'welcome' && styles.brandTitle]}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
       </Animated.View>
@@ -110,17 +114,15 @@ export function WelcomeScreen() {
       />
 
       <View style={[styles.footer, { backgroundColor: activePage.backgroundColor }]}>
-        <PaginationDots activeIndex={activeIndex} total={PAGES.length} tone={activePage.tone} />
+        <PaginationDots activeIndex={activeIndex} total={PAGES.length} />
         <View style={styles.actions}>
           <PrimaryButton
             label="Crear cuenta"
-            tone={activePage.tone}
             onPress={() => router.push('/register')}
           />
           <PrimaryButton
             label="Iniciar sesión"
-            tone={activePage.tone}
-            variant="soft"
+            variant="text"
             onPress={() => router.push('/login')}
           />
         </View>
@@ -139,46 +141,46 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: ui.space.xl,
     paddingBottom: 24,
   },
   artArea: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 38,
+    marginBottom: 24,
   },
   copyArea: {
-    alignItems: 'center',
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+    alignItems: 'flex-start',
   },
   title: {
+    ...typeScale.title,
     maxWidth: 340,
     color: palette.ink,
-    fontSize: 29,
-    lineHeight: 35,
-    fontWeight: '800',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   brandTitle: {
-    fontSize: 34,
-    lineHeight: 40,
-    letterSpacing: 1.6,
+    ...typeScale.brand,
   },
   description: {
+    ...typeScale.body,
     maxWidth: 330,
     marginTop: 14,
     color: palette.inkSoft,
-    fontSize: 17,
-    lineHeight: 25,
-    fontWeight: '500',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   footer: {
-    paddingHorizontal: 28,
+    width: '100%',
+    maxWidth: 468,
+    alignSelf: 'center',
+    paddingHorizontal: ui.space.xl,
     paddingTop: 8,
     paddingBottom: 18,
-    gap: 16,
+    gap: ui.space.md,
   },
   actions: {
-    gap: 10,
+    gap: ui.space.xs,
   },
 });

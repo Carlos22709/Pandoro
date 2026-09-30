@@ -15,7 +15,7 @@ export function LoginScreen() {
     <AuthLayout
       tone="blue"
       title={'Qué bueno verte\nde nuevo'}
-      subtitle="Ingresa para continuar con Pandoro"
+      subtitle="Tus tareas siguen donde las dejaste."
       submitLabel="Iniciar sesión"
       onSubmit={enterApp}
       switchPrompt="¿Aún no tienes una cuenta?"
@@ -24,7 +24,6 @@ export function LoginScreen() {
     >
       <AuthInput
         label="Correo electrónico"
-        tone="blue"
         placeholder="tu@correo.com"
         keyboardType="email-address"
         autoCapitalize="none"
@@ -37,7 +36,6 @@ export function LoginScreen() {
       <AuthInput
         ref={passwordRef}
         label="Contraseña"
-        tone="blue"
         placeholder="Tu contraseña"
         secureTextEntry
         autoCapitalize="none"
@@ -49,7 +47,7 @@ export function LoginScreen() {
 
       {/* Prototipo: sin recuperación real, solo respuesta visual al pulsar. */}
       <View style={styles.forgot}>
-        <AuthLink label="¿Olvidaste tu contraseña?" tone="blue" onPress={() => {}} />
+        <AuthLink label="¿Olvidaste tu contraseña?" onPress={() => {}} />
       </View>
     </AuthLayout>
   );

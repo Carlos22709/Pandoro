@@ -17,7 +17,7 @@ export function RegisterScreen() {
     <AuthLayout
       tone="pink"
       title="Crea tu cuenta"
-      subtitle="Empieza a organizarte junto a Pandoro"
+      subtitle="Nombre, correo y contraseña. Nada más."
       submitLabel="Crear cuenta"
       onSubmit={enterApp}
       switchPrompt="¿Ya tienes una cuenta?"
@@ -26,7 +26,6 @@ export function RegisterScreen() {
     >
       <AuthInput
         label="Nombre"
-        tone="pink"
         placeholder="¿Cómo te llamas?"
         autoCapitalize="words"
         autoComplete="name"
@@ -38,7 +37,6 @@ export function RegisterScreen() {
       <AuthInput
         ref={emailRef}
         label="Correo electrónico"
-        tone="pink"
         placeholder="tu@correo.com"
         keyboardType="email-address"
         autoCapitalize="none"
@@ -51,7 +49,6 @@ export function RegisterScreen() {
       <AuthInput
         ref={passwordRef}
         label="Contraseña"
-        tone="pink"
         placeholder="Crea una contraseña"
         secureTextEntry
         autoCapitalize="none"
@@ -64,7 +61,6 @@ export function RegisterScreen() {
       <AuthInput
         ref={confirmRef}
         label="Confirmar contraseña"
-        tone="pink"
         placeholder="Repite tu contraseña"
         secureTextEntry
         autoCapitalize="none"
