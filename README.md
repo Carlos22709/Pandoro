@@ -1,6 +1,6 @@
-# Pandoro — demo de navegación
+# Pandoro — demo interactiva
 
-Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea, sin lógica de negocio ni persistencia.
+Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. No hay backend, micrófono ni IA: una simulación en memoria hace que las acciones tengan consecuencias en toda la app para presentarla en vivo.
 
 Flujo de entrada:
 
@@ -12,6 +12,22 @@ Bienvenida ⇄ Organiza ⇄ Prioriza ⇄ Avanza
 ```
 
 El acceso es solo visual: los campos admiten texto, pero no hay autenticación, validación ni persistencia. Cualquier botón de acceso entra en Inicio y vacía la pila de navegación. Las pantallas de acceso comparten `src/components/auth/` (`AuthLayout`, `AuthInput`, `PandoroBrandMark`).
+
+## Simulación para presentar
+
+La demo cuenta una historia fija que sale igual en cada ensayo:
+
+```text
+Inicio → Hablar con Pandoro (dos turnos con guion) → Pandoro propone un plan de 6 tareas
+      → Agregar a mis tareas → Tareas: "Terminar el informe" destacada
+      → completarla → celebración → Ver mi mundo → Pandoro camina al Bosque de origami
+      → Inicio: el zorro y las flores de origami se despliegan
+```
+
+- **Hablar:** mantén pulsado el pajarito mientras dices tu frase; la transcripción del guion se escribe sola y se envía al soltar. Un toque corto no envía nada. Lo que se diga en voz alta no importa, pero conviene decir algo parecido al guion.
+- **Guion:** todos los textos (frases, respuestas, plan, títulos de celebración y burbuja de Inicio) están en `src/demo/demoScript.ts`. Las fechas suponen que la demo se presenta un martes.
+- **Estado:** `src/demo/demoState.ts` guarda tareas y progreso, y `DemoProvider` lo comparte con todas las pantallas. La demo arranca con 24 tareas completadas, así que la tarea que se completa en escena abre el Bosque de origami.
+- **Reiniciar:** Ajustes → Demo → "Reiniciar demo" (pide un segundo toque). Recargar la app también vuelve al inicio, porque nada se guarda en disco.
 
 ## Ejecutar
 
@@ -43,6 +59,7 @@ El arte está implementado como SVG nativo para conservar nitidez y evitar depen
 
 El color de Pandoro son iluminaciones de acuarela: óvalos con degradado radial que se desvanecen hasta transparente, agrupados por zona (`HEAD_LIGHTS`, `BODY_LIGHTS`, reflejos de las partes oscuras) y con una intensidad global (`LIGHT_INTENSITY`) en `Pandoro.tsx`.
 - Pajarito: `src/components/art/VoiceBird.tsx`
+- Bosque de origami de Inicio: el fondo `src/components/art/OrigamiForestScene.tsx` sustituye al de bambú al desbloquear el lugar, y en el frente se despliegan `OrigamiFox.tsx` y los tulipanes de `OrigamiFlowers.tsx` (dibujos propios, distintos de las piezas pequeñas del mapa de Progreso)
 - Fondo de las pantallas de acceso: `src/components/art/AuthBackdrop.tsx`
 
 Cada pieza es un componente independiente. Para sustituirla por una imagen final, conserva el componente contenedor y reemplaza su SVG por un `Image` con un archivo ubicado en `assets/`. De ese modo las pantallas y futuras animaciones no necesitan cambiar.
