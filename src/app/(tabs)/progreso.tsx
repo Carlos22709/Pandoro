@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/components/screens/ScreenPlaceholder';
+import { ProgressScreen } from '@/screens/ProgressScreen';
 
 export default function ProgressRoute() {
-  return <ScreenPlaceholder title="Progreso" tone="yellow" symbol="sprout" />;
+  return <ProgressScreen />;
 }
