@@ -26,6 +26,10 @@ type ProgressWorldProps = {
   currentStage: number;
   stages: ProgressWorldStage[];
   onLandmarkPress: (stage: ProgressWorldStage) => void;
+  // Llegada a un lugar nuevo: Pandoro camina hasta él y después el lugar florece.
+  walkTo?: ProgressWorldStage;
+  walkDuration?: number;
+  bloomingStageId?: number;
 };
 
 function ProgressWorldLandscape() {
@@ -125,6 +129,9 @@ export function ProgressWorld({
   currentStage,
   stages,
   onLandmarkPress,
+  walkTo,
+  walkDuration,
+  bloomingStageId,
 }: ProgressWorldProps) {
   const { width } = useWindowDimensions();
   const worldWidth = Math.min(width, 480);
@@ -139,6 +146,7 @@ export function ProgressWorld({
           key={stage.id}
           stage={stage}
           worldWidth={worldWidth}
+          blooming={stage.id === bloomingStageId}
           onPress={() => onLandmarkPress(stage)}
         />
       ))}
@@ -147,6 +155,8 @@ export function ProgressWorld({
           x={current.x}
           y={current.y}
           worldWidth={worldWidth}
+          walkTo={walkTo}
+          walkDuration={walkDuration}
         />
       ) : null}
     </View>

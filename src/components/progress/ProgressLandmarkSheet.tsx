@@ -10,25 +10,30 @@ import { ui } from '@/theme/ui';
 type ProgressLandmarkSheetProps = {
   stage: ProgressWorldStage | null;
   completedTasks: number;
+  // Se abre sola al llegar a un lugar recién desbloqueado.
+  isNew?: boolean;
   onClose: () => void;
 };
 
 export function ProgressLandmarkSheet({
   stage,
   completedTasks,
+  isNew = false,
   onClose,
 }: ProgressLandmarkSheetProps) {
   const insets = useSafeAreaInsets();
 
   if (!stage) return null;
 
-  const stateLabel = stage.status === 'completed'
-    ? 'Lugar recorrido'
-    : stage.status === 'current'
-      ? 'Ubicación actual'
-      : stage.isNext
-        ? 'Próxima parada'
-        : 'Por descubrir';
+  const stateLabel = isNew
+    ? '¡Nuevo lugar!'
+    : stage.status === 'completed'
+      ? 'Lugar recorrido'
+      : stage.status === 'current'
+        ? 'Ubicación actual'
+        : stage.isNext
+          ? 'Próxima parada'
+          : 'Por descubrir';
 
   const progressCopy = stage.status === 'completed'
     ? 'Este lugar ya floreció como parte de tu viaje.'
@@ -38,7 +43,7 @@ export function ProgressLandmarkSheet({
         ? 'Te faltan ' + stage.remainingTasks + ' tareas para llegar aquí.'
         : 'Llegarás aquí al completar ' + stage.requiredTasks + ' tareas.';
 
-  const stateColor = stage.status === 'completed'
+  const stateColor = isNew || stage.status === 'completed'
     ? palette.greenDeep
     : stage.status === 'current'
       ? palette.lilacDeep
