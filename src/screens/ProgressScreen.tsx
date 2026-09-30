@@ -8,10 +8,10 @@ import { ProgressLandmarkSheet } from '@/components/progress/ProgressLandmarkShe
 import { ProgressSummary } from '@/components/progress/ProgressSummary';
 import { ProgressWorld } from '@/components/progress/ProgressWorld';
 import {
-  MOCK_WORLD_PROGRESS,
   buildProgressWorldStages,
   type ProgressWorldStage,
 } from '@/components/progress/worldData';
+import { useDemo } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
 import { typeScale } from '@/theme/typography';
 
@@ -22,11 +22,12 @@ type TabPressNavigation = {
 export function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation() as unknown as TabPressNavigation;
+  const { progress } = useDemo();
   const scrollRef = useRef<ScrollView>(null);
   const positionedRef = useRef(false);
   const [selectedStage, setSelectedStage] = useState<ProgressWorldStage | null>(null);
 
-  const stages = useMemo(() => buildProgressWorldStages(MOCK_WORLD_PROGRESS), []);
+  const stages = useMemo(() => buildProgressWorldStages(progress), [progress]);
   const currentStage = stages.find((stage) => stage.status === 'current');
 
   const scrollToCurrentStage = useCallback((animated: boolean) => {
@@ -64,8 +65,8 @@ export function ProgressScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Progreso</Text>
           <ProgressSummary
-            streak={MOCK_WORLD_PROGRESS.streak}
-            completedTasks={MOCK_WORLD_PROGRESS.completedTasks}
+            streak={progress.streak}
+            completedTasks={progress.completedTasks}
           />
         </View>
 
@@ -75,7 +76,7 @@ export function ProgressScreen() {
           onContentSizeChange={positionWorldAtCurrentStage}
         >
           <ProgressWorld
-            currentStage={MOCK_WORLD_PROGRESS.currentStage}
+            currentStage={progress.currentStage}
             stages={stages}
             onLandmarkPress={setSelectedStage}
           />
@@ -84,7 +85,7 @@ export function ProgressScreen() {
 
       <ProgressLandmarkSheet
         stage={selectedStage}
-        completedTasks={MOCK_WORLD_PROGRESS.completedTasks}
+        completedTasks={progress.completedTasks}
         onClose={() => setSelectedStage(null)}
       />
     </View>

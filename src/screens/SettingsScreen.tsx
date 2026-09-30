@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ForestScene } from '@/components/art/ForestScene';
 import { AppIcon } from '@/components/icons/AppIcon';
+import { useDemo } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -122,8 +123,26 @@ function PreferenceRow({
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { resetDemo } = useDemo();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [demoReset, setDemoReset] = useState<'idle' | 'confirming' | 'done'>('idle');
   const colors = preferences.darkMode ? DARK_COLORS : LIGHT_COLORS;
+
+  // Reiniciar pide un segundo toque para no borrar la demo por accidente.
+  useEffect(() => {
+    if (demoReset === 'idle') return;
+    const timer = setTimeout(() => setDemoReset('idle'), demoReset === 'confirming' ? 3000 : 2000);
+    return () => clearTimeout(timer);
+  }, [demoReset]);
+
+  const pressResetDemo = () => {
+    if (demoReset !== 'confirming') {
+      setDemoReset('confirming');
+      return;
+    }
+    resetDemo();
+    setDemoReset('done');
+  };
 
   const updatePreference = (key: PreferenceKey, value: boolean) => {
     setPreferences((current) => ({ ...current, [key]: value }));
@@ -244,6 +263,40 @@ export function SettingsScreen() {
             colors={colors}
             last
           />
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Demo</Text>
+        <View style={[styles.sectionSurface, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={demoReset === 'confirming' ? 'Confirmar reinicio de la demo' : 'Reiniciar demo'}
+            onPress={pressResetDemo}
+            style={({ pressed }) => [styles.accountAction, pressed && styles.pressed]}
+          >
+            <AppIcon
+              name="play"
+              color={demoReset === 'confirming' ? palette.pinkDeep : colors.accent}
+              size={22}
+              strokeWidth={2.1}
+            />
+            <View style={styles.preferenceCopy}>
+              <Text
+                style={[
+                  styles.preferenceTitle,
+                  { color: demoReset === 'confirming' ? palette.pinkDeep : colors.text },
+                ]}
+              >
+                {demoReset === 'confirming'
+                  ? 'Toca otra vez para reiniciar'
+                  : demoReset === 'done'
+                    ? 'Demo reiniciada'
+                    : 'Reiniciar demo'}
+              </Text>
+              <Text style={[styles.preferenceDescription, { color: colors.muted }]}>
+                Vuelve las tareas, el progreso y el mundo de Pandoro al inicio de la presentación.
+              </Text>
+            </View>
+          </Pressable>
         </View>
 
         <Pressable

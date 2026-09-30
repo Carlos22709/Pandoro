@@ -9,12 +9,15 @@ import { AnimatedActionButton } from '@/components/controls/AnimatedActionButton
 import { ProgressWidget } from '@/components/home/ProgressWidget';
 import { SpeechBubble } from '@/components/home/SpeechBubble';
 import { AppIcon } from '@/components/icons/AppIcon';
+import { useDemo } from '@/demo/DemoProvider';
+import { getStageProgress } from '@/demo/demoState';
 import { palette } from '@/theme/palette';
 
 export function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
+  const { progress } = useDemo();
   const pandaSize = Math.min(width * 0.69, height * 0.35, 278);
   const compact = height < 720;
 
@@ -27,7 +30,7 @@ export function HomeScreen() {
 
       <View style={[styles.safeContent, { paddingTop: insets.top + 9 }]}>
         <View style={styles.topRow}>
-          <ProgressWidget />
+          <ProgressWidget value={getStageProgress(progress)} />
         </View>
 
         <View style={[styles.main, compact && styles.mainCompact]}>

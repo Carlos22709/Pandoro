@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ForestScene } from '@/components/art/ForestScene';
 import { Pandoro } from '@/components/art/Pandoro';
 import { AppIcon } from '@/components/icons/AppIcon';
-import { MOCK_WORLD_PROGRESS } from '@/components/progress/worldData';
+import { useDemo } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -43,6 +43,7 @@ function AccountField({ label, value }: { label: string; value: string }) {
 
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const { progress } = useDemo();
   const [profile, setProfile] = useState(INITIAL_PROFILE);
   const [draftProfile, setDraftProfile] = useState(INITIAL_PROFILE);
   const [editingAccount, setEditingAccount] = useState(false);
@@ -198,17 +199,17 @@ export function ProfileScreen() {
           <Text style={styles.sectionTitle}>Tu recorrido</Text>
           <View style={styles.statsSurface}>
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{MOCK_WORLD_PROGRESS.completedTasks}</Text>
+              <Text style={styles.statValue}>{progress.completedTasks}</Text>
               <Text style={styles.statLabel}>Tareas</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{MOCK_WORLD_PROGRESS.streak}</Text>
+              <Text style={styles.statValue}>{progress.streak}</Text>
               <Text style={styles.statLabel}>Días seguidos</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{MOCK_WORLD_PROGRESS.currentStage}</Text>
+              <Text style={styles.statValue}>{progress.currentStage}</Text>
               <Text style={styles.statLabel}>Lugares</Text>
             </View>
           </View>

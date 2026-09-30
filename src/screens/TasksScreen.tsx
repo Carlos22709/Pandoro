@@ -11,112 +11,13 @@ import { AppIcon } from '@/components/icons/AppIcon';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
+import { useDemo } from '@/demo/DemoProvider';
+import { sortTasksForNow } from '@/demo/demoState';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
 
 type TasksView = 'now' | 'all';
-
-const INITIAL_TASKS: TaskItem[] = [
-  {
-    id: 'report',
-    title: 'Entregar informe',
-    detail: 'Hoy · 5:00 p. m.',
-    duration: '45 min',
-    priority: 1,
-    tone: 'pink',
-    icon: 'document',
-    difficulty: 'high',
-    completed: false,
-  },
-  {
-    id: 'mail',
-    title: 'Responder correo',
-    detail: 'Hoy · 15 min',
-    duration: '15 min',
-    priority: 2,
-    tone: 'blue',
-    icon: 'mail',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'statistics',
-    title: 'Estudiar estadística',
-    detail: 'Mañana · 30 min',
-    duration: '30 min',
-    priority: 3,
-    tone: 'lilac',
-    icon: 'book',
-    difficulty: 'medium',
-    completed: false,
-  },
-  {
-    id: 'presentation',
-    title: 'Avanzar presentación',
-    detail: 'Jueves · 1 h',
-    duration: '1 h',
-    priority: 4,
-    tone: 'yellow',
-    icon: 'presentation',
-    difficulty: 'high',
-    completed: false,
-  },
-  {
-    id: 'materials',
-    title: 'Comprar materiales',
-    detail: 'Viernes',
-    priority: 6,
-    tone: 'green',
-    icon: 'cart',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'notes',
-    title: 'Revisar notas',
-    detail: 'Viernes · 20 min',
-    duration: '20 min',
-    priority: 5,
-    tone: 'blue',
-    icon: 'document',
-    difficulty: 'light',
-    completed: true,
-  },
-  {
-    id: 'exposition',
-    title: 'Preparar exposición',
-    detail: 'Sábado · 45 min',
-    duration: '45 min',
-    priority: 7,
-    tone: 'pink',
-    icon: 'presentation',
-    difficulty: 'high',
-    completed: false,
-  },
-  {
-    id: 'agenda',
-    title: 'Organizar agenda',
-    detail: 'Domingo · 15 min',
-    duration: '15 min',
-    priority: 8,
-    tone: 'lilac',
-    icon: 'checklist',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'team',
-    title: 'Llamar al equipo',
-    detail: 'Lunes · 9:00 a. m.',
-    duration: '20 min',
-    priority: 9,
-    tone: 'green',
-    icon: 'phone',
-    difficulty: 'medium',
-    completed: false,
-  },
-];
 
 type SegmentControlProps = {
   value: TasksView;
@@ -222,22 +123,20 @@ function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowPr
 
 export function TasksScreen() {
   const insets = useSafeAreaInsets();
+  const {
+    tasks,
+    toggleTask,
+    createTask: addTask,
+    updateTask,
+    deleteTask: removeTask,
+  } = useDemo();
   const [view, setView] = useState<TasksView>('now');
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [startedTaskId, setStartedTaskId] = useState<string | null>(null);
 
-  const visibleTasks = useMemo(() => {
-    if (view === 'all') return tasks;
-    return [...tasks].sort((first, second) => {
-      if (first.completed !== second.completed) return first.completed ? 1 : -1;
-      const firstScore = first.priority - TASK_DIFFICULTY[first.difficulty].weight * 1.5;
-      const secondScore = second.priority - TASK_DIFFICULTY[second.difficulty].weight * 1.5;
-      return firstScore - secondScore;
-    });
-  }, [tasks, view]);
+  const visibleTasks = useMemo(() => (view === 'all' ? tasks : sortTasksForNow(tasks)), [tasks, view]);
 
   const priorityTaskId = view === 'now' ? visibleTasks[0]?.id : undefined;
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
@@ -259,38 +158,19 @@ export function TasksScreen() {
     setSheetVisible(true);
   };
 
-  const toggleTask = (id: string) => {
-    setTasks((current) => current.map((task) => (
-      task.id === id ? { ...task, completed: !task.completed } : task
-    )));
-  };
-
   const saveTask = (draft: TaskDraft) => {
     if (creating) {
-      const nextPriority = tasks.reduce((highest, task) => Math.max(highest, task.priority), 0) + 1;
-      setTasks((current) => [
-        ...current,
-        {
-          id: `task-${Date.now()}`,
-          ...draft,
-          priority: nextPriority,
-          tone: 'blue',
-          icon: 'checklist',
-          completed: false,
-        },
-      ]);
+      addTask(draft);
       closeSheet();
       return;
     }
 
     if (!selectedTaskId) return;
-    setTasks((current) => current.map((task) => (
-      task.id === selectedTaskId ? { ...task, ...draft } : task
-    )));
+    updateTask(selectedTaskId, draft);
   };
 
   const deleteTask = (id: string) => {
-    setTasks((current) => current.filter((task) => task.id !== id));
+    removeTask(id);
     if (startedTaskId === id) setStartedTaskId(null);
     closeSheet();
   };
@@ -387,6 +267,7 @@ export function TasksScreen() {
         onDelete={deleteTask}
         onSave={saveTask}
       />
+
     </View>
   );
 }
