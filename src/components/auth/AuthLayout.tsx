@@ -29,7 +29,7 @@ const TONE_SCENE: Record<AuthTone, { background: string; hill: string; head: Pan
 type AuthLayoutProps = {
   tone: AuthTone;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   submitLabel: string;
   onSubmit: () => void;
   switchPrompt: string;
@@ -69,7 +69,7 @@ export function AuthLayout({
                   <PandoroBrandMark variant={scene.head} size={Math.min(116, height * 0.14)} />
                 </View>
                 <Text style={styles.title}>{title}</Text>
-                <Text style={styles.subtitle}>{subtitle}</Text>
+                {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
               </View>
 
               <View style={styles.form}>{children}</View>

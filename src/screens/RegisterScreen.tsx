@@ -1,10 +1,13 @@
 import { useRouter } from 'expo-router';
-import { useRef } from 'react';
-import type { TextInput } from 'react-native';
+import { useRef, useState } from 'react';
+import { StyleSheet, Text, type TextInput } from 'react-native';
 
+import { AuthCheckbox } from '@/components/auth/AuthCheckbox';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { useEnterApp } from '@/components/auth/useEnterApp';
+import { palette } from '@/theme/palette';
+import { fonts } from '@/theme/typography';
 
 export function RegisterScreen() {
   const router = useRouter();
@@ -12,14 +15,24 @@ export function RegisterScreen() {
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
+
+  // Sin aceptar términos y tratamiento de datos no se crea la cuenta.
+  const submit = () => {
+    if (!acceptedTerms) {
+      setTriedSubmit(true);
+      return;
+    }
+    enterApp();
+  };
 
   return (
     <AuthLayout
       tone="pink"
       title="Crea tu cuenta"
-      subtitle="Nombre, correo y contraseña. Nada más."
       submitLabel="Crear cuenta"
-      onSubmit={enterApp}
+      onSubmit={submit}
       switchPrompt="¿Ya tienes una cuenta?"
       switchLabel="Iniciar sesión"
       onSwitch={() => router.replace('/login')}
@@ -67,8 +80,24 @@ export function RegisterScreen() {
         autoComplete="new-password"
         textContentType="newPassword"
         returnKeyType="go"
-        onSubmitEditing={enterApp}
+        onSubmitEditing={submit}
       />
+      <AuthCheckbox
+        checked={acceptedTerms}
+        onChange={setAcceptedTerms}
+        accessibilityLabel="Acepto los términos y condiciones y el tratamiento de mis datos"
+        error={triedSubmit ? 'Necesitas aceptarlos para crear tu cuenta.' : undefined}
+      >
+        Acepto los <Text style={styles.emphasis}>términos y condiciones</Text> y el{' '}
+        <Text style={styles.emphasis}>tratamiento de mis datos</Text>.
+      </AuthCheckbox>
     </AuthLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  emphasis: {
+    fontFamily: fonts.semibold,
+    color: palette.ink,
+  },
+});
