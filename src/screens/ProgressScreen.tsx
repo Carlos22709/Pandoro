@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ComponentRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useNavigation } from 'expo-router';
@@ -22,7 +22,7 @@ type TabPressNavigation = {
 export function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation() as unknown as TabPressNavigation;
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const positionedRef = useRef(false);
   const [selectedStage, setSelectedStage] = useState<ProgressWorldStage | null>(null);
 

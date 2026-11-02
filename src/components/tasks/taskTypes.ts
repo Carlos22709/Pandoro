@@ -7,9 +7,9 @@ export const TASK_DIFFICULTY: Record<
   TaskDifficulty,
   { label: string; tone: PaletteTone; weight: number }
 > = {
-  light: { label: 'Ligera', tone: 'green', weight: 1 },
+  light: { label: 'Fácil', tone: 'green', weight: 1 },
   medium: { label: 'Media', tone: 'yellow', weight: 2 },
-  high: { label: 'Alta', tone: 'pink', weight: 3 },
+  high: { label: 'Difícil', tone: 'pink', weight: 3 },
 };
 
 export type TaskItem = {
@@ -17,6 +17,7 @@ export type TaskItem = {
   title: string;
   detail: string;
   duration?: string;
+  notes?: string;
   priority: number;
   tone: PaletteTone;
   icon: AppIconName;

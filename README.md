@@ -1,6 +1,6 @@
 # Pandoro — demo de navegación
 
-Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea, sin lógica de negocio ni persistencia.
+Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. Nueva tarea convierte texto libre en un plan editable con Google Gemini; el resto no tiene lógica de negocio y nada se guarda al cerrar la app.
 
 Flujo de entrada:
 
@@ -15,10 +15,11 @@ El acceso es solo visual: los campos admiten texto, pero no hay autenticación, 
 
 ## Ejecutar
 
-Requiere Node.js 22.13 o posterior para Expo SDK 57.
+Requiere Node.js 22.13 o posterior para Expo SDK 58.
 
 ```bash
 npm install
+cp .env.example .env   # pega tu clave en EXPO_PUBLIC_GEMINI_API_KEY
 npm start
 ```
 
@@ -31,7 +32,16 @@ npm run android
 npm run ios
 npm run web
 npm run typecheck
+npm test
 ```
+
+Sin clave, la app funciona igual: solo Nueva tarea avisa que la IA no está configurada y mantiene la creación manual.
+
+## Planificación con IA
+
+> **Provisional, no apto para producción.** Las variables `EXPO_PUBLIC_*` quedan dentro del paquete de la app y cualquiera puede extraerlas. Usa esta integración solo para el MVP y migra a un backend antes de publicar.
+
+El modelo, los costos, los límites y la contingencia están en [docs/GEMINI.md](docs/GEMINI.md).
 
 ## Capas visuales
 

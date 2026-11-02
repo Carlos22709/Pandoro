@@ -1,13 +1,15 @@
-import { type Ref, useState } from 'react';
+import { type ComponentRef, type Ref, useState } from 'react';
 import { StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
 
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
 
+export type AuthInputRef = ComponentRef<typeof TextInput>;
+
 type AuthInputProps = Omit<TextInputProps, 'style'> & {
   label: string;
-  ref?: Ref<TextInput>;
+  ref?: Ref<AuthInputRef>;
 };
 
 export function AuthInput({ label, ref, onFocus, onBlur, ...inputProps }: AuthInputProps) {

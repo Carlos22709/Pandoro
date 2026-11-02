@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -10,113 +11,13 @@ import { Pandoro } from '@/components/art/Pandoro';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
+import { useTasks } from '@/components/tasks/TasksProvider';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
 
 type TasksView = 'now' | 'all';
-
-const INITIAL_TASKS: TaskItem[] = [
-  {
-    id: 'report',
-    title: 'Entregar informe',
-    detail: 'Hoy · 5:00 p. m.',
-    duration: '45 min',
-    priority: 1,
-    tone: 'pink',
-    icon: 'document',
-    difficulty: 'high',
-    completed: false,
-  },
-  {
-    id: 'mail',
-    title: 'Responder correo',
-    detail: 'Hoy · 15 min',
-    duration: '15 min',
-    priority: 2,
-    tone: 'blue',
-    icon: 'mail',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'statistics',
-    title: 'Estudiar estadística',
-    detail: 'Mañana · 30 min',
-    duration: '30 min',
-    priority: 3,
-    tone: 'lilac',
-    icon: 'book',
-    difficulty: 'medium',
-    completed: false,
-  },
-  {
-    id: 'presentation',
-    title: 'Avanzar presentación',
-    detail: 'Jueves · 1 h',
-    duration: '1 h',
-    priority: 4,
-    tone: 'yellow',
-    icon: 'presentation',
-    difficulty: 'high',
-    completed: false,
-  },
-  {
-    id: 'materials',
-    title: 'Comprar materiales',
-    detail: 'Viernes',
-    priority: 6,
-    tone: 'green',
-    icon: 'cart',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'notes',
-    title: 'Revisar notas',
-    detail: 'Viernes · 20 min',
-    duration: '20 min',
-    priority: 5,
-    tone: 'blue',
-    icon: 'document',
-    difficulty: 'light',
-    completed: true,
-  },
-  {
-    id: 'exposition',
-    title: 'Preparar exposición',
-    detail: 'Sábado · 45 min',
-    duration: '45 min',
-    priority: 7,
-    tone: 'pink',
-    icon: 'presentation',
-    difficulty: 'high',
-    completed: false,
-  },
-  {
-    id: 'agenda',
-    title: 'Organizar agenda',
-    detail: 'Domingo · 15 min',
-    duration: '15 min',
-    priority: 8,
-    tone: 'lilac',
-    icon: 'checklist',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'team',
-    title: 'Llamar al equipo',
-    detail: 'Lunes · 9:00 a. m.',
-    duration: '20 min',
-    priority: 9,
-    tone: 'green',
-    icon: 'phone',
-    difficulty: 'medium',
-    completed: false,
-  },
-];
 
 type SegmentControlProps = {
   value: TasksView;
@@ -221,9 +122,10 @@ function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowPr
 }
 
 export function TasksScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { tasks, toggleTask, addTask, updateTask, removeTask } = useTasks();
   const [view, setView] = useState<TasksView>('now');
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -259,38 +161,19 @@ export function TasksScreen() {
     setSheetVisible(true);
   };
 
-  const toggleTask = (id: string) => {
-    setTasks((current) => current.map((task) => (
-      task.id === id ? { ...task, completed: !task.completed } : task
-    )));
-  };
-
   const saveTask = (draft: TaskDraft) => {
     if (creating) {
-      const nextPriority = tasks.reduce((highest, task) => Math.max(highest, task.priority), 0) + 1;
-      setTasks((current) => [
-        ...current,
-        {
-          id: `task-${Date.now()}`,
-          ...draft,
-          priority: nextPriority,
-          tone: 'blue',
-          icon: 'checklist',
-          completed: false,
-        },
-      ]);
+      addTask(draft);
       closeSheet();
       return;
     }
 
     if (!selectedTaskId) return;
-    setTasks((current) => current.map((task) => (
-      task.id === selectedTaskId ? { ...task, ...draft } : task
-    )));
+    updateTask(selectedTaskId, draft);
   };
 
   const deleteTask = (id: string) => {
-    setTasks((current) => current.filter((task) => task.id !== id));
+    removeTask(id);
     if (startedTaskId === id) setStartedTaskId(null);
     closeSheet();
   };
@@ -319,14 +202,24 @@ export function TasksScreen() {
       >
         <View style={styles.titleRow}>
           <Text style={styles.screenTitle}>Tareas</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Crear tarea"
-            onPress={createTask}
-            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
-          >
-            <AppIcon name="plus" color={palette.lilacDeep} size={25} strokeWidth={2.6} />
-          </Pressable>
+          <View style={styles.titleActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Organizar con Pandoro"
+              onPress={() => router.push('/nueva-tarea')}
+              style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+            >
+              <AppIcon name="sprout" color={palette.lilacDeep} size={22} strokeWidth={2.3} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Crear tarea"
+              onPress={createTask}
+              style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+            >
+              <AppIcon name="plus" color={palette.lilacDeep} size={25} strokeWidth={2.6} />
+            </Pressable>
+          </View>
         </View>
 
         <SegmentControl value={view} onChange={setView} />
@@ -427,6 +320,10 @@ const styles = StyleSheet.create({
   screenTitle: {
     ...typeScale.title,
     color: palette.ink,
+  },
+  titleActions: {
+    flexDirection: 'row',
+    gap: 8,
   },
   addButton: {
     width: 38,

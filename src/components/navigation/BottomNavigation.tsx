@@ -20,7 +20,7 @@ const tabs: Record<string, { label: string; icon: AppIconName }> = {
   settings: { label: 'Ajustes', icon: 'settings' },
 };
 
-export function BottomNavigation({ state, descriptors, navigation }: BottomTabBarProps) {
+export function BottomNavigation({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -32,14 +32,14 @@ export function BottomNavigation({ state, descriptors, navigation }: BottomTabBa
           const label = descriptors[route.key]?.options.title ?? config.label;
 
           const onPress = () => {
-            const event = navigation.emit({
+            const event = emitter.emit({
               type: 'tabPress',
               target: route.key,
               canPreventDefault: true,
             });
 
             if (!focused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
+              navigateToTab(route.key);
             }
           };
 

@@ -1,17 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useRef } from 'react';
-import type { TextInput } from 'react-native';
 
-import { AuthInput } from '@/components/auth/AuthInput';
+import { AuthInput, type AuthInputRef } from '@/components/auth/AuthInput';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { useEnterApp } from '@/components/auth/useEnterApp';
 
 export function RegisterScreen() {
   const router = useRouter();
   const enterApp = useEnterApp();
-  const emailRef = useRef<TextInput>(null);
-  const passwordRef = useRef<TextInput>(null);
-  const confirmRef = useRef<TextInput>(null);
+  const emailRef = useRef<AuthInputRef>(null);
+  const passwordRef = useRef<AuthInputRef>(null);
+  const confirmRef = useRef<AuthInputRef>(null);
 
   return (
     <AuthLayout

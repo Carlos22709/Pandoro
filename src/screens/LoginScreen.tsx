@@ -1,15 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useRef } from 'react';
-import { StyleSheet, type TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { AuthInput } from '@/components/auth/AuthInput';
+import { AuthInput, type AuthInputRef } from '@/components/auth/AuthInput';
 import { AuthLayout, AuthLink } from '@/components/auth/AuthLayout';
 import { useEnterApp } from '@/components/auth/useEnterApp';
 
 export function LoginScreen() {
   const router = useRouter();
   const enterApp = useEnterApp();
-  const passwordRef = useRef<TextInput>(null);
+  const passwordRef = useRef<AuthInputRef>(null);
 
   return (
     <AuthLayout
