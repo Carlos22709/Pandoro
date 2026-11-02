@@ -32,6 +32,9 @@ type AuthLayoutProps = {
   subtitle: string;
   submitLabel: string;
   onSubmit: () => void;
+  submitting?: boolean;
+  error?: string | null;
+  notice?: string | null;
   switchPrompt: string;
   switchLabel: string;
   onSwitch: () => void;
@@ -44,6 +47,9 @@ export function AuthLayout({
   subtitle,
   submitLabel,
   onSubmit,
+  submitting = false,
+  error,
+  notice,
   switchPrompt,
   switchLabel,
   onSwitch,
@@ -74,7 +80,14 @@ export function AuthLayout({
 
               <View style={styles.form}>{children}</View>
 
-              <PrimaryButton label={submitLabel} onPress={onSubmit} />
+              {error ? (
+                <Text accessibilityLiveRegion="polite" role="alert" style={styles.error}>{error}</Text>
+              ) : null}
+              {notice ? (
+                <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text>
+              ) : null}
+
+              <PrimaryButton label={submitLabel} onPress={onSubmit} loading={submitting} />
 
               <View style={styles.switchRow}>
                 <Text style={styles.switchPrompt}>{switchPrompt}</Text>
@@ -149,6 +162,20 @@ const styles = StyleSheet.create({
   form: {
     gap: 14,
     marginBottom: ui.space.xl,
+  },
+  error: {
+    ...typeScale.small,
+    fontFamily: fonts.semibold,
+    marginTop: -ui.space.md,
+    marginBottom: ui.space.md,
+    color: palette.ink,
+  },
+  notice: {
+    ...typeScale.small,
+    fontFamily: fonts.semibold,
+    marginTop: -ui.space.md,
+    marginBottom: ui.space.md,
+    color: palette.greenDeep,
   },
   switchRow: {
     marginTop: 22,

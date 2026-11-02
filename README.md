@@ -1,6 +1,6 @@
 # Pandoro — demo de navegación
 
-Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. Nueva tarea convierte texto libre en un plan editable con Google Gemini; el resto no tiene lógica de negocio y nada se guarda al cerrar la app.
+Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. Hablar y Nueva tarea convierten texto libre en un plan editable con Google Gemini. La sesión se conserva con Firebase, pero las tareas no se guardan al cerrar la app.
 
 Flujo de entrada:
 
@@ -11,7 +11,7 @@ Bienvenida ⇄ Organiza ⇄ Prioriza ⇄ Avanza
    └── Crear cuenta   → /register → Inicio
 ```
 
-El acceso es solo visual: los campos admiten texto, pero no hay autenticación, validación ni persistencia. Cualquier botón de acceso entra en Inicio y vacía la pila de navegación. Las pantallas de acceso comparten `src/components/auth/` (`AuthLayout`, `AuthInput`, `PandoroBrandMark`).
+El acceso usa Firebase Authentication con correo y contraseña; sin sesión, las rutas privadas no abren. La configuración está en [docs/FIREBASE.md](docs/FIREBASE.md). Las pantallas de acceso comparten `src/components/auth/` (`AuthLayout`, `AuthInput`, `PandoroBrandMark`).
 
 ## Ejecutar
 
@@ -19,7 +19,7 @@ Requiere Node.js 22.13 o posterior para Expo SDK 58.
 
 ```bash
 npm install
-cp .env.example .env   # pega tu clave en EXPO_PUBLIC_GEMINI_API_KEY
+cp .env.example .env   # completa las claves de Gemini y Firebase
 npm start
 ```
 
@@ -35,7 +35,7 @@ npm run typecheck
 npm test
 ```
 
-Sin clave, la app funciona igual: solo Nueva tarea avisa que la IA no está configurada y mantiene la creación manual.
+Sin clave de Gemini, la planificación avisa que la IA no está configurada y mantiene la creación manual. Sin la configuración de Firebase, la app abre pero no se puede entrar.
 
 ## Planificación con IA
 

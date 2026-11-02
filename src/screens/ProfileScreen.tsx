@@ -14,23 +14,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ForestScene } from '@/components/art/ForestScene';
 import { Pandoro } from '@/components/art/Pandoro';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { MOCK_WORLD_PROGRESS } from '@/components/progress/worldData';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
-
-type ProfileData = {
-  username: string;
-  email: string;
-  password: string;
-};
-
-const INITIAL_PROFILE: ProfileData = {
-  username: '@pandoamigo',
-  email: 'pandoamigo@pandoro.app',
-  password: 'pandoro123',
-};
 
 function AccountField({ label, value }: { label: string; value: string }) {
   return (
@@ -43,37 +33,26 @@ function AccountField({ label, value }: { label: string; value: string }) {
 
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
-  const [draftProfile, setDraftProfile] = useState(INITIAL_PROFILE);
+  const { user, updateName } = useAuth();
+  const { submit, submitting, error } = useAuthSubmit();
+  const displayName = user?.displayName || user?.email || '';
+  const [draftName, setDraftName] = useState(displayName);
   const [editingAccount, setEditingAccount] = useState(false);
 
   const startEditing = () => {
-    setDraftProfile(profile);
+    setDraftName(user?.displayName ?? '');
     setEditingAccount(true);
   };
 
-  const cancelEditing = () => {
-    setDraftProfile(profile);
-    setEditingAccount(false);
-  };
+  const cancelEditing = () => setEditingAccount(false);
 
-  const saveAccount = () => {
-    const normalizedUsername = draftProfile.username
-      .trim()
-      .replace(/^@+/, '')
-      .replace(/\s+/g, '_');
-    const normalizedEmail = draftProfile.email.trim().toLowerCase();
-    const normalizedPassword = draftProfile.password.trim();
-
-    if (!normalizedUsername || !normalizedEmail || !normalizedPassword) return;
-
-    setProfile({
-      username: '@' + normalizedUsername,
-      email: normalizedEmail,
-      password: normalizedPassword,
-    });
-    setEditingAccount(false);
-  };
+  const saveAccount = () => submit({
+    problem: draftName.trim() ? null : 'Escribe tu nombre.',
+    action: async () => {
+      await updateName(draftName);
+      setEditingAccount(false);
+    },
+  });
 
   return (
     <View style={styles.screen}>
@@ -103,7 +82,7 @@ export function ProfileScreen() {
                 <Pandoro size={136} />
               </View>
             </View>
-            <Text style={styles.username}>{profile.username}</Text>
+            <Text style={styles.username}>{displayName}</Text>
           </View>
 
           <View style={styles.sectionHeading}>
@@ -123,58 +102,27 @@ export function ProfileScreen() {
           <View style={styles.accountSurface}>
             {!editingAccount ? (
               <>
-                <AccountField label="Usuario" value={profile.username} />
+                <AccountField label="Nombre" value={user?.displayName || 'Sin nombre'} />
                 <View style={styles.accountDivider} />
-                <AccountField label="Correo" value={profile.email} />
-                <View style={styles.accountDivider} />
-                <AccountField label="Contraseña" value="••••••••••" />
+                <AccountField label="Correo" value={user?.email ?? ''} />
               </>
             ) : (
               <View>
-                <Text style={styles.fieldLabel}>Usuario</Text>
+                <Text style={styles.fieldLabel}>Nombre</Text>
                 <TextInput
-                  accessibilityLabel="Nuevo nombre de usuario"
-                  autoCapitalize="none"
+                  accessibilityLabel="Nuevo nombre"
+                  autoCapitalize="words"
                   autoCorrect={false}
-                  maxLength={24}
-                  onChangeText={(username) =>
-                    setDraftProfile((current) => ({ ...current, username }))
-                  }
-                  placeholder="@usuario"
-                  placeholderTextColor={palette.inkSoft}
-                  value={draftProfile.username}
-                  style={styles.input}
-                />
-                <Text style={styles.fieldLabel}>Correo</Text>
-                <TextInput
-                  accessibilityLabel="Nuevo correo"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                  onChangeText={(email) =>
-                    setDraftProfile((current) => ({ ...current, email }))
-                  }
-                  placeholder="tu@correo.com"
-                  placeholderTextColor={palette.inkSoft}
-                  value={draftProfile.email}
-                  style={styles.input}
-                />
-                <Text style={styles.fieldLabel}>Contraseña</Text>
-                <TextInput
-                  accessibilityLabel="Nueva contraseña"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  onChangeText={(password) =>
-                    setDraftProfile((current) => ({ ...current, password }))
-                  }
-                  placeholder="Contraseña"
+                  maxLength={40}
+                  onChangeText={setDraftName}
+                  placeholder="Tu nombre"
                   placeholderTextColor={palette.inkSoft}
                   returnKeyType="done"
-                  secureTextEntry
-                  value={draftProfile.password}
+                  value={draftName}
                   onSubmitEditing={saveAccount}
                   style={styles.input}
                 />
+                {error ? <Text style={styles.fieldLabel}>{error}</Text> : null}
                 <View style={styles.editActions}>
                   <Pressable
                     accessibilityRole="button"
@@ -185,6 +133,7 @@ export function ProfileScreen() {
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
+                    disabled={submitting}
                     onPress={saveAccount}
                     style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
                   >

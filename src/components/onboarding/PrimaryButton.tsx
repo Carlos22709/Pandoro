@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
@@ -8,13 +8,16 @@ type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
   variant?: 'filled' | 'soft' | 'text';
+  loading?: boolean;
 };
 
-export function PrimaryButton({ label, onPress, variant = 'filled' }: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, variant = 'filled', loading = false }: PrimaryButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      aria-busy={loading}
+      disabled={loading}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
@@ -24,9 +27,13 @@ export function PrimaryButton({ label, onPress, variant = 'filled' }: PrimaryBut
         pressed && styles.pressed,
       ]}
     >
-      <Text style={[styles.label, variant === 'filled' ? styles.filledLabel : styles.secondaryLabel]}>
-        {label}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={variant === 'filled' ? palette.white : palette.lilacDeep} />
+      ) : (
+        <Text style={[styles.label, variant === 'filled' ? styles.filledLabel : styles.secondaryLabel]}>
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 }

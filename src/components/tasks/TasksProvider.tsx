@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
+import { useAuth } from '@/components/auth/AuthProvider';
 import { INITIAL_TASKS } from '@/components/tasks/initialTasks';
 import type { TaskDraft, TaskItem } from '@/components/tasks/taskTypes';
 import type { PlanProposal } from '@/services/planning/planTypes';
@@ -52,6 +53,15 @@ function nextPriority(tasks: TaskItem[]) {
 export function TasksProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [planner, setPlanner] = useState(EMPTY_PLANNER);
+  const uid = useAuth().user?.uid ?? null;
+  const [ownerUid, setOwnerUid] = useState(uid);
+
+  // Al cerrar sesión o cambiar de cuenta, nada de lo anterior queda a la vista del siguiente usuario.
+  if (ownerUid !== uid) {
+    setOwnerUid(uid);
+    setTasks(INITIAL_TASKS);
+    setPlanner(EMPTY_PLANNER);
+  }
 
   const toggleTask = useCallback((id: string) => {
     setTasks((current) => current.map((task) => (
