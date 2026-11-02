@@ -29,7 +29,8 @@ Estas reglas guían todas las decisiones de abajo. Si una tarea nueva choca con 
 4. **La IA interpreta; las reglas planifican.** Gemini solo interpreta, extrae, descompone y estima. La distribución en el calendario, la priorización y los avisos los calculan reglas propias en la app: son reproducibles, se pueden probar y no gastan cuota.
 5. **El usuario confirma.** Nada que proponga la IA se guarda sin que el usuario lo revise y lo apruebe (F08).
 6. **Una sola puerta hacia afuera.** Solo la capa de servicios importa SDKs de Firebase, Gemini, voz o notificaciones. Pantallas, proveedores de estado y lógica local dependen de interfaces propias.
-7. **Lo manual nunca depende de la IA.** Si Gemini falla o se agota la cuota, el usuario puede seguir creando, editando y completando tareas a mano.
+7. **Lo manual nunca depende de la IA.** Si Gemini falla, se agota la cuota o el usuario no autoriza el asistente, puede seguir creando, editando y completando tareas a mano.
+8. **Privacidad desde el diseño.** Solo se recoge, se envía y se guarda lo necesario, como exigen la Ley 1581 de 2012 y la Circular SIC 002 de 2024 (ver [Marco normativo](CONTEXTO.md#marco-normativo)). Lo que propone la IA siempre es una "sugerencia de Pandoro" que el usuario confirma.
 
 ## 3. Plataformas y distribución
 
@@ -92,7 +93,7 @@ src/services/
 La arquitectura fija **dónde** viven los datos; el modelo de datos (fila 10) define **qué campos** tiene cada entidad.
 
 ```text
-users/{uid}                     perfil, preferencias, disponibilidad y consentimiento
+users/{uid}                     perfil, preferencias, disponibilidad y autorizaciones
 users/{uid}/tasks/{taskId}      tareas y subtareas aprobadas
 users/{uid}/plans/{planId}      planes confirmados (resumen y relación con sus tareas)
 users/{uid}/progress/{docId}    progreso acumulado y lugares desbloqueados
@@ -107,15 +108,19 @@ Por qué todo cuelga de `users/{uid}`:
 
 El **borrador** del plan (lo que el usuario está revisando) vive solo en el dispositivo. Pasa a Firestore cuando el usuario lo confirma, en una sola escritura por lotes (*batch*): o se guardan todas las tareas del plan o ninguna.
 
+**Lo que no se guarda** (decisión 3 del marco normativo): el texto libre que escribe o dicta el usuario, la transcripción, el audio y la conversación con Pandoro. Solo llegan a Firestore las tareas y los planes que el usuario aprobó. Tampoco se copian a registros de errores ni de eventos (fila 32).
+
+**Autorizaciones:** cada una se guarda por separado en `users/{uid}`, con la versión del aviso aceptado y la fecha. La principal (tratamiento de datos) es obligatoria para crear la cuenta. Las opcionales (por ejemplo, datos de bienestar) se pueden dar o revocar en cualquier momento sin perder el resto de la app.
+
 ## 6. Flujos de datos
 
 Los números coinciden con el diagrama.
 
 ### 6.1 Registro e inicio de sesión (1)
 
-1. En el registro, el usuario acepta el aviso de tratamiento de datos (ya implementado en `main`).
+1. Antes de crear la cuenta, el registro muestra un aviso de privacidad corto (qué datos se recogen y para qué) con un enlace a la política completa. El usuario acepta con una casilla que **no** viene marcada; sin aceptarla no se crea la cuenta. La casilla ya existe en `main`; falta el texto definitivo (fila 34).
 2. La capa de servicios crea la cuenta en Firebase Authentication.
-3. Con el `uid` recibido, crea `users/{uid}` con el perfil y el registro del consentimiento: versión del aviso y fecha de aceptación.
+3. Con el `uid` recibido, crea `users/{uid}` con el perfil y la constancia de la autorización: versión del aviso y fecha de aceptación.
 4. La sesión queda guardada en el dispositivo. Al abrir la app de nuevo, el usuario entra directo a Inicio.
 
 El método de inicio de sesión (correo y contraseña u otro) lo define la fila 14.
@@ -137,6 +142,7 @@ sequenceDiagram
     V-->>A: Texto transcrito (el usuario lo ve y puede corregirlo)
     U->>A: Marca días y minutos disponibles
     A->>S: generatePlan(texto, disponibilidad, fecha de hoy)
+    S->>S: Quita correos, teléfonos y números de documento del texto
     S->>AI: Solicitud con instrucciones y esquema JSON (+ token de App Check)
     AI->>G: Reenvía con la clave del proyecto
     G-->>AI: JSON
@@ -158,7 +164,9 @@ sequenceDiagram
     F-->>A: Tareas y Progreso se actualizan solos
 ```
 
-Qué se envía a Gemini: **solo** el texto de las responsabilidades, la disponibilidad y la fecha de hoy. Nunca el nombre, el correo ni el `uid`.
+Qué se envía a Gemini: **solo** el texto de las responsabilidades, la disponibilidad y la fecha de hoy. Nunca el nombre, el correo ni el `uid` del usuario. Como el texto libre puede traer datos de terceros, la capa de servicios aplica antes un filtro local que reemplaza correos, teléfonos y números de documento, y la pantalla recuerda no incluir datos personales. El filtro no detecta nombres propios; por eso el aviso es necesario.
+
+Todo el flujo depende de que el usuario haya autorizado el asistente, si el equipo adopta esa autorización (ver [Por confirmar](#9-por-confirmar)). Sin ella, «Hablar» y la generación del plan aparecen desactivados con una explicación, y la creación manual sigue disponible.
 
 ### 6.3 Completar una tarea y ver el progreso (2)
 
@@ -177,9 +185,15 @@ Qué se envía a Gemini: **solo** el texto de las responsabilidades, la disponib
 - **Sin internet:** Firestore muestra los datos guardados en el dispositivo y deja en cola los cambios hasta que vuelve la conexión. Generar o revisar un plan sí necesita conexión.
 - **Errores de la IA:** `geminiService.ts` ya traduce cada fallo (cuota agotada, tiempo de espera, respuesta inválida, etc.) a un mensaje claro y conserva lo que el usuario escribió. Con AI Logic se mantienen los mismos códigos.
 
-### 6.6 Eliminar mis datos (F14)
+### 6.6 Consultar, corregir y eliminar mis datos (F14)
 
-Desde Ajustes, la capa de servicios borra todo lo que hay bajo `users/{uid}` y luego la cuenta de Authentication. Firebase pide que el usuario haya iniciado sesión hace poco para borrar la cuenta; si no, se le pide su contraseña otra vez.
+Todo esto vive en **Perfil** (artículo 15 de la Constitución y decisión 4 del marco normativo):
+
+- **Consultar y corregir:** Perfil muestra todos los datos personales que la app tiene del usuario y permite editarlos.
+- **Revocar autorizaciones opcionales:** se desactiva la función que depende de ella; el resto sigue igual.
+- **Eliminar la cuenta** (que equivale a revocar la autorización principal): la app explica qué se borra y luego la capa de servicios borra todo lo que hay bajo `users/{uid}` y la cuenta de Authentication. Firebase pide que el usuario haya iniciado sesión hace poco para borrar la cuenta; si no, se le pide su contraseña otra vez.
+
+Pendiente: si se conserva una constancia mínima de la autorización tras la eliminación, debe guardarse fuera de `users/{uid}` (ver [Por confirmar](#9-por-confirmar)).
 
 ## 7. Seguridad y privacidad
 
@@ -203,6 +217,8 @@ service cloud.firestore {
 
 Todo lo que no coincide con esa ruta queda denegado. La fila 14 completa estas reglas, por ejemplo con validación de tipos y tamaños de campos.
 
+**Verificación obligatoria antes del piloto** (decisión 4): pruebas automáticas de las reglas con el emulador de Firestore, que es gratuito, usando dos cuentas. Una no debe poder leer ni modificar los datos de la otra, y un usuario sin sesión no debe poder leer nada. Encaja en las filas 28 y 29.
+
 ### Abuso de la IA y cuotas
 
 | Medida | Qué protege | Estado en el MVP |
@@ -214,12 +230,23 @@ Todo lo que no coincide con esa ruta queda denegado. La fila 14 completa estas r
 
 **Límite conocido:** el modelo de negocio pide cuotas mensuales "controladas en el servidor". Sin backend propio, el contador mensual lo lleva la app y una app modificada podría saltárselo. Imponerlo de verdad requiere Cloud Functions, que exigen el plan Blaze. Para el MVP, el riesgo está acotado: App Check y el límite por minuto frenan el abuso, y en Spark agotar la cuota de Gemini detiene el servicio sin cobrar. La cuota mensual real queda para la etapa comercial.
 
-### Privacidad (insumo para la fila 34)
+### Privacidad
 
-- **Gemini en nivel gratuito:** Google indica que usa el contenido enviado para mejorar sus productos. El aviso de privacidad debe decirlo, y la app solo envía el texto de las responsabilidades (ver 6.2).
-- **Voz:** en Android, el reconocimiento puede hacerse en el dispositivo cuando el teléfono lo admite (`requiresOnDeviceRecognition`); si no, lo procesa el servicio de voz del sistema. En la web, Chrome envía el audio a Google para transcribirlo. El aviso debe mencionarlo. El audio no se guarda en Pandask.
-- **Datos sensibles:** el MVP no guarda mediciones de estrés ni de salud. Si se agregan, cambian los requisitos de consentimiento (Ley 1581 de 2012).
-- **Consentimiento:** se guarda la versión del aviso aceptado y la fecha, para poder demostrarlo.
+Cómo cumple la arquitectura cada decisión del [marco normativo](CONTEXTO.md#marco-normativo):
+
+| Decisión | Dónde se cumple |
+| --- | --- |
+| 1. Autorización antes de recoger datos | Registro con aviso corto y casilla sin marcar; constancia con versión y fecha en `users/{uid}` (6.1). |
+| 2. Datos de estrés y bienestar opcionales | El MVP no los pide ni los guarda. Si se agregan, van con una autorización aparte y la app funciona sin ella (5). |
+| 3. Limitar lo que se envía a la IA | Solo texto de responsabilidades, disponibilidad y fecha; filtro local de datos personales; no se guardan texto, transcripción, audio ni conversación; el usuario confirma el plan (5 y 6.2). |
+| 4. Controles sobre los datos | Perfil para consultar, corregir, revocar y eliminar (6.6); reglas de Firestore por usuario y prueba con dos cuentas (7). |
+
+Proveedores que procesan datos (insumo para la fila 34):
+
+- **Firebase (Authentication, Firestore, Hosting):** actúa como Encargado. Guarda la cuenta, las tareas, los planes y el progreso.
+- **Gemini en nivel gratuito, vía AI Logic:** Google indica que usa el contenido enviado en el nivel gratuito para mejorar sus productos. Con eso no actúa solo como Encargado, lo que choca con la decisión 3. Ver [Por confirmar](#9-por-confirmar).
+- **Voz:** en Android, la transcripción se pide en el dispositivo (`requiresOnDeviceRecognition`) cuando el teléfono lo admite; si no, la hace el servicio de voz del sistema. En la web, Chrome envía el audio a Google para transcribirlo. Pandask no guarda el audio en ningún caso.
+- **Ubicación:** Firebase y Gemini procesan datos fuera de Colombia.
 
 ## 8. Límites del plan gratuito
 
@@ -246,7 +273,11 @@ Siguiendo la regla de coherencia de `AGENTS.md`, estas partes dependen de otras 
 | Sincronización y plan gratuito | Con Firestore, los datos se sincronizan entre dispositivos de forma natural. El modelo de negocio dejaba la sincronización como función de pago (O04). Hay que decidir si se mantiene esa diferencia o se reemplaza. | Esteban | 3 |
 | Recordatorios en la web | Validar que avisos dentro de la app son suficientes para el MVP. | Esteban | 27 |
 | Despliegue | EAS Build para Android y Firebase Hosting para la web. | Esteban | 31 |
-| Aviso de privacidad | Incluir Gemini en nivel gratuito y el procesamiento de la voz. | Andrea | 34 |
+| Gemini gratuito frente a la decisión 3 | En el nivel gratuito, Google usa el contenido para mejorar sus productos, y el de pago exige facturación. La decisión 3 dice que, si no se asegura un tratamiento adecuado, la integración no se habilita en el piloto. Propuesta: una autorización aparte y opcional para usar el asistente; sin ella, la app funciona en modo manual (6.2). | Andrea, con el equipo | 34 |
+| Voz | Decidir si en la web la voz entra en esa misma autorización opcional o se desactiva, y si en Android se exige la transcripción en el dispositivo o se acepta la del sistema. | Andrea y Santiago | 25, 34 |
+| Constancia al eliminar la cuenta | Si se conserva un registro mínimo (fechas de autorización y de eliminación), cuánto tiempo y dónde. Tendría que vivir fuera de `users/{uid}`, con su propia regla de seguridad. | Andrea | 34 |
+| Transmisión internacional | Revisar si el aviso y la política deben mencionar que Firebase y Gemini procesan datos fuera de Colombia, y qué términos del proveedor lo respaldan. | Andrea | 34 |
+| Aviso de privacidad | Texto corto del registro y política completa, con todo lo anterior. | Andrea | 34 |
 | Propiedad del proyecto de Firebase | Quién crea el proyecto y quiénes son administradores. Nadie vincula facturación. | Equipo | — |
 
 ## 10. Relación con el cronograma
@@ -260,7 +291,9 @@ Siguiendo la regla de coherencia de `AGENTS.md`, estas partes dependen de otras 
 | 25 | Entrada de voz (Santiago) | `expo-speech-recognition` detrás de `src/services/voice/` |
 | 27 | Recordatorios (Esteban) | `expo-notifications` en Android; avisos en la app en la web |
 | 30, 31 | Build y despliegue (Carlos, Esteban) | Development build, EAS Build, EAS Update y Firebase Hosting |
+| 28, 29 | Pruebas y QA (Carlos, Santiago) | Pruebas de reglas de Firestore con dos cuentas en el emulador |
 | 33 | Persistencia y recuperación (Carlos) | Caché local de Firestore y sesión persistente |
+| 34 | Tratamiento de datos y privacidad (Andrea) | Proveedores que procesan datos, qué se guarda y qué no, y los puntos de privacidad por confirmar |
 
 ## 11. Evolución después del MVP
 
