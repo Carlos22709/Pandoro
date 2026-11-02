@@ -38,8 +38,37 @@ El usuario revisa y confirma el plan antes de que pase a su lista de tareas. Al 
 - **Económica:** costo cero de herramientas e infraestructura durante el MVP; solo cuotas gratuitas, sin activar facturación. Si se comercializa, precio final menor a $20.000 COP.
 - **Técnica:** portable o de fácil acceso, de baja complejidad de uso, hecho por cuatro estudiantes en máximo tres meses.
 - **Humana:** interferir lo menos posible con el trabajo del usuario; las notificaciones no deben generar presión.
-- **Normativa:** cumplir la regulación colombiana de protección de datos personales (Ley 1581 de 2012). La información sobre estrés, hábitos o bienestar puede ser sensible.
+- **Normativa:** cumplir la regulación colombiana de protección de datos personales. La información sobre estrés, hábitos o bienestar puede ser sensible. Detalle en [Marco normativo](#marco-normativo).
 - **Alcance:** llega hasta un MVP funcional, no a un producto comercial pulido.
+
+## Marco normativo
+
+Fuente: ficha técnica del equipo (Sección A, normas; Sección B, decisiones condicionadas). En el tratamiento de datos, el equipo actúa como **Responsable** y Firebase como **Encargado**.
+
+### Normas
+
+| Norma | Emite | Qué implica para Pandask |
+| --- | --- | --- |
+| [Ley 1581 de 2012](https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=49981) | Congreso de la República | La app recolecta y guarda datos personales (cuenta, tareas, perfil y progreso). Exige autorización previa, expresa e informada al ingresar, una política de tratamiento de datos publicada y garantizar los derechos de acceso, rectificación y supresión. |
+| [Circular Externa SIC 002 de 2024](https://sedeelectronica.sic.gov.co/sites/default/files/normativa/Circular%20Externa%20No.%20002%20del%2021%20de%20agosto%20de%202024.pdf), datos personales en sistemas de IA | Superintendencia de Industria y Comercio | El asistente usa solo lo estrictamente necesario para armar el plan (tarea, fecha, duración y dificultad). No se guardan audios ni conversaciones completas. Antes de enviar algo al modelo se quitan los datos personales que no se necesitan. El usuario confirma el plan antes de guardarlo. |
+| [Decreto 1074 de 2015](https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=76608), Título 2, Capítulo 25 | Presidencia y Ministerio de Comercio, Industria y Turismo | En el registro, antes de crear la cuenta: aviso de privacidad corto (qué datos y para qué) y autorización con una casilla que **no** venga marcada. Cualquier dato de estrés o bienestar va en una autorización aparte y opcional; la app funciona completa sin ella. |
+| [Constitución Política, arts. 15 y 20](https://www.secretariasenado.gov.co/senado/basedoc/constitucion_politica_1991.html) | Asamblea Nacional Constituyente | Art. 15: en Perfil el usuario ve todos sus datos, los edita y puede borrar su cuenta con todo su historial. Art. 20: los planes y estimaciones del asistente se muestran siempre como **"sugerencias de Pandoro"**, corregibles antes de aceptarlas, nunca como información exacta o definitiva. |
+
+### Decisiones del MVP condicionadas por normas
+
+1. **Pedir autorización antes de recoger datos.** Aviso breve antes del registro con los datos, su finalidad y un enlace a la política completa. Casilla sin marcar. Se guarda constancia de la aceptación y de la versión del aviso. Seguir usando la app no cuenta como aceptación. *Ley 1581, arts. 9 y 12; Decreto 1074, arts. 2.2.2.25.2.2, 2.2.2.25.2.4 y 2.2.2.25.2.5.*
+2. **Datos de estrés y bienestar opcionales.** No se piden en el registro. Si se prueba una función para reportar estrés, se explica su finalidad y se pide una autorización explícita y aparte. Si el usuario no acepta, solo se desactiva esa función. *Ley 1581, arts. 5 y 6; Decreto 1074, art. 2.2.2.25.2.3.*
+3. **Limitar lo que se envía a la IA y conservar el control del plan.** El asistente recibe solo lo necesario para interpretar las responsabilidades. Antes de enviar se reducen los datos identificables. Se conservan las tareas y los planes aprobados, no audios ni conversaciones completas. Antes del piloto se revisa qué conserva el proveedor de IA y de voz; si no se puede asegurar un tratamiento adecuado, esa integración no se habilita. El usuario revisa y corrige la propuesta antes de guardarla. *Circular SIC 002 de 2024; Ley 1581, art. 4.*
+4. **Controles sobre los datos desde la primera versión.** En Perfil: consultar y corregir la información personal, solicitar su eliminación y revocar la autorización, explicando qué se elimina y qué se conserva por razones legales. Cada usuario accede solo a sus registros. Antes del piloto se comprueba con dos cuentas que una no pueda leer ni modificar los datos de la otra, y se verifican con el proveedor la eliminación y sus plazos. *Ley 1581, arts. 4 y 8; Decreto 1074, art. 2.2.2.25.2.6.*
+
+### Puntos abiertos
+
+Detectados al cruzar estas decisiones con la arquitectura. Los decide el equipo, con Andrea como responsable de la fila 34.
+
+- **Gemini en nivel gratuito frente a la decisión 3.** Google indica que usa el contenido enviado en el nivel gratuito para mejorar sus productos, así que no actúa solo como Encargado. El nivel de pago exige vincular facturación. Propuesta: una autorización aparte y opcional para usar el asistente; sin ella, Pandask funciona completa en modo manual.
+- **Voz.** En la web, Chrome envía el audio a Google para transcribirlo; en Android puede pasar lo mismo si el teléfono no transcribe en el dispositivo. Pandask no guarda audios, pero el proveedor sí lo procesa. Propuesta: en Android, transcribir en el dispositivo cuando el teléfono lo permita; en la web, incluir la voz en la autorización opcional o desactivarla.
+- **Constancia del consentimiento al eliminar la cuenta.** Borrar todos los datos del usuario borra también la constancia que exige la decisión 1. Hay que decidir si se conserva un registro mínimo (fechas de autorización y de eliminación) y por cuánto tiempo.
+- **Transmisión internacional.** Firebase y Gemini procesan datos fuera de Colombia. Hay que revisar si el aviso y la política deben mencionarlo.
 
 ## Alcance del MVP
 
@@ -185,3 +214,4 @@ Registro de decisiones ya tomadas. Si una tarea nueva contradice alguna, se disc
 | 2026-11-02 | Sin backend propio separado: Firebase para usuarios y Gemini llamado desde la app. | Santiago | **Pendiente:** cómo cumplir "API keys fuera del cliente" (fila 14) y "cuotas controladas en el servidor" (modelo de negocio) sin backend propio. Lo resuelve la arquitectura (fila 9, Carlos) con Esteban. |
 | — | La IA solo interpreta, extrae, descompone y estima; distribución temporal y priorización usan reglas propias. | Equipo | Reduce costo y hace el plan reproducible. |
 | — | La gamificación nunca castiga atrasos ni quita progreso. | Equipo | Contra mecánicas punitivas como las de Habitica o Forest. |
+| 2026-11-02 | Se adoptan las cuatro decisiones condicionadas por normas de la ficha técnica. | Equipo | Ver [Marco normativo](#marco-normativo); los puntos abiertos siguen pendientes. |

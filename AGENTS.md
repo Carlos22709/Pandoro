@@ -30,6 +30,17 @@ Pandask lo construyen cuatro personas, cada una con sus tareas.
 - Nunca subas claves ni archivos `.env`. Las variables nuevas se documentan en `.env.example` sin valor.
 - Todo lo que empieza por `EXPO_PUBLIC_` queda dentro del paquete de la app y puede extraerse. No lo trates como secreto.
 
+### 4. Privacidad (lo exige la norma)
+
+Pandask está sujeta a la Ley 1581 de 2012 y a los lineamientos de la SIC sobre IA. El detalle está en [`docs/CONTEXTO.md`](docs/CONTEXTO.md#marco-normativo). En código, eso significa:
+
+- No guardes el texto libre, la transcripción ni el audio de lo que dice el usuario, ni en la base de datos ni en registros de errores. Solo se guardan tareas y planes aprobados.
+- Al modelo de IA envía solo lo necesario para planificar. Nunca el nombre, el correo ni el identificador del usuario.
+- Las casillas de autorización nunca vienen marcadas. Cada autorización guarda su versión y su fecha.
+- Los datos de estrés o bienestar solo se piden con una autorización aparte y opcional. La app debe funcionar completa sin ella.
+- Lo que propone la IA se muestra como **"sugerencia de Pandoro"**, editable, nunca como un dato exacto o definitivo.
+- Cada usuario accede únicamente a sus propios datos.
+
 ## Stack
 
 - React Native + Expo + TypeScript, con Expo Router (rutas por archivo en `src/app/`).
