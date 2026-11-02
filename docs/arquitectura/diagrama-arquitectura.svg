@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="960" viewBox="0 0 1400 960" font-family="Figtree, 'Segoe UI', Arial, sans-serif">
+  <title>Arquitectura técnica del MVP de Pandask</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#51405D"/>
+    </marker>
+    <marker id="arrowSoft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#947BB3"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="960" fill="#FFFCF5"/>
+
+  <!-- Título -->
+  <text x="40" y="52" font-family="Fraunces, Georgia, serif" font-size="28" font-weight="700" fill="#51405D">Arquitectura técnica del MVP de Pandask</text>
+  <text x="40" y="80" font-size="15" fill="#75657F">Una sola base de código para Android (app instalada) y navegador web · Firebase sin backend propio · costo cero</text>
+
+  <!-- Ruta de distribución Android (6) -->
+  <path d="M1250 166 V 98 H 470 V 106" fill="none" stroke="#947BB3" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrowSoft)"/>
+  <circle cx="860" cy="98" r="12" fill="#947BB3"/>
+  <text x="860" y="103" font-size="13" font-weight="700" fill="#FFFCF5" text-anchor="middle">6</text>
+
+  <!-- ========== Dispositivo del usuario ========== -->
+  <rect x="40" y="110" width="540" height="690" rx="24" fill="#FFF8EA" stroke="#E6D6BC" stroke-width="1.5"/>
+  <text x="64" y="144" font-size="13" font-weight="700" letter-spacing="1.5" fill="#75657F">DISPOSITIVO DEL USUARIO</text>
+
+  <rect x="64" y="160" width="220" height="30" rx="15" fill="#DCE9CF"/>
+  <text x="174" y="180" font-size="13" font-weight="600" fill="#51405D" text-anchor="middle">Android · app instalada</text>
+  <rect x="296" y="160" width="260" height="30" rx="15" fill="#E4F0FA"/>
+  <text x="426" y="180" font-size="13" font-weight="600" fill="#51405D" text-anchor="middle">iPhone y otros · navegador web</text>
+
+  <!-- App -->
+  <rect x="64" y="210" width="492" height="410" rx="20" fill="#FFFCF5" stroke="#947BB3" stroke-width="2"/>
+  <text x="88" y="244" font-family="Fraunces, Georgia, serif" font-size="20" font-weight="700" fill="#51405D">App Pandask</text>
+  <text x="88" y="266" font-size="13" fill="#75657F">Expo · React Native · React Native Web · TypeScript</text>
+
+  <rect x="88" y="286" width="444" height="86" rx="14" fill="#FBE4E3"/>
+  <text x="106" y="314" font-size="15" font-weight="700" fill="#51405D">Pantallas</text>
+  <text x="106" y="338" font-size="13" fill="#51405D">Inicio · Tareas · Hablar · Nueva tarea</text>
+  <text x="106" y="358" font-size="13" fill="#51405D">Progreso · Perfil · Ajustes · con Pandoro como guía</text>
+
+  <rect x="88" y="386" width="444" height="96" rx="14" fill="#FAEED1"/>
+  <text x="106" y="414" font-size="15" font-weight="700" fill="#51405D">Lógica local · reglas propias</text>
+  <text x="106" y="438" font-size="13" fill="#51405D">Distribución temporal · priorización</text>
+  <text x="106" y="458" font-size="13" fill="#51405D">Avisos del plan · progreso y desbloqueo de lugares</text>
+
+  <rect x="88" y="496" width="444" height="104" rx="14" fill="#DCE9CF" stroke="#648B73" stroke-width="1.5"/>
+  <text x="106" y="524" font-size="15" font-weight="700" fill="#51405D">Capa de servicios</text>
+  <text x="106" y="548" font-size="13" fill="#51405D">Única parte de la app que habla con el exterior</text>
+  <text x="106" y="568" font-size="13" fill="#51405D">auth · datos · agente · voz · recordatorios</text>
+  <text x="106" y="588" font-size="12" fill="#648B73">src/services/</text>
+
+  <!-- Voz y recordatorios -->
+  <rect x="64" y="640" width="238" height="140" rx="16" fill="#E4F0FA"/>
+  <text x="84" y="670" font-size="15" font-weight="700" fill="#51405D">Voz a texto</text>
+  <text x="84" y="694" font-size="13" fill="#51405D">Reconocimiento del</text>
+  <text x="84" y="712" font-size="13" fill="#51405D">dispositivo o navegador</text>
+  <text x="84" y="740" font-size="12" fill="#789EC8">expo-speech-recognition</text>
+  <text x="84" y="760" font-size="12" fill="#789EC8">sin costo de cuota de IA</text>
+
+  <rect x="318" y="640" width="238" height="140" rx="16" fill="#FAEED1"/>
+  <text x="338" y="670" font-size="15" font-weight="700" fill="#51405D">Recordatorios</text>
+  <text x="338" y="694" font-size="13" fill="#51405D">Notificaciones locales</text>
+  <text x="338" y="712" font-size="13" fill="#51405D">en Android; avisos dentro</text>
+  <text x="338" y="730" font-size="13" fill="#51405D">de la app en la web</text>
+  <text x="338" y="760" font-size="12" fill="#C49A51">expo-notifications</text>
+
+  <path d="M183 640 V 606" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="192" y="633" font-size="12" font-weight="600" fill="#51405D">texto</text>
+  <path d="M437 602 V 636" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="446" y="633" font-size="12" font-weight="600" fill="#51405D">programa</text>
+
+  <!-- ========== Conexiones de la capa de servicios (1–4) ========== -->
+  <path d="M532 548 H 610" fill="none" stroke="#51405D" stroke-width="2"/>
+  <path d="M610 216 V 548" fill="none" stroke="#51405D" stroke-width="2"/>
+  <path d="M610 548 V 582" fill="none" stroke="#947BB3" stroke-width="2" stroke-dasharray="7 6"/>
+  <path d="M610 216 H 670" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M610 338 H 670" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M610 460 H 670" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M610 582 H 670" fill="none" stroke="#947BB3" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrowSoft)"/>
+
+  <circle cx="640" cy="216" r="12" fill="#51405D"/>
+  <text x="640" y="221" font-size="13" font-weight="700" fill="#FFFCF5" text-anchor="middle">1</text>
+  <circle cx="640" cy="338" r="12" fill="#51405D"/>
+  <text x="640" y="343" font-size="13" font-weight="700" fill="#FFFCF5" text-anchor="middle">2</text>
+  <circle cx="640" cy="460" r="12" fill="#51405D"/>
+  <text x="640" y="465" font-size="13" font-weight="700" fill="#FFFCF5" text-anchor="middle">3</text>
+  <circle cx="640" cy="582" r="12" fill="#947BB3"/>
+  <text x="640" y="587" font-size="13" font-weight="700" fill="#FFFCF5" text-anchor="middle">4</text>
+
+  <!-- Hosting → navegador (5) -->
+  <path d="M674 704 H 586" fill="none" stroke="#947BB3" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrowSoft)"/>
+  <circle cx="628" cy="704" r="12" fill="#947BB3"/>
+  <text x="628" y="709" font-size="13" font-weight="700" fill="#FFFCF5" text-anchor="middle">5</text>
+
+  <!-- ========== Firebase ========== -->
+  <rect x="650" y="110" width="420" height="690" rx="24" fill="#EEE7F8" stroke="#D9CDEE" stroke-width="1.5"/>
+  <text x="674" y="144" font-size="13" font-weight="700" letter-spacing="1.5" fill="#75657F">FIREBASE · PLAN SPARK (SIN COSTO)</text>
+
+  <rect x="674" y="166" width="372" height="100" rx="16" fill="#FFFCF5" stroke="#947BB3" stroke-width="1.2"/>
+  <text x="698" y="200" font-size="17" font-weight="700" fill="#51405D">Authentication</text>
+  <text x="698" y="224" font-size="13" fill="#51405D">Registro e inicio de sesión</text>
+  <text x="698" y="244" font-size="13" fill="#51405D">Mantiene la sesión del usuario</text>
+
+  <rect x="674" y="288" width="372" height="100" rx="16" fill="#FFFCF5" stroke="#947BB3" stroke-width="1.2"/>
+  <text x="698" y="322" font-size="17" font-weight="700" fill="#51405D">Cloud Firestore</text>
+  <text x="698" y="346" font-size="13" fill="#51405D">Datos de cada usuario en users/{uid}</text>
+  <text x="698" y="366" font-size="13" fill="#51405D">Reglas: solo el dueño lee y escribe</text>
+
+  <rect x="674" y="410" width="372" height="100" rx="16" fill="#FFFCF5" stroke="#947BB3" stroke-width="1.2"/>
+  <text x="698" y="444" font-size="17" font-weight="700" fill="#51405D">AI Logic</text>
+  <text x="698" y="468" font-size="13" fill="#51405D">Intermediario hacia Gemini: la clave vive aquí</text>
+  <text x="698" y="488" font-size="13" fill="#51405D">Límite de solicitudes por usuario</text>
+
+  <rect x="674" y="532" width="372" height="100" rx="16" fill="#FFFCF5" stroke="#947BB3" stroke-width="1.2" stroke-dasharray="7 6"/>
+  <text x="698" y="566" font-size="17" font-weight="700" fill="#51405D">App Check</text>
+  <text x="698" y="590" font-size="13" fill="#51405D">Comprueba que la solicitud viene de Pandask</text>
+  <text x="698" y="610" font-size="13" fill="#51405D">Play Integrity (Android) · reCAPTCHA (web)</text>
+
+  <rect x="674" y="654" width="372" height="100" rx="16" fill="#FFFCF5" stroke="#947BB3" stroke-width="1.2"/>
+  <text x="698" y="688" font-size="17" font-weight="700" fill="#51405D">Hosting</text>
+  <text x="698" y="712" font-size="13" fill="#51405D">Publica la versión web de Pandask</text>
+  <text x="698" y="732" font-size="13" fill="#51405D">Generada desde el mismo código</text>
+
+  <!-- ========== Servicios externos ========== -->
+  <rect x="1140" y="166" width="220" height="150" rx="18" fill="#DCE9CF" stroke="#648B73" stroke-width="1.2"/>
+  <text x="1160" y="200" font-size="17" font-weight="700" fill="#51405D">EAS Build y Update</text>
+  <text x="1160" y="222" font-size="12" fill="#648B73">Expo</text>
+  <text x="1160" y="248" font-size="13" fill="#51405D">Genera el APK de Android</text>
+  <text x="1160" y="268" font-size="13" fill="#51405D">y envía actualizaciones</text>
+  <text x="1160" y="288" font-size="13" fill="#51405D">sin reinstalar</text>
+
+  <rect x="1140" y="410" width="220" height="170" rx="18" fill="#E4F0FA" stroke="#789EC8" stroke-width="1.2"/>
+  <text x="1160" y="444" font-size="17" font-weight="700" fill="#51405D">Gemini API</text>
+  <text x="1160" y="466" font-size="12" fill="#789EC8">Google · gemini-3.5-flash-lite</text>
+  <text x="1160" y="492" font-size="13" fill="#51405D">Interpreta, extrae,</text>
+  <text x="1160" y="512" font-size="13" fill="#51405D">descompone y estima</text>
+  <text x="1160" y="538" font-size="13" fill="#51405D">Responde JSON con un</text>
+  <text x="1160" y="558" font-size="13" fill="#51405D">esquema definido</text>
+
+  <path d="M1046 448 H 1136" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="1091" y="440" font-size="12" font-weight="600" fill="#51405D" text-anchor="middle">solicitud</text>
+  <path d="M1136 484 H 1050" fill="none" stroke="#51405D" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="1091" y="502" font-size="12" font-weight="600" fill="#51405D" text-anchor="middle">JSON</text>
+
+  <!-- ========== Leyenda ========== -->
+  <line x1="40" y1="826" x2="1360" y2="826" stroke="#E6D6BC" stroke-width="1.5"/>
+
+  <g font-size="13" fill="#51405D">
+    <circle cx="52" cy="852" r="10" fill="#51405D"/><text x="52" y="856.5" font-size="12" font-weight="700" fill="#FFFCF5" text-anchor="middle">1</text>
+    <text x="70" y="857">Iniciar sesión y mantener la sesión</text>
+    <circle cx="52" cy="882" r="10" fill="#51405D"/><text x="52" y="886.5" font-size="12" font-weight="700" fill="#FFFCF5" text-anchor="middle">2</text>
+    <text x="70" y="887">Guardar y sincronizar tareas, planes y progreso</text>
+    <circle cx="52" cy="912" r="10" fill="#51405D"/><text x="52" y="916.5" font-size="12" font-weight="700" fill="#FFFCF5" text-anchor="middle">3</text>
+    <text x="70" y="917">Generar o revisar un plan: texto y disponibilidad → JSON validado</text>
+
+    <circle cx="530" cy="852" r="10" fill="#947BB3"/><text x="530" y="856.5" font-size="12" font-weight="700" fill="#FFFCF5" text-anchor="middle">4</text>
+    <text x="548" y="857">Verificar con App Check que la solicitud viene de la app</text>
+    <circle cx="530" cy="882" r="10" fill="#947BB3"/><text x="530" y="886.5" font-size="12" font-weight="700" fill="#FFFCF5" text-anchor="middle">5</text>
+    <text x="548" y="887">Abrir Pandask en el navegador</text>
+    <circle cx="530" cy="912" r="10" fill="#947BB3"/><text x="530" y="916.5" font-size="12" font-weight="700" fill="#FFFCF5" text-anchor="middle">6</text>
+    <text x="548" y="917">Instalar y actualizar la app en Android</text>
+
+    <line x1="1010" y1="852" x2="1050" y2="852" stroke="#51405D" stroke-width="2"/>
+    <text x="1060" y="857">Datos</text>
+    <line x1="1010" y1="882" x2="1050" y2="882" stroke="#947BB3" stroke-width="2" stroke-dasharray="7 6"/>
+    <text x="1060" y="887">Seguridad y distribución</text>
+  </g>
+  <text x="1010" y="917" font-size="12" fill="#75657F">Sin secretos en la app · la IA interpreta,</text>
+  <text x="1010" y="935" font-size="12" fill="#75657F">las reglas planifican · el usuario confirma</text>
+</svg>

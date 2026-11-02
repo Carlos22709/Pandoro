@@ -2,7 +2,7 @@
 
 Este archivo lo leen los agentes de IA que usa el equipo (Claude Code, Codex, Cursor, Copilot, Gemini CLI…). `CLAUDE.md` y `GEMINI.md` solo lo importan: cualquier cambio se hace aquí.
 
-Antes de trabajar, lee [`docs/CONTEXTO.md`](docs/CONTEXTO.md): qué es el producto, sus restricciones, el alcance del MVP, quién es responsable de qué y las decisiones ya tomadas.
+Antes de trabajar, lee [`docs/CONTEXTO.md`](docs/CONTEXTO.md): qué es el producto, sus restricciones, el alcance del MVP, quién es responsable de qué y las decisiones ya tomadas. Si la tarea toca datos, autenticación, IA, voz, recordatorios o despliegue, lee también [`docs/arquitectura.md`](docs/arquitectura.md).
 
 ## Proyecto
 
