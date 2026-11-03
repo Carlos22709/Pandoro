@@ -248,7 +248,7 @@ Proveedores que procesan datos (insumo para la fila 34):
 - **Firebase (Authentication, Firestore, Hosting):** actúa como Encargado. Guarda la cuenta, las tareas, los planes y el progreso.
 - **Gemini en nivel gratuito, vía AI Logic:** Google indica que usa el contenido enviado en el nivel gratuito para mejorar sus productos. Con eso no actúa solo como Encargado, lo que choca con la decisión 3. Ver [Por confirmar](#9-por-confirmar).
 - **Voz:** en Android, la transcripción se pide en el dispositivo (`requiresOnDeviceRecognition`) cuando el teléfono lo admite; si no, la hace el servicio de voz del sistema. En la web, Chrome envía el audio a Google para transcribirlo. Pandask no guarda el audio en ningún caso.
-- **Ubicación:** Firebase y Gemini procesan datos fuera de Colombia.
+- **Ubicación:** Firebase y Gemini procesan datos fuera de Colombia. Firestore está en `nam5`, una multirregión de Estados Unidos; la ubicación no se puede cambiar.
 
 ## 8. Límites del plan gratuito
 
@@ -278,7 +278,7 @@ Siguiendo la regla de coherencia de `AGENTS.md`, estas partes dependen de otras 
 | Gemini gratuito frente a la decisión 3 | En el nivel gratuito, Google usa el contenido para mejorar sus productos, y el de pago exige facturación. La decisión 3 dice que, si no se asegura un tratamiento adecuado, la integración no se habilita en el piloto. Propuesta: una autorización aparte y opcional para usar el asistente; sin ella, la app funciona en modo manual (6.2). | Andrea, con el equipo | 34 |
 | Voz | Decidir si en la web la voz entra en esa misma autorización opcional o se desactiva, y si en Android se exige la transcripción en el dispositivo o se acepta la del sistema. | Andrea y Santiago | 25, 34 |
 | Constancia al eliminar la cuenta | Si se conserva un registro mínimo (fechas de autorización y de eliminación), cuánto tiempo y dónde. Tendría que vivir fuera de `users/{uid}`, con su propia regla de seguridad. | Andrea | 34 |
-| Transmisión internacional | Revisar si el aviso y la política deben mencionar que Firebase y Gemini procesan datos fuera de Colombia, y qué términos del proveedor lo respaldan. | Andrea | 34 |
+| Transmisión internacional | Revisar si el aviso y la política deben mencionar que Firebase y Gemini procesan datos fuera de Colombia (Firestore en `nam5`, Estados Unidos), y qué términos del proveedor lo respaldan. | Andrea | 34 |
 | Aviso de privacidad | Texto corto del registro y política completa, con todo lo anterior. | Andrea | 34 |
 | Propiedad del proyecto de Firebase | Quién crea el proyecto y quiénes son administradores. Nadie vincula facturación. | Equipo | — |
 

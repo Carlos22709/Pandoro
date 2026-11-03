@@ -33,9 +33,20 @@ Mientras falte alguna variable obligatoria, la app abre pero nadie puede entrar:
 - **Sin verificación de correo:** no está implementada en esta fase porque la interfaz no tiene ese flujo.
 - **Recuperar contraseña:** el enlace de Iniciar sesión envía el correo con `sendPasswordResetEmail`. El mensaje es igual exista o no la cuenta.
 - **Protección de correos:** Firebase la activa en los proyectos nuevos. Con ella, un correo inexistente o una contraseña incorrecta devuelven `auth/invalid-credential`, así que la app muestra el mismo mensaje en ambos casos.
-- **Nombre:** se guarda como `displayName` con `updateProfile`. No hay base de datos de perfiles.
+- **Nombre:** se guarda como `displayName` con `updateProfile`.
 - **Perfil:** ya no edita correo ni contraseña, porque esos cambios eran simulados. Solo cambia el nombre.
-- **Datos por usuario:** las tareas siguen en memoria y son las mismas de ejemplo para todos. Se reinician al cerrar sesión o cambiar de cuenta.
+- **Datos por usuario (fila 15):** se guardan en Cloud Firestore bajo `users/{uid}`, a través de `src/services/data/`. Ahí están las tareas (`tasks/`), el progreso del mundo (`progress/world`) y, en el documento del usuario, las preferencias de Ajustes y la constancia del consentimiento (versión del aviso y fecha). Un usuario nuevo empieza sin tareas y con el progreso en cero. El borrador del plan sigue solo en el dispositivo hasta confirmarlo.
+- **Consentimiento:** el registro guarda la constancia junto con la cuenta. Si no se puede guardar, la cuenta recién creada se borra (Ley 1581).
+- **Caché sin conexión:** en web, Firestore guarda una copia en IndexedDB. En iOS y Android, el SDK de JavaScript solo tiene caché en memoria, así que sin conexión la lista no carga al abrir la app.
+
+## Firestore
+
+1. En **Firestore Database**, la base `(default)` debe existir en modo de producción.
+2. En la pestaña **Reglas**, pega el contenido de [`firestore.rules`](../firestore.rules) y pulsa **Publicar**. Ese archivo es la fuente de verdad: si las reglas cambian, se edita y se vuelve a publicar.
+3. Las reglas solo dejan a cada usuario leer y escribir lo suyo. Las validaciones de campos y tamaños quedan para la fila 14 (Esteban).
+4. Para comprobarlo, corre `npm run check:firestore`. Crea dos cuentas temporales, prueba tareas, plan, progreso, preferencias y consentimiento, verifica que una cuenta no pueda leer ni borrar los datos de la otra, y al final borra todo. Córrelo antes del piloto y cada vez que cambien las reglas.
+
+La base `(default)` está en `nam5` (multirregión de Estados Unidos).
 
 ## Rutas
 

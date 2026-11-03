@@ -1,7 +1,8 @@
-import { createContext, useContext, useMemo, useReducer, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 
 import { useAuth } from '@/components/auth/AuthProvider';
 import type { TaskDraft } from '@/components/tasks/taskTypes';
+import { saveProgress, watchProgress } from '@/services/data/progressRepository';
 import { INITIAL_DEMO_STATE, demoReducer, type DemoState } from '@/demo/demoState';
 
 type DemoActions = {
@@ -32,6 +33,33 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setOwnerUid(uid);
     dispatch({ type: 'reset' });
   }
+
+  // Último progreso igual al de Firestore; null mientras no ha llegado lo guardado.
+  const syncedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    syncedRef.current = null;
+    if (!uid) return;
+    return watchProgress(
+      uid,
+      (progress) => {
+        syncedRef.current = JSON.stringify(progress);
+        dispatch({ type: 'loadProgress', progress });
+      },
+      (error) => console.warn('No se pudo leer el progreso.', error.message),
+    );
+  }, [uid]);
+
+  // Guarda cada avance, pero no reescribe lo que acaba de leer ni pisa lo guardado antes de cargarlo.
+  useEffect(() => {
+    if (!uid || syncedRef.current === null) return;
+    const current = JSON.stringify(state.progress);
+    if (current === syncedRef.current) return;
+    syncedRef.current = current;
+    saveProgress(uid, state.progress).catch((error: Error) => (
+      console.warn('No se pudo guardar el progreso.', error.message)
+    ));
+  }, [uid, state.progress]);
 
   const actions = useMemo<DemoActions>(() => ({
     toggleTask: (id) => dispatch({ type: 'toggleTask', id }),

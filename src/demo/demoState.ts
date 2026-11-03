@@ -26,6 +26,8 @@ export type DemoAction =
   | { type: 'toggleTask'; id: string }
   // Una tarea de TasksProvider cambió de estado: solo se actualiza el progreso del mundo.
   | { type: 'recordCompletion'; taskId: string; completed: boolean }
+  // Progreso guardado en Firestore: los lugares ya ganados no se vuelven a celebrar.
+  | { type: 'loadProgress'; progress: ProgressWorldSnapshot }
   | { type: 'createTask'; id: string; draft: TaskDraft }
   | { type: 'updateTask'; id: string; draft: TaskDraft }
   | { type: 'deleteTask'; id: string }
@@ -35,74 +37,16 @@ export type DemoAction =
   | { type: 'finishHomeReveal' }
   | { type: 'reset' };
 
-// La tarea del plan que se completa en escena lleva el total a 25 y abre el Bosque de origami.
-// Cambia estos valores para mover a Pandoro y probar el florecimiento del mundo.
+// Un usuario nuevo empieza su mundo en cero. El progreso guardado llega con loadProgress.
 const INITIAL_PROGRESS: ProgressWorldSnapshot = {
   currentStage: 1,
-  completedTasks: 24,
-  streak: 6,
+  completedTasks: 0,
+  streak: 0,
 };
 
-// El informe, la estadística y la exposición no están: los trae la conversación con Pandoro.
-const INITIAL_TASKS: TaskItem[] = [
-  {
-    id: 'mail',
-    title: 'Responder correo',
-    detail: 'Hoy · 15 min',
-    duration: '15 min',
-    priority: 2,
-    tone: 'blue',
-    icon: 'mail',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'materials',
-    title: 'Comprar materiales',
-    detail: 'Viernes',
-    priority: 6,
-    tone: 'green',
-    icon: 'cart',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'notes',
-    title: 'Revisar notas',
-    detail: 'Viernes · 20 min',
-    duration: '20 min',
-    priority: 5,
-    tone: 'blue',
-    icon: 'document',
-    difficulty: 'light',
-    completed: true,
-  },
-  {
-    id: 'agenda',
-    title: 'Organizar agenda',
-    detail: 'Domingo · 15 min',
-    duration: '15 min',
-    priority: 8,
-    tone: 'lilac',
-    icon: 'checklist',
-    difficulty: 'light',
-    completed: false,
-  },
-  {
-    id: 'team',
-    title: 'Llamar al equipo',
-    detail: 'Lunes · 9:00 a. m.',
-    duration: '20 min',
-    priority: 9,
-    tone: 'green',
-    icon: 'phone',
-    difficulty: 'medium',
-    completed: false,
-  },
-];
-
+// Las tareas de la app viven en TasksProvider; esta lista solo la usa el reducer de la demo.
 export const INITIAL_DEMO_STATE: DemoState = {
-  tasks: INITIAL_TASKS,
+  tasks: [],
   progress: INITIAL_PROGRESS,
   celebration: null,
   pendingUnlock: null,
@@ -179,6 +123,9 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
 
     case 'recordCompletion':
       return recordCompletion(state, action.taskId, action.completed);
+
+    case 'loadProgress':
+      return { ...state, progress: action.progress };
 
     case 'createTask': {
       const priority = state.tasks.reduce((highest, task) => Math.max(highest, task.priority), 0) + 1;

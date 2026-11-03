@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { authService, type AuthUser } from '@/services/auth/authService';
 
@@ -20,9 +20,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<AuthUser | null>(null);
+  // Firebase avisa apenas crea la cuenta, antes de guardar la constancia de consentimiento y el
+  // nombre. Mientras el registro no termina, no se entra a la app: cerrarla a mitad no deja huecos.
+  const registeringRef = useRef(false);
+  const latestUserRef = useRef<AuthUser | null>(null);
 
   useEffect(() => authService.subscribe((next) => {
+    latestUserRef.current = next;
     setUser(next);
+    if (registeringRef.current && next) return;
     setStatus(next ? 'signedIn' : 'signedOut');
   }), []);
 
@@ -33,7 +39,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // onAuthStateChanged avisa al crear la cuenta, antes de que exista el nombre, y no
   // vuelve a avisar por updateProfile: por eso se actualiza también con el resultado.
   const register = useCallback(async (name: string, email: string, password: string) => {
-    setUser(await authService.register(name, email, password));
+    registeringRef.current = true;
+    try {
+      const created = await authService.register(name, email, password);
+      setUser(created);
+      setStatus('signedIn');
+    } catch (error) {
+      // Si la cuenta quedó a medias, la pantalla de consentimiento de _layout la completa.
+      setStatus(latestUserRef.current ? 'signedIn' : 'signedOut');
+      throw error;
+    } finally {
+      registeringRef.current = false;
+    }
   }, []);
 
   const updateName = useCallback(async (name: string) => {
