@@ -20,10 +20,15 @@ export const isFirebaseConfigured = Boolean(
 
 let auth: Auth | null = null;
 
+// Una sola app de Firebase para Authentication y AI Logic.
+export function getFirebaseApp() {
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
+
 // Se inicializa al primer uso: sin .env completo, initializeAuth lanzaría al cargar la app.
 export function getFirebaseAuth() {
   if (!auth) {
-    auth = createAuth(getApps().length ? getApp() : initializeApp(firebaseConfig));
+    auth = createAuth(getFirebaseApp());
   }
   return auth;
 }

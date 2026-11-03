@@ -1,11 +1,16 @@
+import { AIError, GoogleAIBackend, getAI, getGenerativeModel } from 'firebase/ai';
+
+import { getFirebaseApp, isFirebaseConfigured } from '@/services/firebase/firebaseApp';
 import { mergeRevision } from '@/services/planning/planLogic';
 import type { Availability, PlanActivity, PlanProposal } from '@/services/planning/planTypes';
 
 import { PLAN_RESPONSE_SCHEMA, PlanResponseError, parsePlanResponse } from './planContract';
 import { PLAN_SYSTEM_INSTRUCTION, buildGeneratePrompt, buildRevisePrompt } from './planPrompt';
+import { redactPersonalData } from './redactPersonalData';
 
-// Único archivo que habla con Gemini. Para migrar a un backend basta con cambiar geminiGenerate:
-// la pantalla solo conoce generatePlan, revisePlan y GeminiError.
+// Único archivo que habla con Gemini, a través de Firebase AI Logic: la clave de Gemini vive en
+// Firebase, no en la app. Cambiar de proveedor solo toca geminiGenerate; la pantalla solo conoce
+// generatePlan, revisePlan y GeminiError.
 const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const REQUEST_TIMEOUT_MS = 60_000;
 const MAX_OUTPUT_TOKENS = 12_000;
@@ -22,12 +27,13 @@ export type GeminiErrorCode =
   | 'invalid_response'
   | 'model_unavailable'
   | 'provider'
-  | 'unsupported_runtime';
+  | 'unsupported_runtime'
+  | 'ai_not_enabled';
 
 const ERROR_MESSAGES: Record<GeminiErrorCode, string> = {
-  missing_key: 'Pandoro aún no tiene configurada su conexión con la IA. Agrega la clave en el archivo .env.',
-  invalid_key: 'La clave de Gemini no es válida. Revísala en el archivo .env.',
-  auth: 'Gemini rechazó el acceso con esta clave. Revisa sus permisos en Google AI Studio.',
+  missing_key: 'Pandoro aún no tiene configurada su conexión con la IA. Revisa la configuración de Firebase en el archivo .env.',
+  invalid_key: 'La configuración de Firebase no es válida. Revísala en el archivo .env.',
+  auth: 'Firebase rechazó el acceso a la IA. Revisa los permisos del proyecto.',
   quota: 'Se alcanzó el límite de solicitudes de Gemini. Espera un momento e inténtalo de nuevo.',
   network: 'No hay conexión con Gemini. Revisa tu internet e inténtalo de nuevo.',
   timeout: 'Gemini tardó demasiado en responder. Inténtalo de nuevo.',
@@ -36,6 +42,7 @@ const ERROR_MESSAGES: Record<GeminiErrorCode, string> = {
   model_unavailable: 'El modelo configurado no está disponible. Revisa EXPO_PUBLIC_GEMINI_MODEL.',
   provider: 'Gemini tiene un problema temporal. Inténtalo de nuevo en unos minutos.',
   unsupported_runtime: 'La IA no pudo iniciarse en este dispositivo. Puedes crear tus tareas manualmente.',
+  ai_not_enabled: 'La IA todavía no está activada en el proyecto de Firebase. Puedes crear tus tareas manualmente.',
 };
 
 export class GeminiError extends Error {
@@ -57,58 +64,67 @@ export type GenerateRequest = {
 
 export type GenerateFn = (request: GenerateRequest) => Promise<string | undefined>;
 
-async function loadSdk() {
-  // El SDK lee ReadableStream al cargarse y Hermes puede no tenerlo. Aquí no se usa streaming,
-  // así que basta un sustituto vacío. Se carga bajo demanda para que un fallo no afecte al arranque.
-  if (typeof globalThis.ReadableStream === 'undefined') {
-    Object.assign(globalThis, { ReadableStream: class {} });
-  }
-  try {
-    return await import('@google/genai/web');
-  } catch {
-    throw new GeminiError('unsupported_runtime');
-  }
-}
-
 const geminiGenerate: GenerateFn = async ({ prompt, systemInstruction, schema, signal }) => {
-  // Expo solo sustituye process.env.EXPO_PUBLIC_* escrito de forma literal.
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY?.trim();
-  const model = process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || DEFAULT_MODEL;
-  if (!apiKey) throw new GeminiError('missing_key');
+  if (!isFirebaseConfigured) throw new GeminiError('missing_key');
 
-  const { GoogleGenAI } = await loadSdk();
-  const client = new GoogleGenAI({ apiKey });
-  const response = await client.models.generateContent({
-    model,
-    contents: prompt,
-    config: {
-      systemInstruction,
+  // Expo solo sustituye process.env.EXPO_PUBLIC_* escrito de forma literal.
+  const model = getGenerativeModel(getAI(getFirebaseApp(), { backend: new GoogleAIBackend() }), {
+    model: process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || DEFAULT_MODEL,
+    systemInstruction,
+    generationConfig: {
       responseMimeType: 'application/json',
-      responseJsonSchema: schema,
+      responseJsonSchema: schema as Record<string, unknown>,
       temperature: 0.3,
       maxOutputTokens: MAX_OUTPUT_TOKENS,
-      abortSignal: signal,
     },
   });
-  return response.text;
+  const result = await model.generateContent(prompt, { signal });
+  return result.response.text();
 };
+
+function fromStatus(status: number, message: string) {
+  if (status === 400 && /api[ _-]?key/i.test(message)) return new GeminiError('invalid_key');
+  if (status === 401 || status === 403) return new GeminiError('auth');
+  if (status === 404) return new GeminiError('model_unavailable');
+  if (status === 408) return new GeminiError('timeout');
+  if (status === 429) return new GeminiError('quota');
+  if (status >= 500) return new GeminiError('provider');
+  return new GeminiError('invalid_response');
+}
+
+// El código de AI Logic va primero: una API sin activar también llega con estado 403.
+function fromAIError(error: AIError) {
+  switch (error.code) {
+    case 'api-not-enabled':
+      return new GeminiError('ai_not_enabled');
+    case 'no-api-key':
+    case 'no-project-id':
+    case 'no-app-id':
+      return new GeminiError('missing_key');
+  }
+  const status = error.customErrorData?.status;
+  if (typeof status === 'number') return fromStatus(status, error.message);
+  switch (error.code) {
+    case 'response-error':
+    case 'parse-failed':
+    case 'invalid-content':
+      return new GeminiError('invalid_response');
+    case 'fetch-error':
+      return new GeminiError('network');
+    default:
+      return new GeminiError('provider');
+  }
+}
 
 // Traduce cualquier fallo a un código propio: el mensaje original puede incluir la URL o la clave.
 export function toGeminiError(error: unknown): GeminiError {
   if (error instanceof GeminiError) return error;
   if (error instanceof PlanResponseError) return new GeminiError('invalid_response');
+  if (error instanceof AIError) return fromAIError(error);
 
   const status = (error as { status?: unknown } | null)?.status;
   const message = error instanceof Error ? error.message : '';
-  if (typeof status === 'number') {
-    if (status === 400 && /api[ _-]?key/i.test(message)) return new GeminiError('invalid_key');
-    if (status === 401 || status === 403) return new GeminiError('auth');
-    if (status === 404) return new GeminiError('model_unavailable');
-    if (status === 408) return new GeminiError('timeout');
-    if (status === 429) return new GeminiError('quota');
-    if (status >= 500) return new GeminiError('provider');
-    return new GeminiError('invalid_response');
-  }
+  if (typeof status === 'number') return fromStatus(status, message);
   if (error instanceof Error && error.name === 'AbortError') return new GeminiError('timeout');
   return new GeminiError('network');
 }
@@ -162,7 +178,8 @@ export function createPlanService({ generate = geminiGenerate, timeoutMs = REQUE
   };
 
   return {
-    async generatePlan({ text, availability, today }: GenerateInput): Promise<PlanResult> {
+    async generatePlan({ text: rawText, availability, today }: GenerateInput): Promise<PlanResult> {
+      const text = redactPersonalData(rawText);
       const parsed = await run(buildGeneratePrompt(text, availability, today), [text]);
       if (parsed.kind === 'clarification') return parsed;
       const proposal: PlanProposal = {
@@ -174,7 +191,9 @@ export function createPlanService({ generate = geminiGenerate, timeoutMs = REQUE
       return { kind: 'proposal', proposal, unavailableDates: parsed.unavailableDates, restored: 0 };
     },
 
-    async revisePlan({ text, availability, today, proposal, instruction }: ReviseInput): Promise<PlanResult> {
+    async revisePlan({ text: rawText, availability, today, proposal, instruction: rawInstruction }: ReviseInput): Promise<PlanResult> {
+      const text = redactPersonalData(rawText);
+      const instruction = redactPersonalData(rawInstruction);
       const prompt = buildRevisePrompt(text, instruction, proposal, availability, today);
       const parsed = await run(prompt, [text, instruction]);
       if (parsed.kind === 'clarification') return parsed;

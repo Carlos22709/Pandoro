@@ -212,14 +212,12 @@ test('respuesta vacía', async () => {
   );
 });
 
-test('escenario 11: sin clave falla con un error propio y sin llamar al SDK', async () => {
-  const saved = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-  delete process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+// npm test no carga .env, así que aquí Firebase nunca está configurado.
+test('escenario 11: sin configuración de Firebase falla con un error propio y sin llamar al SDK', async () => {
   await assert.rejects(
     createPlanService().generatePlan({ text, availability, today }),
     (error: GeminiError) => error.code === 'missing_key',
   );
-  if (saved !== undefined) process.env.EXPO_PUBLIC_GEMINI_API_KEY = saved;
 });
 
 test('escenario 12: traduce errores HTTP y de red sin filtrar el mensaje original', () => {

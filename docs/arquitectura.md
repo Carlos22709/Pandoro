@@ -199,7 +199,7 @@ Pendiente: si se conserva una constancia mínima de la autorización tras la eli
 
 ### Claves y configuración
 
-- La clave de Gemini se configura **en la consola de Firebase**, no en la app. Al migrar, se elimina `EXPO_PUBLIC_GEMINI_API_KEY` de `.env.example` y del código.
+- La clave de Gemini se configura **en la consola de Firebase**, no en la app. Desde la fila 17, la app llama a Gemini por AI Logic y ya no existe `EXPO_PUBLIC_GEMINI_API_KEY`.
 - La configuración de Firebase (identificador del proyecto, `apiKey` de Firebase, `google-services.json`) no es secreta. Se versiona o se inyecta en la compilación según defina la fila 14.
 
 ### Reglas de Firestore (punto de partida)
@@ -267,7 +267,7 @@ Siguiendo la regla de coherencia de `AGENTS.md`, estas partes dependen de otras 
 
 | Tema | Qué necesita la arquitectura | Quién | Fila |
 | --- | --- | --- | --- |
-| Prueba técnica de Firebase en Android | Confirmar que React Native Firebase (`app`, `auth`, `firestore`, `ai`, `app-check`) funciona con la versión de Expo del proyecto, que `gemini-3.5-flash-lite` está disponible por AI Logic en el nivel gratuito y cómo se adapta el esquema JSON de `planContract` al formato de AI Logic. Si React Native Firebase no funciona, se evalúa el SDK de JavaScript en Android sin App Check. | Santiago, con Carlos | 12, 16, 17 |
+| SDK de Firebase en Android | **Avance del 2 de noviembre:** el login (fila 16) y la conexión con la IA (fila 17) usan el SDK de JavaScript en todas las plataformas. Se comprobó que `gemini-3.5-flash-lite` responde por AI Logic en el plan Spark y acepta el esquema JSON de `planContract` sin cambios. **Falta:** probarlo en un Android real y decidir si se pasa a React Native Firebase para tener App Check con Play Integrity, o si se acepta el SDK de JavaScript sin App Check en Android. | Santiago, con Carlos | 14, 16, 17 |
 | Modelo de datos | Campos de cada entidad. Si las subtareas son documentos propios o parte de su tarea. Cómo se cuenta el progreso. | Andrea | 10 |
 | Autenticación y seguridad | Método de inicio de sesión, reglas completas de Firestore, activación de App Check, manejo de la configuración de Firebase. | Esteban | 14 |
 | Sincronización y plan gratuito | Con Firestore, los datos se sincronizan entre dispositivos de forma natural. El modelo de negocio dejaba la sincronización como función de pago (O04). Hay que decidir si se mantiene esa diferencia o se reemplaza. | Esteban | 3 |
