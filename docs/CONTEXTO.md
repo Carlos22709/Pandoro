@@ -68,7 +68,7 @@ Detectados al cruzar estas decisiones con la arquitectura. Los decide el equipo,
 - **Gemini en nivel gratuito frente a la decisión 3.** Google indica que usa el contenido enviado en el nivel gratuito para mejorar sus productos, así que no actúa solo como Encargado. El nivel de pago exige vincular facturación. Propuesta: una autorización aparte y opcional para usar el asistente; sin ella, Pandask funciona completa en modo manual.
 - **Voz.** En la web, Chrome envía el audio a Google para transcribirlo; en Android puede pasar lo mismo si el teléfono no transcribe en el dispositivo. Pandask no guarda audios, pero el proveedor sí lo procesa. Propuesta: en Android, transcribir en el dispositivo cuando el teléfono lo permita; en la web, incluir la voz en la autorización opcional o desactivarla.
 - **Constancia del consentimiento al eliminar la cuenta.** Borrar todos los datos del usuario borra también la constancia que exige la decisión 1. Hay que decidir si se conserva un registro mínimo (fechas de autorización y de eliminación) y por cuánto tiempo.
-- **Transmisión internacional.** Firebase y Gemini procesan datos fuera de Colombia. Hay que revisar si el aviso y la política deben mencionarlo.
+- **Transmisión internacional.** Firebase y Gemini procesan datos fuera de Colombia; Firestore está en `nam5`, una multirregión de Estados Unidos. Hay que revisar si el aviso y la política deben mencionarlo.
 
 ## Alcance del MVP
 

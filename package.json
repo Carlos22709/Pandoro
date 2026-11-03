@@ -9,7 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "check:firestore": "tsx --env-file=.env scripts/check-firestore.mts"
   },
   "dependencies": {
     "@expo-google-fonts/figtree": "^0.4.1",
