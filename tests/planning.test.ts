@@ -183,6 +183,11 @@ test('escenarios 7-8: la edición llega a la lista solo al convertir, con id est
   assert.equal(new Set(first.map((task) => task.id)).size, 3);
 });
 
+test('las tareas planeadas guardan su día para el recordatorio', async () => {
+  const tasks = proposalToTasks(await firstProposal(), 1);
+  assert.deepEqual(tasks.map((task) => task.dueDate), ['2026-11-03', '2026-11-04', '2026-11-05']);
+});
+
 test('los campos vacíos bloquean la confirmación', async () => {
   const proposal = updateSubtask(await firstProposal(), 's1', { title: '', durationMinutes: 0 });
   assert.ok(analyzeProposal(proposal, availability).filter((issue) => issue.blocking).length >= 2);

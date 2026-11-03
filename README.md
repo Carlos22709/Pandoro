@@ -18,14 +18,14 @@ El acceso usa Firebase Authentication con correo y contraseña; sin sesión, las
 La demo cuenta una historia fija que sale igual en cada ensayo:
 
 ```text
-Inicio → Hablar con Pandoro (dos turnos con guion) → Pandoro propone un plan de 6 tareas
-      → Agregar a mis tareas → Tareas: "Terminar el informe" destacada
+Inicio → Hablar con Pandoro (conversación real con Gemini) → sugerencia de plan editable
+      → Agregar a mis tareas → Tareas
       → completarla → celebración → Ver mi mundo → Pandoro camina al Bosque de origami
       → Inicio: el zorro y las flores de origami se despliegan
 ```
 
-- **Hablar:** mantén pulsado el pajarito mientras dices tu frase; la transcripción del guion se escribe sola y se envía al soltar. Un toque corto no envía nada. Lo que se diga en voz alta no importa, pero conviene decir algo parecido al guion.
-- **Guion:** todos los textos (frases, respuestas, plan, títulos de celebración y burbuja de Inicio) están en `src/demo/demoScript.ts`. Las fechas suponen que la demo se presenta un martes.
+- **Hablar:** elige tus días y minutos disponibles y escríbele a Pandoro. Si falta algo, pregunta; luego muestra una sugerencia de plan que puedes editar antes de agregarla. Usa el mismo servicio de Gemini que Nueva tarea (`src/services/gemini/`) y la conversación no se guarda. La voz llega con la fila 25.
+- **Guion:** los textos fijos que quedan ( títulos de celebración y burbuja de Inicio) están en `src/demo/demoScript.ts`. Las fechas suponen que la demo se presenta un martes.
 - **Estado:** `src/demo/demoState.ts` guarda tareas y progreso, y `DemoProvider` lo comparte con todas las pantallas. La demo arranca con 24 tareas completadas, así que la tarea que se completa en escena abre el Bosque de origami.
 - **Reiniciar:** Ajustes → Demo → "Reiniciar demo" (pide un segundo toque). Recargar la app también vuelve al inicio, porque nada se guarda en disco.
 

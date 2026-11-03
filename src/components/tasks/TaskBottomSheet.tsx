@@ -19,8 +19,10 @@ import {
   type TaskDraft,
   type TaskItem,
 } from '@/components/tasks/taskTypes';
+import { validateTaskDraft } from '@/services/tasks/taskValidation';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type TaskBottomSheetProps = {
   visible: boolean;
@@ -51,6 +53,7 @@ export function TaskBottomSheet({
   const [detail, setDetail] = useState('');
   const [duration, setDuration] = useState('');
   const [difficulty, setDifficulty] = useState<TaskDifficulty>('medium');
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
@@ -59,17 +62,17 @@ export function TaskBottomSheet({
     setDetail(task?.detail ?? 'Hoy · 30 min');
     setDuration(task?.duration ?? '30 min');
     setDifficulty(task?.difficulty ?? 'medium');
+    setFormError(null);
   }, [creating, task, visible]);
 
   const save = () => {
-    const cleanTitle = title.trim();
-    if (!cleanTitle) return;
-    onSave({
-      title: cleanTitle,
-      detail: detail.trim() || 'Sin fecha',
-      duration: duration.trim() || undefined,
-      difficulty,
-    });
+    const result = validateTaskDraft({ title, detail, duration, difficulty });
+    if (!result.ok) {
+      setFormError(result.error);
+      return;
+    }
+    setFormError(null);
+    onSave(result.draft);
     if (!creating) setEditing(false);
   };
 
@@ -175,6 +178,11 @@ export function TaskBottomSheet({
                     );
                   })}
                 </View>
+                {formError ? (
+                  <Text accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.formError}>
+                    {formError}
+                  </Text>
+                ) : null}
                 <Pressable
                   accessibilityRole="button"
                   disabled={!title.trim()}
@@ -245,6 +253,7 @@ export function TaskBottomSheet({
 }
 
 const styles = StyleSheet.create({
+  formError: { ...typeScale.small, fontFamily: fonts.bold, color: palette.pinkDeep, marginTop: ui.space.md },
   modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(61, 49, 67, 0.24)' },
   keyboardArea: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
