@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
+import { RemindersProvider } from '@/components/reminders/RemindersProvider';
 import { TasksProvider } from '@/components/tasks/TasksProvider';
 import { DemoProvider } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
@@ -61,6 +62,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <TasksProvider>
+          <RemindersProvider>
           {/* Las tareas viven en TasksProvider; la demo lleva el progreso del mundo y el guion de Hablar. */}
           <DemoProvider>
             <View style={styles.root}>
@@ -68,6 +70,7 @@ export default function RootLayout() {
               <AppStack />
             </View>
           </DemoProvider>
+          </RemindersProvider>
         </TasksProvider>
       </AuthProvider>
     </SafeAreaProvider>
