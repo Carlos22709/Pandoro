@@ -215,7 +215,7 @@ service cloud.firestore {
 }
 ```
 
-Todo lo que no coincide con esa ruta queda denegado. La fila 14 completa estas reglas, por ejemplo con validación de tipos y tamaños de campos.
+Todo lo que no coincide con esa ruta queda denegado. La fila 14 las implementa en `firestore.rules` (ver [seguridad.md](seguridad.md)); más adelante se completan estas reglas, por ejemplo con validación de tipos y tamaños de campos.
 
 **Verificación obligatoria antes del piloto** (decisión 4): pruebas automáticas de las reglas con el emulador de Firestore, que es gratuito, usando dos cuentas. Una no debe poder leer ni modificar los datos de la otra, y un usuario sin sesión no debe poder leer nada. Encaja en las filas 28 y 29.
 
