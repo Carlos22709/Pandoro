@@ -1,8 +1,15 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { useAuth } from '@/components/auth/AuthProvider';
-import { INITIAL_TASKS } from '@/components/tasks/initialTasks';
 import type { TaskDraft, TaskItem } from '@/components/tasks/taskTypes';
+import {
+  createTask,
+  createTasks,
+  deleteAllTasks,
+  deleteTask,
+  saveTask,
+  watchTasks,
+} from '@/services/data/tasksRepository';
 import type { PlanProposal } from '@/services/planning/planTypes';
 
 export type PlannerStage = 'compose' | 'review' | 'saved';
@@ -39,6 +46,8 @@ type TasksContextValue = {
   removeTask: (id: string) => void;
   addPlannedTasks: (planned: TaskItem[]) => number;
   resetTasks: () => void;
+  // Último fallo al leer o guardar en Firestore; null si todo está sincronizado.
+  syncError: string | null;
   planner: PlannerDraft;
   updatePlanner: (update: (current: PlannerDraft) => PlannerDraft) => void;
 };
@@ -49,65 +58,72 @@ function nextPriority(tasks: TaskItem[]) {
   return tasks.reduce((highest, task) => Math.max(highest, task.priority), 0) + 1;
 }
 
-// El estado vive aquí para que Tareas y Nueva tarea compartan la lista. Sigue siendo en memoria,
-// igual que antes; el borrador del plan sobrevive a salir de la pantalla, no a cerrar la app.
+// Tareas y Nueva tarea comparten esta lista. Las tareas viven en Firestore (users/{uid}/tasks) y
+// llegan aquí por suscripción; el borrador del plan sigue solo en el dispositivo hasta confirmarlo.
 export function TasksProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [planner, setPlanner] = useState(EMPTY_PLANNER);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const uid = useAuth().user?.uid ?? null;
   const [ownerUid, setOwnerUid] = useState(uid);
 
   // Al cerrar sesión o cambiar de cuenta, nada de lo anterior queda a la vista del siguiente usuario.
   if (ownerUid !== uid) {
     setOwnerUid(uid);
-    setTasks(INITIAL_TASKS);
+    setTasks([]);
     setPlanner(EMPTY_PLANNER);
+    setSyncError(null);
   }
 
-  const toggleTask = useCallback((id: string) => {
-    setTasks((current) => current.map((task) => (
-      task.id === id ? { ...task, completed: !task.completed } : task
-    )));
+  useEffect(() => {
+    if (!uid) return;
+    return watchTasks(uid, setTasks, () => setSyncError('No se pudieron cargar tus tareas.'));
+  }, [uid]);
+
+  // Firestore muestra el cambio al instante y lo confirma después; si falla, se avisa.
+  const sync = useCallback((write: Promise<unknown>) => {
+    write.then(() => setSyncError(null), () => setSyncError('No se pudo guardar el último cambio.'));
   }, []);
+
+  const toggleTask = useCallback((id: string) => {
+    const task = tasks.find((item) => item.id === id);
+    if (uid && task) sync(saveTask(uid, { ...task, completed: !task.completed }));
+  }, [sync, tasks, uid]);
 
   const addTask = useCallback((draft: TaskDraft) => {
-    setTasks((current) => [
-      ...current,
-      {
-        id: `task-${Date.now()}`,
-        ...draft,
-        priority: nextPriority(current),
-        tone: 'blue',
-        icon: 'checklist',
-        completed: false,
-      },
-    ]);
-  }, []);
+    if (!uid) return;
+    sync(createTask(uid, {
+      id: `task-${Date.now()}`,
+      ...draft,
+      priority: nextPriority(tasks),
+      tone: 'blue',
+      icon: 'checklist',
+      completed: false,
+    }));
+  }, [sync, tasks, uid]);
 
   const updateTask = useCallback((id: string, draft: TaskDraft) => {
-    setTasks((current) => current.map((task) => (task.id === id ? { ...task, ...draft } : task)));
-  }, []);
+    const task = tasks.find((item) => item.id === id);
+    if (uid && task) sync(saveTask(uid, { ...task, ...draft }));
+  }, [sync, tasks, uid]);
 
   const removeTask = useCallback((id: string) => {
-    setTasks((current) => current.filter((task) => task.id !== id));
-  }, []);
+    if (uid) sync(deleteTask(uid, id));
+  }, [sync, uid]);
 
   // Los id de un plan son estables: confirmar dos veces no puede duplicar filas.
   const addPlannedTasks = useCallback((planned: TaskItem[]) => {
     const existing = new Set(tasks.map((task) => task.id));
     const fresh = planned.filter((task) => !existing.has(task.id));
-    setTasks((current) => {
-      const ids = new Set(current.map((task) => task.id));
-      return [...current, ...planned.filter((task) => !ids.has(task.id))];
-    });
+    if (uid && fresh.length) sync(createTasks(uid, fresh));
     return fresh.length;
-  }, [tasks]);
+  }, [sync, tasks, uid]);
 
-  // Ajustes → Reiniciar demo vuelve a la lista inicial, igual que al cambiar de cuenta.
+  // Ajustes → Reiniciar demo borra las tareas guardadas de este usuario.
   const resetTasks = useCallback(() => {
-    setTasks(INITIAL_TASKS);
+    if (uid) sync(deleteAllTasks(uid));
     setPlanner(EMPTY_PLANNER);
-  }, []);
+  }, [sync, uid]);
 
   const value = useMemo(() => ({
     tasks,
@@ -117,9 +133,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     removeTask,
     addPlannedTasks,
     resetTasks,
+    syncError,
     planner,
     updatePlanner: setPlanner,
-  }), [tasks, toggleTask, addTask, updateTask, removeTask, addPlannedTasks, resetTasks, planner]);
+  }), [tasks, toggleTask, addTask, updateTask, removeTask, addPlannedTasks, resetTasks, syncError, planner]);
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;
 }

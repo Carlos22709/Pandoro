@@ -16,6 +16,7 @@ import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { useTasks } from '@/components/tasks/TasksProvider';
 import { useDemo } from '@/demo/DemoProvider';
+import { savePreferences, watchPreferences } from '@/services/data/userRepository';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -126,7 +127,8 @@ function PreferenceRow({
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const uid = user?.uid ?? null;
   const { submit, submitting, error } = useAuthSubmit();
   const { resetDemo } = useDemo();
   const { resetTasks } = useTasks();
@@ -154,11 +156,29 @@ export function SettingsScreen() {
   // Al cerrar sesión, la protección de rutas de _layout lleva a Iniciar sesión.
   const logOut = () => submit({ action: signOut });
 
-  const updatePreference = (key: PreferenceKey, value: boolean) => {
-    setPreferences((current) => ({ ...current, [key]: value }));
+  // Las preferencias viven en users/{uid}; lo que falte toma el valor por defecto.
+  useEffect(() => {
+    if (!uid) return;
+    return watchPreferences(uid, (saved) => {
+      const known = Object.entries(saved).filter(([key]) => key in DEFAULT_PREFERENCES);
+      setPreferences({ ...DEFAULT_PREFERENCES, ...Object.fromEntries(known) });
+    });
+  }, [uid]);
+
+  const persistPreferences = (next: Preferences) => {
+    setPreferences(next);
+    if (uid) {
+      savePreferences(uid, next).catch((failure: Error) => (
+        console.warn('No se pudieron guardar las preferencias.', failure.message)
+      ));
+    }
   };
 
-  const resetPreferences = () => setPreferences(DEFAULT_PREFERENCES);
+  const updatePreference = (key: PreferenceKey, value: boolean) => {
+    persistPreferences({ ...preferences, [key]: value });
+  };
+
+  const resetPreferences = () => persistPreferences(DEFAULT_PREFERENCES);
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>

@@ -1,7 +1,9 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
 
 import { createAuth } from '@/services/firebase/createAuth';
+import { createDb } from '@/services/firebase/createDb';
 
 // Expo solo incorpora estas variables si se escriben literalmente.
 const firebaseConfig = {
@@ -19,6 +21,7 @@ export const isFirebaseConfigured = Boolean(
 );
 
 let auth: Auth | null = null;
+let db: Firestore | null = null;
 
 // Una sola app de Firebase para Authentication y AI Logic.
 export function getFirebaseApp() {
@@ -31,4 +34,12 @@ export function getFirebaseAuth() {
     auth = createAuth(getFirebaseApp());
   }
   return auth;
+}
+
+// Igual que Auth: initializeFirestore solo puede llamarse una vez por app.
+export function getFirebaseDb() {
+  if (!db) {
+    db = createDb(getFirebaseApp());
+  }
+  return db;
 }

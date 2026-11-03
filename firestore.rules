@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Reglas de Cloud Firestore de Pandask (ver docs/arquitectura.md, sección 7).
+// Este archivo es la fuente de verdad: se copia en Firebase Console > Firestore > Reglas > Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Cada usuario solo lee y escribe lo que está bajo su propio uid. Todo lo demás queda denegado.
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

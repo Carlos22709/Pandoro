@@ -42,6 +42,22 @@ test('desmarcar resta progreso pero nunca vuelve a bloquear un lugar', () => {
   assert.equal(state.progress.currentStage, 2);
 });
 
+test('un usuario nuevo empieza sin tareas de ejemplo y con el mundo en cero', () => {
+  assert.deepEqual(INITIAL_DEMO_STATE.tasks, []);
+  assert.deepEqual(INITIAL_DEMO_STATE.progress, { currentStage: 1, completedTasks: 0, streak: 0 });
+});
+
+test('cargar el progreso guardado no repite celebraciones ni desbloqueos', () => {
+  const saved = { currentStage: 3, completedTasks: 41, streak: 2 };
+
+  const state = demoReducer(INITIAL_DEMO_STATE, { type: 'loadProgress', progress: saved });
+
+  assert.deepEqual(state.progress, saved);
+  assert.equal(state.celebration, null);
+  assert.equal(state.pendingUnlock, null);
+  assert.equal(state.pendingHomeReveal, false);
+});
+
 const existing = (id: string, priority: number): TaskItem => ({
   id,
   title: id,
