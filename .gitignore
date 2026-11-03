@@ -11,3 +11,7 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+# Credenciales locales: nunca subir al repositorio
+.env
+.env.*
+!.env.example

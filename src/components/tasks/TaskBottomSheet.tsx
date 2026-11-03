@@ -200,6 +200,7 @@ export function TaskBottomSheet({
                     <Text style={[styles.taskTitle, task.completed && styles.completedTitle]}>{task.title}</Text>
                     <Text style={styles.taskMeta}>{task.detail}</Text>
                     {task.duration ? <Text style={styles.duration}>Duración estimada · {task.duration}</Text> : null}
+                    {task.notes ? <Text style={styles.notes}>{task.notes}</Text> : null}
                     <View style={styles.summaryDifficulty}>
                       <View style={[styles.difficultyDot, { backgroundColor: activeDifficultyColors.deep }]} />
                       <Text style={[styles.summaryDifficultyText, { color: activeDifficultyColors.deep }]}>
@@ -271,6 +272,7 @@ const styles = StyleSheet.create({
   completedTitle: { textDecorationLine: 'line-through', color: palette.inkSoft },
   taskMeta: { ...typeScale.body, fontFamily: fonts.semibold, marginTop: 7, color: palette.inkSoft },
   duration: { ...typeScale.small, fontFamily: fonts.semibold, marginTop: 4, color: palette.greenDeep },
+  notes: { ...typeScale.small, marginTop: 4, color: palette.inkSoft },
   summaryDifficulty: { alignSelf: 'flex-start', minHeight: 18, flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
   summaryDifficultyText: { ...typeScale.caption, fontFamily: fonts.semibold },
   primaryButton: { minHeight: 50, borderRadius: 14, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.lilacDeep },

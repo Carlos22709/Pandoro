@@ -11,6 +11,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ForestScene } from '@/components/art/ForestScene';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { useDemo } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
@@ -123,26 +125,14 @@ function PreferenceRow({
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { resetDemo } = useDemo();
+  const { signOut } = useAuth();
+  const { submit, submitting, error } = useAuthSubmit();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
   const [demoReset, setDemoReset] = useState<'idle' | 'confirming' | 'done'>('idle');
   const colors = preferences.darkMode ? DARK_COLORS : LIGHT_COLORS;
 
-  // Reiniciar pide un segundo toque para no borrar la demo por accidente.
-  useEffect(() => {
-    if (demoReset === 'idle') return;
-    const timer = setTimeout(() => setDemoReset('idle'), demoReset === 'confirming' ? 3000 : 2000);
-    return () => clearTimeout(timer);
-  }, [demoReset]);
-
-  const pressResetDemo = () => {
-    if (demoReset !== 'confirming') {
-      setDemoReset('confirming');
-      return;
-    }
-    resetDemo();
-    setDemoReset('done');
-  };
+  // Al cerrar sesión, la protección de rutas de _layout lleva a Iniciar sesión.
+  const logOut = () => submit({ action: signOut });
 
   const updatePreference = (key: PreferenceKey, value: boolean) => {
     setPreferences((current) => ({ ...current, [key]: value }));
@@ -250,7 +240,7 @@ export function SettingsScreen() {
             <View style={styles.preferenceCopy}>
               <Text style={[styles.preferenceTitle, { color: colors.text }]}>Datos de la cuenta</Text>
               <Text style={[styles.preferenceDescription, { color: colors.muted }]}>
-                Usuario, correo y contraseña.
+                Nombre y correo.
               </Text>
             </View>
           </Pressable>
@@ -311,6 +301,22 @@ export function SettingsScreen() {
         >
           <Text style={[styles.resetLabel, { color: colors.accent }]}>Restablecer preferencias</Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar sesión"
+          disabled={submitting}
+          onPress={logOut}
+          style={({ pressed }) => [
+            styles.resetButton,
+            { borderColor: colors.border },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.resetLabel, { color: colors.accent }]}>
+            {submitting ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          </Text>
+        </Pressable>
+        {error ? <Text style={[styles.prototypeNote, { color: colors.text }]}>{error}</Text> : null}
         <Text style={[styles.prototypeNote, { color: colors.muted }]}>
           En este prototipo, los cambios se conservan únicamente durante la sesión.
         </Text>

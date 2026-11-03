@@ -1,3 +1,5 @@
+import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -12,6 +14,7 @@ import { AppIcon } from '@/components/icons/AppIcon';
 import { PROGRESS_WORLD_STAGES } from '@/components/progress/worldData';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
+import { useTasks } from '@/components/tasks/TasksProvider';
 import { TaskCelebration } from '@/components/tasks/TaskCelebration';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
 import { useDemo } from '@/demo/DemoProvider';
@@ -126,18 +129,9 @@ function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowPr
 }
 
 export function TasksScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const {
-    tasks,
-    progress,
-    celebration,
-    toggleTask,
-    createTask: addTask,
-    updateTask,
-    deleteTask: removeTask,
-    dismissCelebration,
-  } = useDemo();
+  const insets = useSafeAreaInsets();
+  const { tasks, toggleTask, addTask, updateTask, removeTask } = useTasks();
   const [view, setView] = useState<TasksView>('now');
   const [sheetVisible, setSheetVisible] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -225,14 +219,24 @@ export function TasksScreen() {
       >
         <View style={styles.titleRow}>
           <Text style={styles.screenTitle}>Tareas</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Crear tarea"
-            onPress={createTask}
-            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
-          >
-            <AppIcon name="plus" color={palette.lilacDeep} size={25} strokeWidth={2.6} />
-          </Pressable>
+          <View style={styles.titleActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Organizar con Pandoro"
+              onPress={() => router.push('/nueva-tarea')}
+              style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+            >
+              <AppIcon name="sprout" color={palette.lilacDeep} size={22} strokeWidth={2.3} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Crear tarea"
+              onPress={createTask}
+              style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+            >
+              <AppIcon name="plus" color={palette.lilacDeep} size={25} strokeWidth={2.6} />
+            </Pressable>
+          </View>
         </View>
 
         <SegmentControl value={view} onChange={setView} />
@@ -342,6 +346,10 @@ const styles = StyleSheet.create({
   screenTitle: {
     ...typeScale.title,
     color: palette.ink,
+  },
+  titleActions: {
+    flexDirection: 'row',
+    gap: 8,
   },
   addButton: {
     width: 38,

@@ -1,6 +1,6 @@
 # Pandoro — demo interactiva
 
-Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. No hay backend, micrófono ni IA: una simulación en memoria hace que las acciones tengan consecuencias en toda la app para presentarla en vivo.
+Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. Hablar y Nueva tarea convierten texto libre en un plan editable con Google Gemini. La sesión se conserva con Firebase, pero las tareas no se guardan al cerrar la app.
 
 Flujo de entrada:
 
@@ -11,7 +11,7 @@ Bienvenida ⇄ Organiza ⇄ Prioriza ⇄ Avanza
    └── Crear cuenta   → /register → Inicio
 ```
 
-El acceso es solo visual: los campos admiten texto, pero no hay autenticación, validación ni persistencia. Cualquier botón de acceso entra en Inicio y vacía la pila de navegación. Las pantallas de acceso comparten `src/components/auth/` (`AuthLayout`, `AuthInput`, `PandoroBrandMark`).
+El acceso usa Firebase Authentication con correo y contraseña; sin sesión, las rutas privadas no abren. La configuración está en [docs/FIREBASE.md](docs/FIREBASE.md). Las pantallas de acceso comparten `src/components/auth/` (`AuthLayout`, `AuthInput`, `PandoroBrandMark`).
 
 ## Simulación para presentar
 
@@ -31,10 +31,11 @@ Inicio → Hablar con Pandoro (dos turnos con guion) → Pandoro propone un plan
 
 ## Ejecutar
 
-Requiere Node.js 22.13 o posterior para Expo SDK 57.
+Requiere Node.js 22.13 o posterior para Expo SDK 58.
 
 ```bash
 npm install
+cp .env.example .env   # completa las claves de Gemini y Firebase
 npm start
 ```
 
@@ -47,7 +48,16 @@ npm run android
 npm run ios
 npm run web
 npm run typecheck
+npm test
 ```
+
+Sin clave de Gemini, la planificación avisa que la IA no está configurada y mantiene la creación manual. Sin la configuración de Firebase, la app abre pero no se puede entrar.
+
+## Planificación con IA
+
+> **Provisional, no apto para producción.** Las variables `EXPO_PUBLIC_*` quedan dentro del paquete de la app y cualquiera puede extraerlas. Usa esta integración solo para el MVP y migra a un backend antes de publicar.
+
+El modelo, los costos, los límites y la contingencia están en [docs/GEMINI.md](docs/GEMINI.md).
 
 ## Capas visuales
 

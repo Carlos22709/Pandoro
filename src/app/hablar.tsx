@@ -1,5 +1,5 @@
-import { TalkScreen } from '@/screens/TalkScreen';
+import { NewTaskScreen } from '@/screens/NewTaskScreen';
 
 export default function TalkRoute() {
-  return <TalkScreen />;
+  return <NewTaskScreen title="Hablar con Pandoro" />;
 }
