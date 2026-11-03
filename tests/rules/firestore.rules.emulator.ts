@@ -4,7 +4,7 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
-const host = process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8080';
+const host = process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8181';
 const project = process.env.GCLOUD_PROJECT ?? 'demo-pandask';
 const base = `http://${host}/v1/projects/${project}/databases/(default)/documents`;
 

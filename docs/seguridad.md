@@ -17,7 +17,7 @@ Complementa [arquitectura.md §7](arquitectura.md#7-seguridad-y-privacidad) y el
 ### Pruebas
 
 - `npm test` incluye `tests/firestoreRules.test.ts`: revisión estática de que solo existen la regla del dueño y la denegación, sin `if true`.
-- `npm run test:rules` ejecuta `tests/rules/firestore.rules.emulator.ts` en el emulador de Firestore (proyecto `demo-pandask`, sin costo ni credenciales). Comprueba con dos cuentas y sin sesión: la dueña lee y escribe; otra cuenta y el usuario sin sesión reciben 403; fuera de `users/{uid}` todo es 403. Requiere Java 11+.
+- `npm run test:rules` ejecuta `tests/rules/firestore.rules.emulator.ts` en el emulador de Firestore (proyecto `demo-pandask`, sin costo ni credenciales). Comprueba con dos cuentas y sin sesión: la dueña lee y escribe; otra cuenta y el usuario sin sesión reciben 403; fuera de `users/{uid}` todo es 403. Requiere Java 21+ (firebase-tools 15). El emulador usa el puerto 8181.
 - Pendiente (filas 15, 28 y 29): validar tipos y tamaños de campos cuando exista el esquema de persistencia.
 
 ## App Check
