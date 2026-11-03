@@ -18,6 +18,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { useDemo } from '@/demo/DemoProvider';
+import { validateName } from '@/services/auth/authRules';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -48,7 +49,7 @@ export function ProfileScreen() {
   const cancelEditing = () => setEditingAccount(false);
 
   const saveAccount = () => submit({
-    problem: draftName.trim() ? null : 'Escribe tu nombre.',
+    problem: validateName(draftName),
     action: async () => {
       await updateName(draftName);
       setEditingAccount(false);

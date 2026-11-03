@@ -24,6 +24,7 @@ import { EMPTY_PLANNER, nextPriority, useTasks } from '@/components/tasks/TasksP
 import type { TaskDraft } from '@/components/tasks/taskTypes';
 import { GeminiError, MAX_INPUT_LENGTH, planService, toGeminiError } from '@/services/gemini/geminiService';
 import { analyzeProposal, proposalToTasks } from '@/services/planning/planLogic';
+import { minutesPerDayProblem, planTextProblem } from '@/services/planning/planInput';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
@@ -47,7 +48,11 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
   const { stage, text, days, minutesPerDay, instruction, clarification, proposal } = planner;
   const availability: Availability = { days, minutesPerDay: Number(minutesPerDay) };
   const busy = pending !== null;
-  const canGenerate = !busy && text.trim().length > 0 && days.length > 0 && availability.minutesPerDay > 0;
+  const textProblem = planTextProblem(text, MAX_INPUT_LENGTH);
+  const minutesProblem = minutesPerDayProblem(minutesPerDay);
+  const daysProblem = days.length ? null : 'Elige al menos un día disponible.';
+  const inputProblem = textProblem ?? daysProblem ?? minutesProblem;
+  const canGenerate = !busy && !inputProblem;
 
   const issues = useMemo(
     () => (proposal ? analyzeProposal(proposal, availability) : []),
@@ -302,6 +307,9 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
               <Text style={styles.primaryText}>Organizar con Pandoro</Text>
             </Pressable>
           ) : null}
+          {stage === 'compose' && !busy && inputProblem && text.trim() ? (
+            <Text accessibilityLiveRegion="polite" style={styles.hintText}>{inputProblem}</Text>
+          ) : null}
 
           {stage === 'review' && !busy ? (
             <>
@@ -421,6 +429,7 @@ const styles = StyleSheet.create({
   loading: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, padding: ui.space.md, borderRadius: ui.radius.card, backgroundColor: palette.lilacSoft },
   loadingText: { ...typeScale.small, fontFamily: fonts.semibold, flex: 1, color: palette.ink },
   errorCard: { marginTop: 16, padding: ui.space.md, gap: 4, borderRadius: ui.radius.card, backgroundColor: palette.pinkSoft },
+  hintText: { ...typeScale.small, color: palette.inkSoft, marginTop: ui.space.sm, textAlign: 'center' },
   errorText: { ...typeScale.small, fontFamily: fonts.bold, color: palette.ink },
   statusCard: { padding: ui.space.lg, borderRadius: ui.radius.card, backgroundColor: 'rgba(255, 252, 245, 0.95)', borderWidth: 1, borderColor: ui.surface.border },
   statusTitle: { ...typeScale.heading, color: palette.ink },
