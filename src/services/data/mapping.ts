@@ -35,6 +35,8 @@ export function taskFromDoc(id: string, data: FirestoreData | undefined): TaskIt
     detail: text(data.detail),
     ...(typeof data.duration === 'string' ? { duration: data.duration } : {}),
     ...(typeof data.notes === 'string' ? { notes: data.notes } : {}),
+    // Sin dueDate los recordatorios no saben qué día avisar.
+    ...(typeof data.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data.dueDate) ? { dueDate: data.dueDate } : {}),
     priority: count(data.priority),
     tone: oneOf(TONES, data.tone, 'blue'),
     icon: oneOf(ICONS, data.icon, 'checklist'),
