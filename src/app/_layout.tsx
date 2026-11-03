@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
+import { ConsentGate, useConsentStatus } from '@/components/auth/ConsentGate';
 import { TasksProvider } from '@/components/tasks/TasksProvider';
 import { DemoProvider } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
@@ -14,7 +15,8 @@ import { fontAssets } from '@/theme/typography';
 const PUBLIC_ROUTES: (string | undefined)[] = [undefined, 'login', 'register'];
 
 function AppStack() {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
+  const consent = useConsentStatus(status === 'signedIn' ? user?.uid ?? null : null);
   const router = useRouter();
   const firstSegment = useSegments()[0];
 
@@ -29,20 +31,36 @@ function AppStack() {
     if (redirectTo) router.replace(redirectTo);
   }, [redirectTo, router]);
 
+  const consentRequired = status === 'signedIn' && !redirectTo && consent === 'missing';
+
   return (
     <>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
-        <Stack.Screen name="index" options={{ animation: 'none' }} />
-        <Stack.Screen name="login" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="register" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="hablar" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="nueva-tarea" options={{ animation: 'slide_from_right' }} />
-      </Stack>
+      {/* Con ConsentGate encima, la app de abajo no recibe toques ni la leen los lectores de pantalla. */}
+      <View
+        style={styles.root}
+        aria-hidden={consentRequired}
+        importantForAccessibility={consentRequired ? 'no-hide-descendants' : 'auto'}
+        pointerEvents={consentRequired ? 'none' : 'auto'}
+      >
+        <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+          <Stack.Screen name="index" options={{ animation: 'none' }} />
+          <Stack.Screen name="login" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="register" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="hablar" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="nueva-tarea" options={{ animation: 'slide_from_right' }} />
+        </Stack>
+      </View>
       {/* Cubre la pantalla mientras se comprueba la sesión o se redirige: 'loading' no equivale a sin sesión. */}
-      {status === 'loading' || redirectTo ? (
+      {status === 'loading' || redirectTo || (status === 'signedIn' && consent === 'checking') ? (
         <View accessibilityLabel="Comprobando tu sesión" style={styles.loading}>
           <ActivityIndicator color={palette.lilacDeep} size="large" />
+        </View>
+      ) : null}
+      {/* Ley 1581: sin constancia de autorización no se entra; ConsentGate la pide de nuevo. */}
+      {consentRequired ? (
+        <View style={styles.gate}>
+          <ConsentGate />
         </View>
       ) : null}
     </>
@@ -77,6 +95,10 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: palette.cream,
+  },
+  gate: {
+    ...StyleSheet.absoluteFill,
     backgroundColor: palette.cream,
   },
   loading: {

@@ -1,15 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
 
-import { AuthCheckbox } from '@/components/auth/AuthCheckbox';
 import { AuthInput, type AuthInputRef } from '@/components/auth/AuthInput';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { ConsentCheckbox } from '@/components/auth/ConsentCheckbox';
 import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { validateRegistration } from '@/services/auth/authRules';
-import { palette } from '@/theme/palette';
-import { fonts } from '@/theme/typography';
 
 export function RegisterScreen() {
   const router = useRouter();
@@ -102,22 +99,7 @@ export function RegisterScreen() {
         returnKeyType="go"
         onSubmitEditing={createAccount}
       />
-      <AuthCheckbox
-        checked={acceptedTerms}
-        onChange={setAcceptedTerms}
-        accessibilityLabel="Acepto los términos y condiciones y el tratamiento de mis datos"
-        error={triedSubmit ? 'Necesitas aceptarlos para crear tu cuenta.' : undefined}
-      >
-        Acepto los <Text style={styles.emphasis}>términos y condiciones</Text> y el{' '}
-        <Text style={styles.emphasis}>tratamiento de mis datos</Text>.
-      </AuthCheckbox>
+      <ConsentCheckbox checked={acceptedTerms} onChange={setAcceptedTerms} showError={triedSubmit} />
     </AuthLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  emphasis: {
-    fontFamily: fonts.semibold,
-    color: palette.ink,
-  },
-});

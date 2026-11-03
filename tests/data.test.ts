@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import type { TaskItem } from '../src/components/tasks/taskTypes';
-import { progressFromDoc, taskFromDoc, taskToDoc } from '../src/services/data/mapping';
+import { hasConsent, progressFromDoc, taskFromDoc, taskToDoc } from '../src/services/data/mapping';
 
 const task: TaskItem = {
   id: 'plan-1-s1',
@@ -54,6 +54,14 @@ test('un documento con valores inesperados no rompe la app', () => {
 test('un documento sin título se ignora', () => {
   assert.equal(taskFromDoc('x', { detail: 'sin nombre' }), null);
   assert.equal(taskFromDoc('x', undefined), null);
+});
+
+test('solo cuenta como consentimiento una constancia con versión y fecha', () => {
+  assert.equal(hasConsent({ consents: { dataProcessing: { version: 'v1', acceptedAt: 1_793_000_000_000 } } }), true);
+  assert.equal(hasConsent(undefined), false);
+  assert.equal(hasConsent({ preferences: { darkMode: true } }), false);
+  assert.equal(hasConsent({ consents: { dataProcessing: { version: 'v1' } } }), false);
+  assert.equal(hasConsent({ consents: { dataProcessing: true } }), false);
 });
 
 test('un usuario nuevo empieza su mundo en cero', () => {

@@ -43,6 +43,13 @@ export function taskFromDoc(id: string, data: FirestoreData | undefined): TaskIt
   };
 }
 
+// Ley 1581: la autorización solo se puede demostrar si quedó con versión del aviso y fecha.
+export function hasConsent(userData: FirestoreData | undefined) {
+  const consents = userData?.consents as { dataProcessing?: unknown } | undefined;
+  const record = consents?.dataProcessing as { version?: unknown; acceptedAt?: unknown } | undefined;
+  return typeof record?.version === 'string' && typeof record?.acceptedAt === 'number';
+}
+
 export function progressFromDoc(data: FirestoreData | undefined): ProgressWorldSnapshot {
   return {
     currentStage: Math.max(1, count(data?.currentStage)),

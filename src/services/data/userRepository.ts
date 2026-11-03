@@ -2,6 +2,8 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 import { getFirebaseDb } from '@/services/firebase/firebaseApp';
 
+import { hasConsent } from './mapping';
+
 // Versión del aviso de privacidad que acepta el usuario. Cambia cuando Andrea publique el texto
 // definitivo (fila 34); así queda constancia de qué versión aceptó cada persona.
 export const PRIVACY_NOTICE_VERSION = 'borrador-2026-11-02';
@@ -15,6 +17,10 @@ export function saveConsent(uid: string) {
     { consents: { dataProcessing: { version: PRIVACY_NOTICE_VERSION, acceptedAt: Date.now() } } },
     { merge: true },
   );
+}
+
+export function watchConsent(uid: string, onConsent: (given: boolean) => void, onError: (error: Error) => void) {
+  return onSnapshot(userRef(uid), (snapshot) => onConsent(hasConsent(snapshot.data())), onError);
 }
 
 export function savePreferences(uid: string, preferences: Record<string, boolean>) {
