@@ -29,6 +29,7 @@ const BLOOM_MS = 1100;
 export function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation() as unknown as TabPressNavigation;
+  const { progress, pendingUnlock, finishUnlock } = useDemo();
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const positionedRef = useRef(false);
   const arrivalRef = useRef(false);

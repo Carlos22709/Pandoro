@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
@@ -17,8 +17,9 @@ import {
 } from '@/components/talk/ChatBubbles';
 import { HoldToTalkButton } from '@/components/talk/HoldToTalkButton';
 import { PlanCard } from '@/components/talk/PlanCard';
-import { useDemo } from '@/demo/DemoProvider';
+import { useTasks } from '@/components/tasks/TasksProvider';
 import { DEMO_GREETING, DEMO_PLAN, DEMO_PLAN_ADDED_REPLY, DEMO_TURNS } from '@/demo/demoScript';
+import { demoPlanTasks } from '@/demo/demoState';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -59,8 +60,8 @@ const STATUS: Record<TalkPhase, string> = {
 export function TalkScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { addPlan } = useDemo();
-  const scrollRef = useRef<ScrollView>(null);
+  const { tasks, addPlannedTasks } = useTasks();
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const [items, setItems] = useState<ChatItem[]>([{ id: 'greeting', kind: 'pandoro', text: DEMO_GREETING }]);
   const [live, setLive] = useState<LiveItem | null>(null);
@@ -158,8 +159,9 @@ export function TalkScreen() {
     });
   };
 
+  // El plan del guion va a la misma lista que los planes de Gemini en Nueva tarea.
   const addToTasks = () => {
-    addPlan();
+    addPlannedTasks(demoPlanTasks(tasks));
     setPhase('added');
     later(380, () => {
       stream({ id: 'pandoro-added', kind: 'pandoro' }, DEMO_PLAN_ADDED_REPLY, REPLY_WORD_MS, () => {

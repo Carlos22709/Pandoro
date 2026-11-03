@@ -14,6 +14,7 @@ import { ForestScene } from '@/components/art/ForestScene';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
+import { useTasks } from '@/components/tasks/TasksProvider';
 import { useDemo } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
@@ -127,9 +128,28 @@ export function SettingsScreen() {
   const router = useRouter();
   const { signOut } = useAuth();
   const { submit, submitting, error } = useAuthSubmit();
+  const { resetDemo } = useDemo();
+  const { resetTasks } = useTasks();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
   const [demoReset, setDemoReset] = useState<'idle' | 'confirming' | 'done'>('idle');
   const colors = preferences.darkMode ? DARK_COLORS : LIGHT_COLORS;
+
+  // Reiniciar pide un segundo toque para no borrar la demo por accidente.
+  useEffect(() => {
+    if (demoReset === 'idle') return;
+    const timer = setTimeout(() => setDemoReset('idle'), demoReset === 'confirming' ? 3000 : 2000);
+    return () => clearTimeout(timer);
+  }, [demoReset]);
+
+  const pressResetDemo = () => {
+    if (demoReset !== 'confirming') {
+      setDemoReset('confirming');
+      return;
+    }
+    resetDemo();
+    resetTasks();
+    setDemoReset('done');
+  };
 
   // Al cerrar sesión, la protección de rutas de _layout lleva a Iniciar sesión.
   const logOut = () => submit({ action: signOut });

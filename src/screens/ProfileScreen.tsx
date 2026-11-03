@@ -35,6 +35,7 @@ export function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, updateName } = useAuth();
   const { submit, submitting, error } = useAuthSubmit();
+  const { progress } = useDemo();
   const displayName = user?.displayName || user?.email || '';
   const [draftName, setDraftName] = useState(displayName);
   const [editingAccount, setEditingAccount] = useState(false);

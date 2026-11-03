@@ -1,10 +1,12 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useReducer, useState, type ReactNode } from 'react';
 
+import { useAuth } from '@/components/auth/AuthProvider';
 import type { TaskDraft } from '@/components/tasks/taskTypes';
 import { INITIAL_DEMO_STATE, demoReducer, type DemoState } from '@/demo/demoState';
 
 type DemoActions = {
   toggleTask: (id: string) => void;
+  recordCompletion: (taskId: string, completed: boolean) => void;
   createTask: (draft: TaskDraft) => void;
   updateTask: (id: string, draft: TaskDraft) => void;
   deleteTask: (id: string) => void;
@@ -22,9 +24,18 @@ const DemoContext = createContext<DemoContextValue | null>(null);
 // Estado compartido de la simulación: todas las pantallas leen y cambian lo mismo.
 export function DemoProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(demoReducer, INITIAL_DEMO_STATE);
+  const uid = useAuth().user?.uid ?? null;
+  const [ownerUid, setOwnerUid] = useState(uid);
+
+  // Igual que TasksProvider: al cambiar de cuenta, el progreso del anterior no queda a la vista.
+  if (ownerUid !== uid) {
+    setOwnerUid(uid);
+    dispatch({ type: 'reset' });
+  }
 
   const actions = useMemo<DemoActions>(() => ({
     toggleTask: (id) => dispatch({ type: 'toggleTask', id }),
+    recordCompletion: (taskId, completed) => dispatch({ type: 'recordCompletion', taskId, completed }),
     createTask: (draft) => dispatch({ type: 'createTask', id: `task-${Date.now()}`, draft }),
     updateTask: (id, draft) => dispatch({ type: 'updateTask', id, draft }),
     deleteTask: (id) => dispatch({ type: 'deleteTask', id }),

@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { TasksProvider } from '@/components/tasks/TasksProvider';
+import { DemoProvider } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
 import { fontAssets } from '@/theme/typography';
 
@@ -60,10 +61,13 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <TasksProvider>
-          <View style={styles.root}>
-            <StatusBar style="dark" />
-            <AppStack />
-          </View>
+          {/* Las tareas viven en TasksProvider; la demo lleva el progreso del mundo y el guion de Hablar. */}
+          <DemoProvider>
+            <View style={styles.root}>
+              <StatusBar style="dark" />
+              <AppStack />
+            </View>
+          </DemoProvider>
         </TasksProvider>
       </AuthProvider>
     </SafeAreaProvider>

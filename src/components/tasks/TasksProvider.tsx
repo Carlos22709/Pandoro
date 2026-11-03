@@ -38,6 +38,7 @@ type TasksContextValue = {
   updateTask: (id: string, draft: TaskDraft) => void;
   removeTask: (id: string) => void;
   addPlannedTasks: (planned: TaskItem[]) => number;
+  resetTasks: () => void;
   planner: PlannerDraft;
   updatePlanner: (update: (current: PlannerDraft) => PlannerDraft) => void;
 };
@@ -102,6 +103,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     return fresh.length;
   }, [tasks]);
 
+  // Ajustes → Reiniciar demo vuelve a la lista inicial, igual que al cambiar de cuenta.
+  const resetTasks = useCallback(() => {
+    setTasks(INITIAL_TASKS);
+    setPlanner(EMPTY_PLANNER);
+  }, []);
+
   const value = useMemo(() => ({
     tasks,
     toggleTask,
@@ -109,9 +116,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     updateTask,
     removeTask,
     addPlannedTasks,
+    resetTasks,
     planner,
     updatePlanner: setPlanner,
-  }), [tasks, toggleTask, addTask, updateTask, removeTask, addPlannedTasks, planner]);
+  }), [tasks, toggleTask, addTask, updateTask, removeTask, addPlannedTasks, resetTasks, planner]);
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;
 }

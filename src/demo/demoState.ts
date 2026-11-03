@@ -24,6 +24,8 @@ export type DemoState = {
 
 export type DemoAction =
   | { type: 'toggleTask'; id: string }
+  // Una tarea de TasksProvider cambió de estado: solo se actualiza el progreso del mundo.
+  | { type: 'recordCompletion'; taskId: string; completed: boolean }
   | { type: 'createTask'; id: string; draft: TaskDraft }
   | { type: 'updateTask'; id: string; draft: TaskDraft }
   | { type: 'deleteTask'; id: string }
@@ -128,6 +130,40 @@ export function getStageProgress(progress: ProgressWorldSnapshot) {
   return Math.min(1, Math.max(0, value));
 }
 
+// Cada lugar del plan queda por delante de todas las demás en "Ahora", en el orden del plan.
+// Los ids son fijos: agregarlo dos veces no duplica nada.
+export function demoPlanTasks(existing: readonly TaskItem[]): TaskItem[] {
+  const existingIds = new Set(existing.map((task) => task.id));
+  const fresh = DEMO_PLAN.filter((task) => !existingIds.has(task.id));
+  const lowestScore = Math.min(0, ...existing.map(nowScore));
+  return fresh.map(({ day: _day, minutes: _minutes, ...task }, index): TaskItem => ({
+    ...task,
+    priority: lowestScore - fresh.length + index + TASK_DIFFICULTY[task.difficulty].weight * 1.5,
+    completed: false,
+  }));
+}
+
+function recordCompletion(state: DemoState, taskId: string, completed: boolean): DemoState {
+  const completedTasks = Math.max(0, state.progress.completedTasks + (completed ? 1 : -1));
+  const nextStage = PROGRESS_WORLD_STAGES.find((stage) => stage.id === state.progress.currentStage + 1);
+  // Un lugar desbloqueado no se vuelve a bloquear aunque se desmarquen tareas.
+  const unlocked = completed && nextStage !== undefined && completedTasks >= nextStage.requiredTasks
+    ? nextStage
+    : null;
+
+  return {
+    ...state,
+    progress: {
+      ...state.progress,
+      completedTasks,
+      currentStage: unlocked ? unlocked.id : state.progress.currentStage,
+    },
+    celebration: unlocked ? { taskId, stageId: unlocked.id } : state.celebration,
+    pendingUnlock: unlocked ? unlocked.id : state.pendingUnlock,
+    pendingHomeReveal: unlocked ? true : state.pendingHomeReveal,
+  };
+}
+
 export function demoReducer(state: DemoState, action: DemoAction): DemoState {
   switch (action.type) {
     case 'toggleTask': {
@@ -135,26 +171,14 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       if (!task) return state;
 
       const completed = !task.completed;
-      const completedTasks = Math.max(0, state.progress.completedTasks + (completed ? 1 : -1));
-      const nextStage = PROGRESS_WORLD_STAGES.find((stage) => stage.id === state.progress.currentStage + 1);
-      // Un lugar desbloqueado no se vuelve a bloquear aunque se desmarquen tareas.
-      const unlocked = completed && nextStage !== undefined && completedTasks >= nextStage.requiredTasks
-        ? nextStage
-        : null;
-
       return {
-        ...state,
+        ...recordCompletion(state, task.id, completed),
         tasks: state.tasks.map((item) => (item.id === action.id ? { ...item, completed } : item)),
-        progress: {
-          ...state.progress,
-          completedTasks,
-          currentStage: unlocked ? unlocked.id : state.progress.currentStage,
-        },
-        celebration: unlocked ? { taskId: task.id, stageId: unlocked.id } : state.celebration,
-        pendingUnlock: unlocked ? unlocked.id : state.pendingUnlock,
-        pendingHomeReveal: unlocked ? true : state.pendingHomeReveal,
       };
     }
+
+    case 'recordCompletion':
+      return recordCompletion(state, action.taskId, action.completed);
 
     case 'createTask': {
       const priority = state.tasks.reduce((highest, task) => Math.max(highest, task.priority), 0) + 1;
@@ -184,20 +208,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return { ...state, tasks: state.tasks.filter((task) => task.id !== action.id) };
 
     case 'addPlan': {
-      // Los ids del plan son fijos: pulsar dos veces "Agregar" no duplica nada.
-      const existingIds = new Set(state.tasks.map((task) => task.id));
-      const fresh = DEMO_PLAN.filter((task) => !existingIds.has(task.id));
-      if (!fresh.length) return state;
-
-      // Cada tarea del plan queda por delante de todas las demás en "Ahora", en el orden del plan.
-      const lowestScore = Math.min(0, ...state.tasks.map(nowScore));
-      const planned = fresh.map(({ day: _day, minutes: _minutes, ...task }, index): TaskItem => ({
-        ...task,
-        priority: lowestScore - fresh.length + index + TASK_DIFFICULTY[task.difficulty].weight * 1.5,
-        completed: false,
-      }));
-
-      return { ...state, tasks: [...planned, ...state.tasks] };
+      const planned = demoPlanTasks(state.tasks);
+      return planned.length ? { ...state, tasks: [...planned, ...state.tasks] } : state;
     }
 
     case 'dismissCelebration':

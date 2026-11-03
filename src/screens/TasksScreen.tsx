@@ -1,5 +1,3 @@
-import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -132,6 +130,7 @@ export function TasksScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { tasks, toggleTask, addTask, updateTask, removeTask } = useTasks();
+  const { progress, celebration, recordCompletion, dismissCelebration } = useDemo();
   const [view, setView] = useState<TasksView>('now');
   const [sheetVisible, setSheetVisible] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -159,6 +158,14 @@ export function TasksScreen() {
   const closeSheet = () => {
     setSheetVisible(false);
     setCreating(false);
+  };
+
+  // La tarea cambia en TasksProvider y el mundo de Pandoro avanza (o retrocede) en la demo.
+  const togglePaw = (id: string) => {
+    const task = tasks.find((item) => item.id === id);
+    if (!task) return;
+    toggleTask(id);
+    recordCompletion(id, !task.completed);
   };
 
   const openTask = (id: string) => {
@@ -265,7 +272,7 @@ export function TasksScreen() {
                   featured={item.id === priorityTaskId}
                   started={item.id === startedTaskId}
                   onOpen={() => openTask(item.id)}
-                  onToggle={() => toggleTask(item.id)}
+                  onToggle={() => togglePaw(item.id)}
                 />
               )}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -292,7 +299,7 @@ export function TasksScreen() {
         creating={creating}
         started={selectedTask?.id === startedTaskId}
         onClose={closeSheet}
-        onToggle={toggleTask}
+        onToggle={togglePaw}
         onStart={startTask}
         onDelete={deleteTask}
         onSave={saveTask}
