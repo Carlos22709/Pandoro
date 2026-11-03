@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ForestScene } from '@/components/art/ForestScene';
+import { plural } from '@/utils/plural';
 import { PandoroHead } from '@/components/art/PandoroHead';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { AvailabilityPicker } from '@/components/planning/AvailabilityPicker';
@@ -102,7 +103,7 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
         days: current.days.filter((day) => !result.unavailableDates.includes(day)),
       }));
       if (result.restored) {
-        setNotice(`Pandoro iba a omitir ${result.restored} subtarea(s) y las conservó en la propuesta.`);
+        setNotice(`Pandoro iba a omitir ${plural(result.restored, 'subtarea')} y las conservó en la propuesta.`);
       }
     } catch (failure) {
       setError(toGeminiError(failure));
@@ -173,7 +174,7 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
             <View style={styles.statusCard}>
               <Text style={styles.statusTitle}>Plan aceptado</Text>
               <Text style={styles.statusText}>
-                {planner.savedCount} tarea(s) nuevas en tu lista. Ahora puedes editarlas desde Tareas.
+                {planner.savedCount === 1 ? '1 tarea nueva' : `${planner.savedCount} tareas nuevas`} en tu lista. Ahora puedes editarlas desde Tareas.
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -213,7 +214,7 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
               {stage === 'review' && proposal ? (
                 <>
                   <View style={styles.draftBadge}>
-                    <Text style={styles.draftBadgeText}>Propuesta de Pandoro · aún no está en tus tareas</Text>
+                    <Text style={styles.draftBadgeText}>Sugerencia de Pandoro · aún no está en tus tareas</Text>
                   </View>
 
                   {issues.length ? (
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: ui.radius.control,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 252, 247, 0.9)',
+    backgroundColor: ui.surface.card,
     borderWidth: 1,
     borderColor: ui.surface.border,
   },
