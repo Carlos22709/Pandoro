@@ -1,3 +1,4 @@
+import { logError } from '@/services/logging/appLog';
 import { useCallback, useRef, useState } from 'react';
 
 type SubmitOptions = {
@@ -26,6 +27,7 @@ export function useAuthSubmit() {
       await action();
       setNotice(successNotice ?? null);
     } catch (failure) {
+      logError('auth_error', failure);
       setError((failure as Error).message);
     } finally {
       locked.current = false;
