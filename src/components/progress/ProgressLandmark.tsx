@@ -1,4 +1,12 @@
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import Svg, {
   Circle,
   Defs,
@@ -10,6 +18,7 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 
+import { LandmarkBloom } from '@/components/progress/LandmarkBloom';
 import { PANDEN_GEOMETRY } from '@/components/progress/pandenGeometry';
 import {
   PROGRESS_WORLD_WIDTH,
@@ -25,6 +34,7 @@ import { ui } from '@/theme/ui';
 type ProgressLandmarkProps = {
   stage: ProgressWorldStage;
   worldWidth: number;
+  blooming?: boolean;
   onPress: () => void;
 };
 
@@ -1000,8 +1010,24 @@ function PawStamp({ inset }: { inset: number }) {
 export function ProgressLandmark({
   stage,
   worldWidth,
+  blooming = false,
   onPress,
 }: ProgressLandmarkProps) {
+  const pop = useSharedValue(1);
+
+  useEffect(() => {
+    if (!blooming) return;
+    pop.value = withSequence(
+      withTiming(0.92, { duration: 140 }),
+      withSpring(1.1, { damping: 7, stiffness: 180 }),
+      withSpring(1, { damping: 12, stiffness: 140 }),
+    );
+  }, [blooming, pop]);
+
+  const popStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pop.value }],
+  }));
+
   const scale = worldWidth / PROGRESS_WORLD_WIDTH;
   const zoom = getLandmarkZoom(worldWidth);
   const nodeWidth = NODE_WIDTH * zoom;
@@ -1040,12 +1066,15 @@ export function ProgressLandmark({
           <Text style={styles.nextFlagText}>Siguiente</Text>
         </View>
       ) : null}
-      <LandmarkScene
-        landmark={stage.landmark}
-        status={stage.status}
-        isNext={stage.isNext}
-        zoom={zoom}
-      />
+      {blooming ? <LandmarkBloom width={nodeWidth} height={nodeHeight} /> : null}
+      <Animated.View style={[styles.scene, popStyle]}>
+        <LandmarkScene
+          landmark={stage.landmark}
+          status={stage.status}
+          isNext={stage.isNext}
+          zoom={zoom}
+        />
+      </Animated.View>
       {stage.status === 'completed' ? <PawStamp inset={badgeInset} /> : null}
     </Pressable>
   );
@@ -1061,6 +1090,9 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.78,
     transform: [{ scale: 0.97 }],
+  },
+  scene: {
+    transformOrigin: 'bottom',
   },
   nextFlag: {
     position: 'absolute',

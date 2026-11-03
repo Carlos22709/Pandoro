@@ -153,13 +153,13 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     alignSelf: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   title: {
     ...typeScale.title,
     maxWidth: 340,
     color: palette.ink,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   brandTitle: {
     ...typeScale.brand,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     maxWidth: 330,
     marginTop: 14,
     color: palette.inkSoft,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   footer: {
     width: '100%',

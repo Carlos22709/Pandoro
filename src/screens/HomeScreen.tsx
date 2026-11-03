@@ -1,4 +1,5 @@
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -6,33 +7,65 @@ import { ForestScene } from '@/components/art/ForestScene';
 import { Pandoro } from '@/components/art/Pandoro';
 import { VoiceBird } from '@/components/art/VoiceBird';
 import { AnimatedActionButton } from '@/components/controls/AnimatedActionButton';
+import {
+  ORIGAMI_REVEAL_MS,
+  OrigamiBackdrop,
+  OrigamiGround,
+  type OrigamiRevealPhase,
+} from '@/components/home/OrigamiGarden';
 import { ProgressWidget } from '@/components/home/ProgressWidget';
 import { SpeechBubble } from '@/components/home/SpeechBubble';
 import { AppIcon } from '@/components/icons/AppIcon';
+import { useDemo } from '@/demo/DemoProvider';
+import { HOME_BUBBLE } from '@/demo/demoScript';
+import { getStageProgress } from '@/demo/demoState';
 import { palette } from '@/theme/palette';
 
 export function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
+  const isFocused = useIsFocused();
+  const { progress, pendingHomeReveal, finishHomeReveal } = useDemo();
   const pandaSize = Math.min(width * 0.69, height * 0.35, 278);
   const compact = height < 720;
+
+  // El origami del Bosque espera a que Inicio esté a la vista para desplegarse.
+  const hasOrigami = progress.currentStage >= 2;
+  const origamiPhase: OrigamiRevealPhase = !pendingHomeReveal
+    ? 'shown'
+    : isFocused
+      ? 'revealing'
+      : 'hidden';
+
+  useEffect(() => {
+    if (origamiPhase !== 'revealing') return;
+    const timer = setTimeout(finishHomeReveal, ORIGAMI_REVEAL_MS);
+    return () => clearTimeout(timer);
+  }, [finishHomeReveal, origamiPhase]);
+
+  const bubbleText = hasOrigami && origamiPhase !== 'hidden' ? HOME_BUBBLE.origami : HOME_BUBBLE.initial;
 
   return (
     <View style={styles.screen}>
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <ForestScene />
+        {/* El bambú se queda debajo solo mientras el bosque de papel termina de aparecer. */}
+        {!hasOrigami || origamiPhase !== 'shown' ? <ForestScene /> : null}
+        {hasOrigami ? <OrigamiBackdrop phase={origamiPhase} /> : null}
       </View>
       <View style={styles.backgroundWash} pointerEvents="none" />
 
       <View style={[styles.safeContent, { paddingTop: insets.top + 9 }]}>
         <View style={styles.topRow}>
-          <ProgressWidget />
+          <ProgressWidget value={getStageProgress(progress)} />
         </View>
 
         <View style={[styles.main, compact && styles.mainCompact]}>
           <View style={styles.characterStage} pointerEvents="box-none">
-            <SpeechBubble bottomOffset={pandaSize * 0.82} />
+            {hasOrigami ? (
+              <OrigamiGround phase={origamiPhase} foxSize={Math.round(pandaSize * 0.37)} />
+            ) : null}
+            <SpeechBubble text={bubbleText} bottomOffset={pandaSize * 0.82} />
             <View style={[styles.companionBird, compact && styles.companionBirdCompact]} pointerEvents="none">
               <VoiceBird size={compact ? 48 : 58} />
             </View>

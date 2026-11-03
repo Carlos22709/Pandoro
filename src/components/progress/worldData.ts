@@ -40,13 +40,6 @@ export function getLandmarkZoom(worldWidth: number) {
   return Math.min(1.3, worldWidth / 300);
 }
 
-// Cambia estos valores para mover a Pandoro y probar el florecimiento del mundo.
-export const MOCK_WORLD_PROGRESS: ProgressWorldSnapshot = {
-  currentStage: 1,
-  completedTasks: 18,
-  streak: 6,
-};
-
 export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
   {
     id: 1,

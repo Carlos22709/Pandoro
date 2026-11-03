@@ -1,19 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 
 type SpeechBubbleProps = {
+  text: string;
   bottomOffset: number;
 };
 
-export function SpeechBubble({ bottomOffset }: SpeechBubbleProps) {
+export function SpeechBubble({ text, bottomOffset }: SpeechBubbleProps) {
   return (
     <View style={[styles.wrapper, { bottom: bottomOffset }]} pointerEvents="none">
-      <View style={styles.bubble}>
-        <Text style={styles.text}>¿Qué organizamos hoy?</Text>
-      </View>
-      <View style={styles.tail} />
+      <Animated.View key={text} entering={FadeIn.duration(320)}>
+        <View style={styles.bubble}>
+          <Text style={styles.text}>{text}</Text>
+        </View>
+        <View style={styles.tail} />
+      </Animated.View>
     </View>
   );
 }

@@ -1,18 +1,25 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Ellipse } from 'react-native-svg';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 
 import { ForestScene } from '@/components/art/ForestScene';
 import { Pandoro } from '@/components/art/Pandoro';
 import { AppIcon } from '@/components/icons/AppIcon';
+import { PROGRESS_WORLD_STAGES } from '@/components/progress/worldData';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
 import { useTasks } from '@/components/tasks/TasksProvider';
+import { TaskCelebration } from '@/components/tasks/TaskCelebration';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
+import { useDemo } from '@/demo/DemoProvider';
+import { DEMO_CELEBRATION_TITLES, DEMO_DEFAULT_CELEBRATION_TITLE } from '@/demo/demoScript';
+import { sortTasksForNow } from '@/demo/demoState';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -130,19 +137,24 @@ export function TasksScreen() {
   const [creating, setCreating] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [startedTaskId, setStartedTaskId] = useState<string | null>(null);
+  const [celebrationVisible, setCelebrationVisible] = useState(false);
 
-  const visibleTasks = useMemo(() => {
-    if (view === 'all') return tasks;
-    return [...tasks].sort((first, second) => {
-      if (first.completed !== second.completed) return first.completed ? 1 : -1;
-      const firstScore = first.priority - TASK_DIFFICULTY[first.difficulty].weight * 1.5;
-      const secondScore = second.priority - TASK_DIFFICULTY[second.difficulty].weight * 1.5;
-      return firstScore - secondScore;
-    });
-  }, [tasks, view]);
+  const visibleTasks = useMemo(() => (view === 'all' ? tasks : sortTasksForNow(tasks)), [tasks, view]);
 
   const priorityTaskId = view === 'now' ? visibleTasks[0]?.id : undefined;
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
+
+  // La celebración espera a que la patita termine de rebotar y la lista se acomode.
+  useEffect(() => {
+    if (!celebration) {
+      setCelebrationVisible(false);
+      return;
+    }
+    setSheetVisible(false);
+    setCreating(false);
+    const timer = setTimeout(() => setCelebrationVisible(true), 650);
+    return () => clearTimeout(timer);
+  }, [celebration]);
 
   const closeSheet = () => {
     setSheetVisible(false);
@@ -176,6 +188,11 @@ export function TasksScreen() {
     removeTask(id);
     if (startedTaskId === id) setStartedTaskId(null);
     closeSheet();
+  };
+
+  const seeWorld = () => {
+    dismissCelebration();
+    router.navigate('/progreso');
   };
 
   const startTask = (id: string) => {
@@ -279,6 +296,15 @@ export function TasksScreen() {
         onStart={startTask}
         onDelete={deleteTask}
         onSave={saveTask}
+      />
+
+      <TaskCelebration
+        visible={celebrationVisible && celebration !== null}
+        title={(celebration && DEMO_CELEBRATION_TITLES[celebration.taskId]) ?? DEMO_DEFAULT_CELEBRATION_TITLE}
+        completedTasks={progress.completedTasks}
+        placeName={PROGRESS_WORLD_STAGES.find((stage) => stage.id === celebration?.stageId)?.title ?? ''}
+        onSeeWorld={seeWorld}
+        onClose={dismissCelebration}
       />
     </View>
   );

@@ -28,7 +28,6 @@ export function RegisterScreen() {
     <AuthLayout
       tone="pink"
       title="Crea tu cuenta"
-      subtitle="Nombre, correo y contraseña. Nada más."
       submitLabel="Crear cuenta"
       onSubmit={createAccount}
       submitting={submitting}
@@ -90,6 +89,22 @@ export function RegisterScreen() {
         returnKeyType="go"
         onSubmitEditing={createAccount}
       />
+      <AuthCheckbox
+        checked={acceptedTerms}
+        onChange={setAcceptedTerms}
+        accessibilityLabel="Acepto los términos y condiciones y el tratamiento de mis datos"
+        error={triedSubmit ? 'Necesitas aceptarlos para crear tu cuenta.' : undefined}
+      >
+        Acepto los <Text style={styles.emphasis}>términos y condiciones</Text> y el{' '}
+        <Text style={styles.emphasis}>tratamiento de mis datos</Text>.
+      </AuthCheckbox>
     </AuthLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  emphasis: {
+    fontFamily: fonts.semibold,
+    color: palette.ink,
+  },
+});

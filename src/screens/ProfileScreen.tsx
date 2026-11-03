@@ -17,7 +17,7 @@ import { Pandoro } from '@/components/art/Pandoro';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
-import { MOCK_WORLD_PROGRESS } from '@/components/progress/worldData';
+import { useDemo } from '@/demo/DemoProvider';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -147,17 +147,17 @@ export function ProfileScreen() {
           <Text style={styles.sectionTitle}>Tu recorrido</Text>
           <View style={styles.statsSurface}>
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{MOCK_WORLD_PROGRESS.completedTasks}</Text>
+              <Text style={styles.statValue}>{progress.completedTasks}</Text>
               <Text style={styles.statLabel}>Tareas</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{MOCK_WORLD_PROGRESS.streak}</Text>
+              <Text style={styles.statValue}>{progress.streak}</Text>
               <Text style={styles.statLabel}>Días seguidos</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{MOCK_WORLD_PROGRESS.currentStage}</Text>
+              <Text style={styles.statValue}>{progress.currentStage}</Text>
               <Text style={styles.statLabel}>Lugares</Text>
             </View>
           </View>
