@@ -1,7 +1,8 @@
 // Registro básico de eventos y errores (fila 32 del cronograma).
 // Ley 1581: aquí nunca entra lo que escribe o dice el usuario. Solo nombres de evento de una
-// lista cerrada, la hora, la pantalla y, para errores, un código y un mensaje saneado.
-// Los registros viven en memoria (últimos 200) y, en desarrollo, salen por consola. No se suben.
+// lista cerrada, la hora, la pantalla, la duración de un flujo y, para errores, un código y un
+// mensaje saneado. Los registros viven en memoria (últimos 200) y, en desarrollo, salen por
+// consola. No se suben a Firestore.
 
 export const LOG_EVENTS = [
   'app_started',
@@ -10,6 +11,10 @@ export const LOG_EVENTS = [
   'ai_suggestion_received',
   'ai_clarification_requested',
   'ai_suggestion_failed',
+  'agent_error',
+  'task_created',
+  'plan_accepted',
+  'task_completed',
   'auth_error',
   'unhandled_error',
   'render_error',
@@ -25,11 +30,14 @@ export type LogEntry = {
   screen?: string;
   code?: string;
   message?: string;
+  // Duración del flujo en milisegundos (pedido → respuesta, sugerencia → aceptación). Nunca texto.
+  durationMs?: number;
 };
 
 const MAX_ENTRIES = 200;
 const MAX_MESSAGE = 120;
 const entries: LogEntry[] = [];
+const flowStarts = new Map<string, number>();
 
 // Quita correos, números largos (teléfonos, cédulas), URLs y comillas con contenido, que es
 // donde suele colarse texto del usuario, y corta el mensaje.
@@ -72,11 +80,23 @@ function record(entry: LogEntry) {
   }
 }
 
-export function logEvent(event: LogEvent, details: { screen?: string } = {}) {
-  record({ event, level: 'info', at: new Date().toISOString(), screen: sanitizeScreen(details.screen) });
+export type LogDetails = { screen?: string; durationMs?: number };
+
+function sanitizeDuration(raw: unknown): number | undefined {
+  return typeof raw === 'number' && Number.isFinite(raw) && raw >= 0 ? Math.round(raw) : undefined;
 }
 
-export function logError(event: LogEvent, error: unknown, details: { screen?: string } = {}) {
+export function logEvent(event: LogEvent, details: LogDetails = {}) {
+  record({
+    event,
+    level: 'info',
+    at: new Date().toISOString(),
+    screen: sanitizeScreen(details.screen),
+    durationMs: sanitizeDuration(details.durationMs),
+  });
+}
+
+export function logError(event: LogEvent, error: unknown, details: LogDetails = {}) {
   const code = sanitizeCode((error as { code?: unknown } | null)?.code);
   record({
     event,
@@ -85,7 +105,22 @@ export function logError(event: LogEvent, error: unknown, details: { screen?: st
     screen: sanitizeScreen(details.screen),
     code,
     message: sanitizeMessage(error) || undefined,
+    durationMs: sanitizeDuration(details.durationMs),
   });
+}
+
+// Marca el inicio de un flujo (p. ej. «ai_suggestion» o «plan_accept») para medir duración.
+export function markFlowStart(flow: string) {
+  if (typeof flow === 'string' && /^[a-z0-9_\-]{1,40}$/i.test(flow)) {
+    flowStarts.set(flow, Date.now());
+  }
+}
+
+export function takeFlowDuration(flow: string): number | undefined {
+  const start = flowStarts.get(flow);
+  if (start == null) return undefined;
+  flowStarts.delete(flow);
+  return Math.max(0, Date.now() - start);
 }
 
 export function getLogEntries(): readonly LogEntry[] {
@@ -94,6 +129,7 @@ export function getLogEntries(): readonly LogEntry[] {
 
 export function clearLogEntries() {
   entries.length = 0;
+  flowStarts.clear();
 }
 
 let installed = false;

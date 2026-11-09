@@ -1,5 +1,4 @@
 import type { planService as defaultPlanService } from '@/services/gemini/geminiService';
-import { logError, logEvent } from '@/services/logging/appLog';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
 
 // La conversación de «Hablar» vive solo en memoria mientras la pantalla está abierta: no se
@@ -36,15 +35,7 @@ export function responsibilitiesText(messages: readonly TalkMessage[]) {
 export async function sendTalkTurn(service: PlanService, { messages, input, availability, today }: TurnInput): Promise<TalkTurnResult> {
   const userMessage: TalkMessage = { id: `user-${messages.length}`, from: 'user', text: input.trim() };
   const withUser = [...messages, userMessage];
-  logEvent('ai_suggestion_requested');
-  let result: Awaited<ReturnType<PlanService['generatePlan']>>;
-  try {
-    result = await service.generatePlan({ text: responsibilitiesText(withUser), availability, today });
-  } catch (failure) {
-    logError('ai_suggestion_failed', failure);
-    throw failure;
-  }
-  logEvent(result.kind === 'clarification' ? 'ai_clarification_requested' : 'ai_suggestion_received');
+  const result = await service.generatePlan({ text: responsibilitiesText(withUser), availability, today });
 
   if (result.kind === 'clarification') {
     const question: TalkMessage = { id: `pandoro-${withUser.length}`, from: 'pandoro', text: result.question };
