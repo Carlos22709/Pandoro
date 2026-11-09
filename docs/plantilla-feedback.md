@@ -2,9 +2,13 @@
 
 Copiar una tabla de sesión por participante. No anotar nombres, correos, teléfonos ni lo que el participante escribió en la app: solo el código (P1, P2…) y observaciones.
 
+**Estado al 9 de noviembre de 2026:** la plantilla y la matriz están listas. **No hay hallazgos reales todavía** (las pruebas de la fila 36 aún no se han corrido). Llenar esta hoja solo con datos de sesiones reales.
+
 ## 1. Registro por sesión
 
-**Participante:** P_ · **Fecha:** ____ · **Dispositivo:** celular / computador · **Facilitador / observador:** ____
+Repetir el bloque para P1…P5 (y más si hay).
+
+**Participante:** P_ · **Fecha:** ____ · **Dispositivo:** celular / computador · **Facilitador / observador:** ____ · **Consentimiento:** sí / no
 
 | Tarea | Resultado (sin ayuda / con ayuda / no) | Tiempo | Observaciones (qué hizo, dónde dudó) |
 |---|---|---|---|
@@ -23,27 +27,37 @@ Copiar una tabla de sesión por participante. No anotar nombres, correos, teléf
 
 ## 2. Consolidado de hallazgos
 
-Un hallazgo por fila; si varios participantes lo vivieron, sumar en «Frecuencia».
+Un hallazgo por fila; si varios participantes lo vivieron, sumar en «Frecuencia». Dejar vacío hasta tener sesiones.
 
 | ID | Hallazgo | Pantalla | Frecuencia (n de N) | Severidad (1–4) | Esfuerzo (B/M/A) | Prioridad |
 |---|---|---|---|---|---|---|
-| H1 | | | | | | |
+| H1 | _(pendiente de pruebas)_ | | | | | |
 
 **Severidad:** 1 cosmético · 2 menor (molesta, pero lo logra) · 3 mayor (necesita ayuda) · 4 bloqueante (no lo logra o afecta privacidad).
 
+**Esfuerzo:** B = menos de medio día · M = 1–2 días · A = más de 2 días o depende de otro integrante.
+
 ## 3. Matriz de priorización (impacto × esfuerzo)
 
-Impacto = severidad × frecuencia. Ubicar cada hallazgo:
+Impacto = severidad × frecuencia (por ejemplo severidad 3 visto en 4 de 5 → impacto alto). Ubicar cada hallazgo:
 
 | | Esfuerzo bajo | Esfuerzo alto |
 |---|---|---|
-| **Impacto alto** | **Hacer ya** (antes del 16/11) | Planear: hacer si hay tiempo, si no, documentar como trabajo futuro |
+| **Impacto alto** | **Hacer ya** (antes del 16/11) | Planear: hacer si hay tiempo; si no, documentar como trabajo futuro |
 | **Impacto bajo** | Rápidos: hacer si sobra tiempo | Descartar o dejar como trabajo futuro |
 
 Todo hallazgo de severidad 4 relacionado con privacidad o consentimiento va a «Hacer ya», sin importar el esfuerzo.
+
+### Cómo decidir (checklist fila 37)
+
+1. Pasar todos los hallazgos de las ≥ 5 sesiones a la tabla del §2.
+2. Calcular impacto y esfuerzo.
+3. Colocar cada ID en la matriz.
+4. Acordar en equipo las filas de «Hacer ya» y asignar responsable + fecha en §4.
+5. El resto queda como trabajo futuro en el README o en una nota del PR, sin bloquear la entrega.
 
 ## 4. Decisiones
 
 | ID | Decisión | Responsable | Fecha objetivo | Estado |
 |---|---|---|---|---|
-| H1 | | | | |
+| H1 | _(pendiente de pruebas)_ | | | |
