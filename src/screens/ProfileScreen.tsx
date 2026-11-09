@@ -149,12 +149,12 @@ export function ProfileScreen() {
           <View style={styles.statsSurface}>
             <View style={styles.stat}>
               <Text style={styles.statValue}>{progress.completedTasks}</Text>
-              <Text style={styles.statLabel}>Tareas</Text>
+              <Text style={styles.statLabel}>Tareas completadas</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{progress.streak}</Text>
-              <Text style={styles.statLabel}>Días seguidos</Text>
+              <Text style={styles.statValue}>{progress.unlockedWeeks.length}</Text>
+              <Text style={styles.statLabel}>Semanas completadas</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>

@@ -9,14 +9,11 @@ import { useRouter } from 'expo-router';
 import { ForestScene } from '@/components/art/ForestScene';
 import { Pandoro } from '@/components/art/Pandoro';
 import { AppIcon } from '@/components/icons/AppIcon';
-import { PROGRESS_WORLD_STAGES } from '@/components/progress/worldData';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
 import { useTasks } from '@/components/tasks/TasksProvider';
-import { TaskCelebration } from '@/components/tasks/TaskCelebration';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
 import { useDemo } from '@/demo/DemoProvider';
-import { DEMO_CELEBRATION_TITLES, DEMO_DEFAULT_CELEBRATION_TITLE } from '@/demo/demoScript';
 import { sortTasksForNow } from '@/demo/demoState';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
@@ -130,41 +127,29 @@ export function TasksScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { tasks, toggleTask, addTask, updateTask, removeTask } = useTasks();
-  const { progress, celebration, recordCompletion, dismissCelebration } = useDemo();
+  const { recordCompletion } = useDemo();
   const [view, setView] = useState<TasksView>('now');
   const [sheetVisible, setSheetVisible] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [startedTaskId, setStartedTaskId] = useState<string | null>(null);
-  const [celebrationVisible, setCelebrationVisible] = useState(false);
 
   const visibleTasks = useMemo(() => (view === 'all' ? tasks : sortTasksForNow(tasks)), [tasks, view]);
 
   const priorityTaskId = view === 'now' ? visibleTasks[0]?.id : undefined;
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
 
-  // La celebración espera a que la patita termine de rebotar y la lista se acomode.
-  useEffect(() => {
-    if (!celebration) {
-      setCelebrationVisible(false);
-      return;
-    }
-    setSheetVisible(false);
-    setCreating(false);
-    const timer = setTimeout(() => setCelebrationVisible(true), 650);
-    return () => clearTimeout(timer);
-  }, [celebration]);
-
   const closeSheet = () => {
     setSheetVisible(false);
     setCreating(false);
   };
 
-  // La tarea cambia en TasksProvider y el mundo de Pandoro avanza (o retrocede) en la demo.
+  // Completar suma un paso y Pandoro avanza por el camino. El lugar nuevo se decide al cerrar la semana.
+  // Desmarcar una tarea de una semana ya cerrada no hace nada: lo ganado no se toca.
   const togglePaw = (id: string) => {
     const task = tasks.find((item) => item.id === id);
     if (!task) return;
-    toggleTask(id);
+    if (!toggleTask(id)) return;
     recordCompletion(id, !task.completed);
   };
 
@@ -195,11 +180,6 @@ export function TasksScreen() {
     removeTask(id);
     if (startedTaskId === id) setStartedTaskId(null);
     closeSheet();
-  };
-
-  const seeWorld = () => {
-    dismissCelebration();
-    router.navigate('/progreso');
   };
 
   const startTask = (id: string) => {
@@ -303,15 +283,6 @@ export function TasksScreen() {
         onStart={startTask}
         onDelete={deleteTask}
         onSave={saveTask}
-      />
-
-      <TaskCelebration
-        visible={celebrationVisible && celebration !== null}
-        title={(celebration && DEMO_CELEBRATION_TITLES[celebration.taskId]) ?? DEMO_DEFAULT_CELEBRATION_TITLE}
-        completedTasks={progress.completedTasks}
-        placeName={PROGRESS_WORLD_STAGES.find((stage) => stage.id === celebration?.stageId)?.title ?? ''}
-        onSeeWorld={seeWorld}
-        onClose={dismissCelebration}
       />
     </View>
   );

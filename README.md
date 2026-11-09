@@ -27,6 +27,7 @@ Inicio → Hablar con Pandoro (dos turnos con guion) → Pandoro propone un plan
 - **Hablar:** mantén pulsado el pajarito mientras dices tu frase; la transcripción del guion se escribe sola y se envía al soltar. Un toque corto no envía nada. Lo que se diga en voz alta no importa, pero conviene decir algo parecido al guion.
 - **Guion:** todos los textos (frases, respuestas, plan, títulos de celebración y burbuja de Inicio) están en `src/demo/demoScript.ts`. Las fechas suponen que la demo se presenta un martes.
 - **Estado:** `src/demo/demoState.ts` guarda tareas y progreso, y `DemoProvider` lo comparte con todas las pantallas. La demo arranca con 24 tareas completadas, así que la tarea que se completa en escena abre el Bosque de origami.
+- **Semana viva (progreso):** la lógica está en `src/services/progress/` (funciones puras con la fecha como parámetro, probadas en `tests/weeks.test.ts` y `tests/progress.test.ts`). Cada tarea completada es un paso y mueve a Pandoro por el sendero en Progreso; el lugar nuevo se decide al cerrar la semana (si quedó completa), no a mitad de semana. Al abrir la app después de una semana cerrada aparece sola `WeekClosureScreen` («Semana completada», «Ver mi mundo», «Pasar todo», «Ajustar una por una»). Los pasos viven en `users/{uid}/completions` y los lugares y el cierre visto en `users/{uid}/progress/world`.
 - **Reiniciar:** Ajustes → Demo → "Reiniciar demo" (pide un segundo toque). Recargar la app también vuelve al inicio, porque nada se guarda en disco.
 
 ## Ejecutar

@@ -4,17 +4,18 @@ import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 
 type ProgressSummaryProps = {
-  streak: number;
   completedTasks: number;
+  completedWeeks: number;
 };
 
-export function ProgressSummary({ streak, completedTasks }: ProgressSummaryProps) {
-  const accessibilityLabel = streak + ' días seguidos, ' + completedTasks + ' tareas';
+// Solo cuenta lo ganado: ningún contador se reinicia por inactividad.
+export function ProgressSummary({ completedTasks, completedWeeks }: ProgressSummaryProps) {
+  const accessibilityLabel = completedTasks + ' tareas completadas, ' + completedWeeks + ' semanas completadas';
 
   return (
     <View style={styles.container} accessibilityLabel={accessibilityLabel}>
       <View style={styles.dot} />
-      <Text style={styles.text}>{streak} días seguidos · {completedTasks} tareas</Text>
+      <Text style={styles.text}>{completedTasks} tareas completadas · {completedWeeks} semanas completadas</Text>
     </View>
   );
 }

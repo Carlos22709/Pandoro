@@ -23,6 +23,13 @@ export type TaskItem = {
   icon: AppIconName;
   difficulty: TaskDifficulty;
   completed: boolean;
+  // Semana viva (src/services/progress): el estado es pendiente, completada (`completed`) o
+  // descartada (`dismissed`). Las fechas son ISO local (dueDate) o milisegundos (los demás).
+  dismissed?: boolean;
+  dueDate?: string;
+  createdAt?: number;
+  completedAt?: number;
+  dismissedAt?: number;
 };
 
-export type TaskDraft = Pick<TaskItem, 'title' | 'detail' | 'duration' | 'difficulty'>;
+export type TaskDraft = Pick<TaskItem, 'title' | 'detail' | 'duration' | 'difficulty' | 'dueDate'>;
