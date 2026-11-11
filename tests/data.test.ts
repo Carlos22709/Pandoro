@@ -28,6 +28,18 @@ test('una tarea guardada vuelve idéntica', () => {
   assert.deepEqual(taskFromDoc(task.id, taskToDoc(task)), task);
 });
 
+test('editar una tarea conserva su id y reemplaza los campos modificados', () => {
+  const edited: TaskItem = {
+    ...task,
+    title: 'Planificar la presentación',
+    detail: 'jue 12 nov',
+    duration: '45 min',
+    difficulty: 'high',
+  };
+
+  assert.deepEqual(taskFromDoc(task.id, taskToDoc(edited)), edited);
+});
+
 test('un documento con valores inesperados no rompe la app', () => {
   const restored = taskFromDoc('x', {
     title: 'Algo',
@@ -110,4 +122,10 @@ test('un evento de completado solo guarda el instante', () => {
   assert.deepEqual(completionFromDoc('t1', { completedAt: 1_793_000_000_000 }), { taskId: 't1', completedAt: 1_793_000_000_000 });
   assert.equal(completionFromDoc('t1', { completedAt: 'ayer' }), null);
   assert.equal(completionFromDoc('t1', undefined), null);
+});
+
+test('la fecha de la tarea sobrevive a Firestore para que los recordatorios funcionen', () => {
+  const dated: TaskItem = { ...task, dueDate: '2026-11-04' };
+  assert.equal(taskFromDoc(dated.id, taskToDoc(dated))?.dueDate, '2026-11-04');
+  assert.equal(taskFromDoc('x', { title: 'Algo', dueDate: 'mañana' })?.dueDate, undefined);
 });

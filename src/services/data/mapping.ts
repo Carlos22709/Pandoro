@@ -46,6 +46,7 @@ export function taskFromDoc(id: string, data: FirestoreData | undefined): TaskIt
     completed: data.completed === true,
     // Los documentos anteriores a la semana viva no traen estos campos: se leen como tareas sin fecha.
     ...(data.dismissed === true ? { dismissed: true } : {}),
+    // Sin una fecha de calendario válida no se programa recordatorio ni se calcula la semana.
     ...(isoDate(data.dueDate) ? { dueDate: isoDate(data.dueDate) } : {}),
     ...(instant(data.createdAt) ? { createdAt: instant(data.createdAt) } : {}),
     ...(instant(data.completedAt) ? { completedAt: instant(data.completedAt) } : {}),
