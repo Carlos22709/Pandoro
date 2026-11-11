@@ -358,7 +358,7 @@ export function SettingsScreen() {
         </Pressable>
         {error ? <Text style={[styles.prototypeNote, { color: colors.text }]}>{error}</Text> : null}
         <Text style={[styles.prototypeNote, { color: colors.muted }]}>
-          En este prototipo, los cambios se conservan únicamente durante la sesión.
+          Tus tareas, progreso y preferencias se guardan en tu cuenta.
         </Text>
       </ScrollView>
     </View>

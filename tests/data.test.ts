@@ -28,6 +28,18 @@ test('una tarea guardada vuelve idéntica', () => {
   assert.deepEqual(taskFromDoc(task.id, taskToDoc(task)), task);
 });
 
+test('editar una tarea conserva su id y reemplaza los campos modificados', () => {
+  const edited: TaskItem = {
+    ...task,
+    title: 'Planificar la presentación',
+    detail: 'jue 12 nov',
+    duration: '45 min',
+    difficulty: 'high',
+  };
+
+  assert.deepEqual(taskFromDoc(task.id, taskToDoc(edited)), edited);
+});
+
 test('un documento con valores inesperados no rompe la app', () => {
   const restored = taskFromDoc('x', {
     title: 'Algo',
