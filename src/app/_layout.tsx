@@ -1,16 +1,22 @@
 import { useFonts } from 'expo-font';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { ConsentGate, useConsentStatus } from '@/components/auth/ConsentGate';
+import { RemindersProvider } from '@/components/reminders/RemindersProvider';
 import { TasksProvider } from '@/components/tasks/TasksProvider';
 import { DemoProvider } from '@/demo/DemoProvider';
+import { installGlobalErrorCapture, logEvent } from '@/services/logging/appLog';
 import { palette } from '@/theme/palette';
 import { fontAssets } from '@/theme/typography';
+
+installGlobalErrorCapture();
+logEvent('app_started');
 
 const PUBLIC_ROUTES: (string | undefined)[] = [undefined, 'login', 'register'];
 
@@ -19,6 +25,11 @@ function AppStack() {
   const consent = useConsentStatus(status === 'signedIn' ? user?.uid ?? null : null);
   const router = useRouter();
   const firstSegment = useSegments()[0];
+  const pathname = usePathname();
+
+  useEffect(() => {
+    logEvent('screen_view', { screen: pathname });
+  }, [pathname]);
 
   const onPublicRoute = PUBLIC_ROUTES.includes(firstSegment);
   const redirectTo = status === 'signedIn' && onPublicRoute
@@ -76,9 +87,11 @@ export default function RootLayout() {
   }
 
   return (
+    <AppErrorBoundary>
     <SafeAreaProvider>
       <AuthProvider>
         <TasksProvider>
+          <RemindersProvider>
           {/* Las tareas viven en TasksProvider; la demo lleva el progreso del mundo y el guion de Hablar. */}
           <DemoProvider>
             <View style={styles.root}>
@@ -86,9 +99,11 @@ export default function RootLayout() {
               <AppStack />
             </View>
           </DemoProvider>
+          </RemindersProvider>
         </TasksProvider>
       </AuthProvider>
     </SafeAreaProvider>
+    </AppErrorBoundary>
   );
 }
 

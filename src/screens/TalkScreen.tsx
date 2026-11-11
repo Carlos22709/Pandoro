@@ -19,6 +19,7 @@ import { AppIcon } from '@/components/icons/AppIcon';
 import { PrimaryButton } from '@/components/onboarding/PrimaryButton';
 import { AvailabilityPicker } from '@/components/planning/AvailabilityPicker';
 import { ProposalEditor } from '@/components/planning/ProposalEditor';
+import { plural } from '@/utils/plural';
 import { PandoroAvatar, PandoroBubble, PandoroRow, ThinkingBubble, UserBubble } from '@/components/talk/ChatBubbles';
 import { TALK_GREETING, type TalkMessage, sendTalkTurn } from '@/components/talk/talkConversation';
 import { nextPriority, useTasks } from '@/components/tasks/TasksProvider';
@@ -160,7 +161,7 @@ export function TalkScreen() {
 
           {phase === 'saved' ? (
             <PandoroRow>
-              <PandoroBubble text={`¡Listo! Agregué ${savedCount} ${savedCount === 1 ? 'tarea' : 'tareas'} a tu lista. Puedes cambiarlas desde Tareas.`} />
+              <PandoroBubble text={`¡Listo! Agregué ${plural(savedCount, 'tarea')} a tu lista. Puedes cambiarlas desde Tareas.`} />
             </PandoroRow>
           ) : null}
 

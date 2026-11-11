@@ -84,3 +84,9 @@ test('un usuario nuevo empieza su mundo en cero', () => {
     streak: 0,
   });
 });
+
+test('la fecha de la tarea sobrevive a Firestore para que los recordatorios funcionen', () => {
+  const dated: TaskItem = { ...task, dueDate: '2026-11-04' };
+  assert.equal(taskFromDoc(dated.id, taskToDoc(dated))?.dueDate, '2026-11-04');
+  assert.equal(taskFromDoc('x', { title: 'Algo', dueDate: 'mañana' })?.dueDate, undefined);
+});

@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ForestScene } from '@/components/art/ForestScene';
+import { plural } from '@/utils/plural';
 import { PandoroHead } from '@/components/art/PandoroHead';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { AvailabilityPicker } from '@/components/planning/AvailabilityPicker';
@@ -23,6 +24,7 @@ import { EMPTY_PLANNER, nextPriority, useTasks } from '@/components/tasks/TasksP
 import type { TaskDraft } from '@/components/tasks/taskTypes';
 import { GeminiError, MAX_INPUT_LENGTH, planService, toGeminiError } from '@/services/gemini/geminiService';
 import { analyzeProposal, proposalToTasks } from '@/services/planning/planLogic';
+import { minutesPerDayProblem, planTextProblem } from '@/services/planning/planInput';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
@@ -46,7 +48,11 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
   const { stage, text, days, minutesPerDay, instruction, clarification, proposal } = planner;
   const availability: Availability = { days, minutesPerDay: Number(minutesPerDay) };
   const busy = pending !== null;
-  const canGenerate = !busy && text.trim().length > 0 && days.length > 0 && availability.minutesPerDay > 0;
+  const textProblem = planTextProblem(text, MAX_INPUT_LENGTH);
+  const minutesProblem = minutesPerDayProblem(minutesPerDay);
+  const daysProblem = days.length ? null : 'Elige al menos un día disponible.';
+  const inputProblem = textProblem ?? daysProblem ?? minutesProblem;
+  const canGenerate = !busy && !inputProblem;
 
   const issues = useMemo(
     () => (proposal ? analyzeProposal(proposal, availability) : []),
@@ -102,7 +108,7 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
         days: current.days.filter((day) => !result.unavailableDates.includes(day)),
       }));
       if (result.restored) {
-        setNotice(`Pandoro iba a omitir ${result.restored} subtarea(s) y las conservó en la propuesta.`);
+        setNotice(`Pandoro iba a omitir ${plural(result.restored, 'subtarea')} y las conservó en la propuesta.`);
       }
     } catch (failure) {
       setError(toGeminiError(failure));
@@ -173,7 +179,7 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
             <View style={styles.statusCard}>
               <Text style={styles.statusTitle}>Plan aceptado</Text>
               <Text style={styles.statusText}>
-                {planner.savedCount} tarea(s) nuevas en tu lista. Ahora puedes editarlas desde Tareas.
+                {planner.savedCount === 1 ? '1 tarea nueva' : `${planner.savedCount} tareas nuevas`} en tu lista. Ahora puedes editarlas desde Tareas.
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -213,7 +219,7 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
               {stage === 'review' && proposal ? (
                 <>
                   <View style={styles.draftBadge}>
-                    <Text style={styles.draftBadgeText}>Propuesta de Pandoro · aún no está en tus tareas</Text>
+                    <Text style={styles.draftBadgeText}>Sugerencia de Pandoro · aún no está en tus tareas</Text>
                   </View>
 
                   {issues.length ? (
@@ -301,6 +307,9 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
               <Text style={styles.primaryText}>Organizar con Pandoro</Text>
             </Pressable>
           ) : null}
+          {stage === 'compose' && !busy && inputProblem && text.trim() ? (
+            <Text accessibilityLiveRegion="polite" style={styles.hintText}>{inputProblem}</Text>
+          ) : null}
 
           {stage === 'review' && !busy ? (
             <>
@@ -361,7 +370,7 @@ const styles = StyleSheet.create({
     borderRadius: ui.radius.control,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 252, 247, 0.9)',
+    backgroundColor: ui.surface.card,
     borderWidth: 1,
     borderColor: ui.surface.border,
   },
@@ -420,6 +429,7 @@ const styles = StyleSheet.create({
   loading: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, padding: ui.space.md, borderRadius: ui.radius.card, backgroundColor: palette.lilacSoft },
   loadingText: { ...typeScale.small, fontFamily: fonts.semibold, flex: 1, color: palette.ink },
   errorCard: { marginTop: 16, padding: ui.space.md, gap: 4, borderRadius: ui.radius.card, backgroundColor: palette.pinkSoft },
+  hintText: { ...typeScale.small, color: palette.inkSoft, marginTop: ui.space.sm, textAlign: 'center' },
   errorText: { ...typeScale.small, fontFamily: fonts.bold, color: palette.ink },
   statusCard: { padding: ui.space.lg, borderRadius: ui.radius.card, backgroundColor: 'rgba(255, 252, 245, 0.95)', borderWidth: 1, borderColor: ui.surface.border },
   statusTitle: { ...typeScale.heading, color: palette.ink },

@@ -9,8 +9,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
-    "check:firestore": "tsx --env-file=.env scripts/check-firestore.mts"
+    "test": "NODE_ENV=test tsx --test tests/*.test.ts",
+    "test:rules": "npx --yes firebase-tools@latest emulators:exec --only firestore --project demo-pandask \"tsx --test tests/rules/*.emulator.ts\"",
+    "check:firestore": "tsx --env-file=.env scripts/check-firestore.mts",
+    "build:web": "expo export --platform web"
   },
   "dependencies": {
     "@expo-google-fonts/figtree": "^0.4.1",
@@ -20,6 +22,7 @@
     "expo-constants": "~58.0.14",
     "expo-font": "~58.0.11",
     "expo-linking": "~58.0.15",
+    "expo-notifications": "~58.1.7",
     "expo-router": "~58.0.29",
     "expo-status-bar": "~58.0.4",
     "firebase": "^13.2.0",

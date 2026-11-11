@@ -14,6 +14,7 @@ import {
   type OrigamiRevealPhase,
 } from '@/components/home/OrigamiGarden';
 import { ProgressWidget } from '@/components/home/ProgressWidget';
+import { useReminders } from '@/components/reminders/RemindersProvider';
 import { SpeechBubble } from '@/components/home/SpeechBubble';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { useDemo } from '@/demo/DemoProvider';
@@ -44,7 +45,9 @@ export function HomeScreen() {
     return () => clearTimeout(timer);
   }, [finishHomeReveal, origamiPhase]);
 
-  const bubbleText = hasOrigami && origamiPhase !== 'hidden' ? HOME_BUBBLE.origami : HOME_BUBBLE.initial;
+  const { webNotice } = useReminders();
+  const sceneText = hasOrigami && origamiPhase !== 'hidden' ? HOME_BUBBLE.origami : HOME_BUBBLE.initial;
+  const bubbleText = webNotice ?? sceneText;
 
   return (
     <View style={styles.screen}>

@@ -18,6 +18,8 @@ export type TaskItem = {
   detail: string;
   duration?: string;
   notes?: string;
+  // Día local YYYY-MM-DD; solo las tareas con día tienen recordatorio.
+  dueDate?: string;
   priority: number;
   tone: PaletteTone;
   icon: AppIconName;

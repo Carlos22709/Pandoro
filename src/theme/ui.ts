@@ -24,6 +24,7 @@ export const ui = {
     border: 'rgba(81, 64, 93, 0.12)',
     borderStrong: 'rgba(81, 64, 93, 0.2)',
     landscapeWash: 'rgba(247, 250, 244, 0.5)',
+    card: 'rgba(255, 252, 247, 0.9)',
   },
   elevation: {
     shadowColor: '#51405D',
