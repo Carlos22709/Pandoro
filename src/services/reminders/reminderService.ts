@@ -16,8 +16,8 @@ export type NotificationsAdapter = {
   getAllScheduledNotificationsAsync(): Promise<{ identifier: string }[]>;
 };
 
-/** Hora local a la que llega el aviso el día de la tarea. */
-export const REMINDER_HOUR = 8;
+/** Hora local por defecto a la que llega el aviso el día de la tarea. */
+export const DEFAULT_REMINDER_HOUR = 8;
 export const REMINDER_PREFIX = 'pandask-task-';
 export const ANDROID_CHANNEL_ID = 'recordatorios';
 
@@ -34,11 +34,24 @@ export function reminderId(taskId: string) {
   return `${REMINDER_PREFIX}${taskId}`;
 }
 
+/** Solo horas enteras de 0 a 23; cualquier otro valor vuelve a las 8:00. */
+export function normalizeReminderHour(hour: number): number {
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : DEFAULT_REMINDER_HOUR;
+}
+
+/** Texto en español, como en Ajustes: «8:00 a. m.». */
+export function formatReminderHour(hour: number): string {
+  const normalized = normalizeReminderHour(hour);
+  const suffix = normalized < 12 ? 'a. m.' : 'p. m.';
+  const twelve = normalized % 12 === 0 ? 12 : normalized % 12;
+  return `${twelve}:00 ${suffix}`;
+}
+
 /** Fecha y hora del aviso, o null si la tarea no tiene día o ya pasó. */
-export function reminderDate(dueDate: string | undefined, now: Date): Date | null {
+export function reminderDate(dueDate: string | undefined, now: Date, hour: number = DEFAULT_REMINDER_HOUR): Date | null {
   const match = dueDate ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(dueDate) : null;
   if (!match) return null;
-  const at = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), REMINDER_HOUR, 0, 0, 0);
+  const at = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), normalizeReminderHour(hour), 0, 0, 0);
   if (Number.isNaN(at.getTime()) || at.getMonth() !== Number(match[2]) - 1) return null;
   return at.getTime() > now.getTime() ? at : null;
 }
@@ -67,10 +80,10 @@ export function createReminderService(notifications: NotificationsAdapter | null
   }
 
   /** Reprograma el aviso de una tarea; lo quita si ya no aplica. */
-  async function scheduleTaskReminder(task: ReminderTask): Promise<boolean> {
+  async function scheduleTaskReminder(task: ReminderTask, hour: number = DEFAULT_REMINDER_HOUR): Promise<boolean> {
     if (!notifications) return false;
     await cancelTaskReminder(task.id);
-    const date = task.completed ? null : reminderDate(task.dueDate, now());
+    const date = task.completed ? null : reminderDate(task.dueDate, now(), hour);
     if (!date) return false;
     await notifications.scheduleNotificationAsync({
       identifier: reminderId(task.id),
@@ -81,20 +94,20 @@ export function createReminderService(notifications: NotificationsAdapter | null
   }
 
   /** Deja programados exactamente los avisos de las tareas pendientes con fecha futura. */
-  async function syncReminders(tasks: readonly ReminderTask[], enabled: boolean): Promise<SyncResult> {
+  async function syncReminders(tasks: readonly ReminderTask[], enabled: boolean, hour: number = DEFAULT_REMINDER_HOUR): Promise<SyncResult> {
     if (!notifications) return 'unsupported';
     if (!enabled) {
       await cancelAll();
       return 'disabled';
     }
-    const due = tasks.filter((task) => !task.completed && reminderDate(task.dueDate, now()));
+    const due = tasks.filter((task) => !task.completed && reminderDate(task.dueDate, now(), hour));
     // El permiso se pide solo cuando hay algo que recordar, la primera vez.
     if (due.length && !(await ensurePermission())) {
       await cancelAll();
       return 'denied';
     }
     await cancelAll();
-    for (const task of due) await scheduleTaskReminder(task);
+    for (const task of due) await scheduleTaskReminder(task, hour);
     return 'scheduled';
   }
 

@@ -136,13 +136,14 @@ No es un documento: el catálogo de seis escenarios está en código (`PROGRESS_
 
 ### 2.7 Preferencias — `users/{uid}.preferences`
 
-Mapa de booleanos; los valores que no sean verdadero/falso se ignoran al leer.
+Mapa de preferencias de Ajustes. Los booleanos que no sean verdadero/falso se ignoran al leer. `reminderHour` es la única clave numérica (hora entera de 0 a 23; cualquier otro valor se ignora y queda en 8).
 
 | Clave | Por defecto | Descripción |
 | --- | --- | --- |
 | `darkMode` | falso | Modo oscuro |
 | `reduceMotion` | verdadero | Menos animación |
-| `taskReminders` | verdadero | Recordatorios de tareas (F10) |
+| `taskReminders` | verdadero | Recordatorios de tareas (F10). El interruptor de Ajustes aún vive en memoria. |
+| `reminderHour` | 8 | Hora local del aviso diario (F10), configurable en Ajustes |
 | `weeklySummary` | verdadero | Resumen semanal |
 | `pandoroTips` | verdadero | Mensajes de Pandoro |
 | `sounds` | falso | Sonidos |

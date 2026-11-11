@@ -18,6 +18,10 @@ import { useTasks } from '@/components/tasks/TasksProvider';
 import { useDemo } from '@/demo/DemoProvider';
 import { savePreferences, watchPreferences } from '@/services/data/userRepository';
 import { useReminders } from '@/components/reminders/RemindersProvider';
+import {
+  DEFAULT_REMINDER_HOUR,
+  formatReminderHour,
+} from '@/services/reminders/reminderService';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -25,6 +29,7 @@ import { ui } from '@/theme/ui';
 type Preferences = {
   darkMode: boolean;
   reduceMotion: boolean;
+  reminderHour: number;
   weeklySummary: boolean;
   pandoroTips: boolean;
   sounds: boolean;
@@ -32,7 +37,7 @@ type Preferences = {
   usageAnalytics: boolean;
 };
 
-type PreferenceKey = keyof Preferences;
+type PreferenceKey = Exclude<keyof Preferences, 'reminderHour'>;
 
 type SettingsColors = {
   background: string;
@@ -49,6 +54,7 @@ type SettingsColors = {
 const DEFAULT_PREFERENCES: Preferences = {
   darkMode: false,
   reduceMotion: true,
+  reminderHour: DEFAULT_REMINDER_HOUR,
   weeklySummary: true,
   pandoroTips: true,
   sounds: false,
@@ -123,6 +129,64 @@ function PreferenceRow({
   );
 }
 
+type HourRowProps = {
+  hour: number;
+  onChange: (hour: number) => void;
+  enabled: boolean;
+  supported: boolean;
+  colors: SettingsColors;
+};
+
+function HourRow({ hour, onChange, enabled, supported, colors }: HourRowProps) {
+  const label = formatReminderHour(hour);
+  return (
+    <View
+      style={[
+        styles.preferenceRow,
+        { borderBottomColor: colors.border, borderBottomWidth: 1 },
+        !enabled && styles.hourDisabled,
+      ]}
+    >
+      <View style={styles.preferenceCopy}>
+        <Text style={[styles.preferenceTitle, { color: colors.text }]}>Hora del aviso</Text>
+        <Text style={[styles.preferenceDescription, { color: colors.muted }]}>
+          {supported
+            ? 'A esta hora te llega el aviso el día de cada tarea.'
+            : 'Esta hora vale en la app del teléfono. En la web no hay avisos programados: Pandoro te cuenta lo pendiente al abrir la app.'}
+        </Text>
+      </View>
+      <View style={styles.hourStepper}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Una hora antes"
+          disabled={!enabled}
+          hitSlop={4}
+          onPress={() => onChange((hour + 23) % 24)}
+          style={({ pressed }) => [styles.hourArrow, pressed && enabled && styles.pressed]}
+        >
+          <Text style={[styles.hourArrowText, { color: colors.accent }]}>‹</Text>
+        </Pressable>
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.hourValue, { color: colors.text }]}
+        >
+          {label}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Una hora después"
+          disabled={!enabled}
+          hitSlop={4}
+          onPress={() => onChange((hour + 1) % 24)}
+          style={({ pressed }) => [styles.hourArrow, pressed && enabled && styles.pressed]}
+        >
+          <Text style={[styles.hourArrowText, { color: colors.accent }]}>›</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -161,7 +225,9 @@ export function SettingsScreen() {
     if (!uid) return;
     return watchPreferences(uid, (saved) => {
       const known = Object.entries(saved).filter(([key]) => key in DEFAULT_PREFERENCES);
-      setPreferences({ ...DEFAULT_PREFERENCES, ...Object.fromEntries(known) });
+      const next = { ...DEFAULT_PREFERENCES, ...Object.fromEntries(known) };
+      setPreferences(next);
+      reminders.setHour(next.reminderHour);
     });
   }, [uid]);
 
@@ -181,6 +247,12 @@ export function SettingsScreen() {
   const resetPreferences = () => {
     persistPreferences(DEFAULT_PREFERENCES);
     reminders.setEnabled(true);
+    reminders.setHour(DEFAULT_REMINDER_HOUR);
+  };
+
+  const updateReminderHour = (hour: number) => {
+    persistPreferences({ ...preferences, reminderHour: hour });
+    reminders.setHour(hour);
   };
 
   return (
@@ -235,10 +307,17 @@ export function SettingsScreen() {
             description={reminders.supported
               ? reminders.status === 'denied'
                 ? 'Activa las notificaciones de Pandask en los ajustes del teléfono para recibir avisos.'
-                : 'Un aviso a las 8:00 a. m. el día de cada tarea planeada. No muestra el nombre de la tarea.'
+                : 'Un aviso el día de cada tarea planeada. No muestra el nombre de la tarea.'
               : 'En la web, Pandoro te cuenta al abrir la app qué tienes para hoy y mañana.'}
             value={reminders.enabled}
             onValueChange={reminders.setEnabled}
+            colors={colors}
+          />
+          <HourRow
+            hour={preferences.reminderHour}
+            onChange={updateReminderHour}
+            enabled={reminders.enabled}
+            supported={reminders.supported}
             colors={colors}
           />
           <PreferenceRow
@@ -420,6 +499,30 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 15,
     paddingVertical: 12,
+  },
+  hourDisabled: {
+    opacity: 0.45,
+  },
+  hourStepper: {
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  hourArrow: {
+    width: ui.size.touch,
+    height: ui.size.touch,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hourArrowText: {
+    ...typeScale.heading,
+  },
+  hourValue: {
+    ...typeScale.small,
+    fontFamily: fonts.display,
+    minWidth: 84,
+    textAlign: 'center',
   },
   preferenceCopy: {
     flex: 1,
