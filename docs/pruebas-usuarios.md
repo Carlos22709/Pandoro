@@ -2,13 +2,16 @@
 
 Guion para las sesiones con estudiantes. Cada sesión dura unos 20 minutos, con un facilitador y un observador que toma notas en la [plantilla de feedback](plantilla-feedback.md).
 
-**Meta del cronograma:** al menos **5 usuarios** (P1–P5). Las sesiones se hacen con la versión desplegada (fila 31). Este documento prepara el guion; **los resultados se llenan solo después de las sesiones reales** (no inventar datos).
+**URL prevista de las sesiones:** [https://pandask-f849d.web.app](https://pandask-f849d.web.app) (Firebase Hosting del proyecto `pandask-f849d`). Usar esa dirección cuando la fila 31 esté desplegada; hasta entonces no hay versión pública que probar.
 
-Estado al 9 de noviembre de 2026: guion, consentimiento, tareas y métricas listos en el repo. Sesiones reales: pendientes (dependen del despliegue).
+**Meta del cronograma:** al menos **5 usuarios** (P1–P5). Este documento deja el guion listo; **los resultados se llenan solo después de las sesiones reales** (no inventar datos).
+
+Estado al 11 de noviembre de 2026: guion, consentimiento, tareas y métricas listos. Sesiones reales: pendientes (dependen del despliegue).
 
 ## Antes de empezar
 
-- Usar la versión desplegada (fila 31) en el celular o computador del participante (`https://pandask-f849d.web.app` cuando esté publicada).
+- Abrir en el celular o computador del participante: `https://pandask-f849d.web.app`.
+- La versión publicada es **web**. No se prueba una app Android instalada en estas sesiones, salvo que el equipo acuerde otro build.
 - Cuenta de prueba creada por el participante en el momento; al final se le ofrece borrarla.
 - No grabar audio ni pantalla salvo que el participante lo autorice por escrito.
 - Material: este guion, una copia de la [plantilla](plantilla-feedback.md) por participante, cronómetro, lista SUS.
@@ -40,7 +43,19 @@ Pedir al participante que piense en voz alta. No ayudar salvo que lleve más de 
 | T3 | En «Hablar», cuéntale a Pandoro tres pendientes de esta semana y pide un plan. | Ve la «sugerencia de Pandoro». |
 | T4 | Cambia algo de la sugerencia y apruébala. | Las tareas aprobadas aparecen en Tareas. |
 | T5 | Marca una tarea como hecha y mira tu progreso. | Ve el avance en Progreso. |
-| T6 | Activa un recordatorio para una tarea. | El recordatorio queda programado. |
+| T6 | Revisa los recordatorios. En Ajustes, deja activo «El día de cada tarea». Crea o deja una tarea para **hoy** o **mañana** y vuelve a Inicio. | En la web: Pandoro avisa en la burbuja de Inicio («Tienes N tarea(s) para hoy» o «Mañana tienes…»). En Ajustes se lee que, en la web, no hay avisos programados del sistema. |
+
+### Recordatorios en la versión web (fila 27)
+
+El MVP desplegado es la build web de Expo. En web, `expo-notifications` no se carga (adaptador nulo en `src/services/reminders/expoNotifications.ts`): **no hay notificaciones locales ni push programadas**, ni a las 8:00 a. m. ni en segundo plano. Eso no se puede verificar en `https://pandask-f849d.web.app`.
+
+Lo que sí se puede comprobar en la web:
+
+- El interruptor de Ajustes → Recordatorios → «El día de cada tarea».
+- El aviso **dentro de la app**, en Inicio, si hay tareas pendientes para hoy o mañana (`upcomingNotice`).
+- El texto no incluye el nombre de la tarea.
+
+Las notificaciones locales a las 8:00 a. m. el día de la tarea (sin mostrar su título) solo aplican en la app nativa (iOS o Android con Expo). **No formar parte del criterio de éxito de T6 en estas pruebas web**, y no afirmar que Android quedó verificado por esta sesión.
 
 ## Métricas
 

@@ -2,7 +2,9 @@
 
 Copiar una tabla de sesión por participante. No anotar nombres, correos, teléfonos ni lo que el participante escribió en la app: solo el código (P1, P2…) y observaciones.
 
-**Estado al 9 de noviembre de 2026:** la plantilla y la matriz están listas. **No hay hallazgos reales todavía** (las pruebas de la fila 36 aún no se han corrido). Llenar esta hoja solo con datos de sesiones reales.
+**URL prevista de las sesiones:** [https://pandask-f849d.web.app](https://pandask-f849d.web.app). Usar esa dirección cuando esté publicada (fila 31).
+
+**Estado al 11 de noviembre de 2026:** la plantilla y la matriz están listas para usar. **No hay hallazgos reales todavía** (las pruebas de la fila 36 aún no se han corrido). Llenar esta hoja solo con datos de sesiones reales.
 
 ## 1. Registro por sesión
 
@@ -17,13 +19,17 @@ Repetir el bloque para P1…P5 (y más si hay).
 | T3 Hablar | | | |
 | T4 Aprobar sugerencia | | | |
 | T5 Progreso | | | |
-| T6 Recordatorio | | | |
+| T6 Recordatorio (en la web: aviso de Inicio para hoy/mañana; no hay notificación del sistema) | | | |
 
 - SUS: ___ / 100 · Confianza en la sugerencia: _/5 · Intención de uso: _/5
 - Lo más útil:
 - Lo más confuso:
 - Dudas sobre datos:
 - Cambiaría:
+
+## Nota sobre recordatorios (web)
+
+Las sesiones de la fila 36 se hacen en `https://pandask-f849d.web.app`. En esa build no hay avisos programados del sistema; T6 se evalúa con el aviso de Pandoro en Inicio y el interruptor de Ajustes. No anotar como fallo que no llegue una notificación del teléfono.
 
 ## 2. Consolidado de hallazgos
 

@@ -2,7 +2,7 @@
 
 Guía para publicar la versión web en Firebase Hosting del proyecto `pandask-f849d`, fuera del entorno de desarrollo del equipo. **Nadie despliega a producción ni a un canal de vista previa sin el visto bueno explícito de Esteban y sin que Carlos haya fusionado el PR en `main`**: el despliegue cambia lo que ven los usuarios de las pruebas (fila 36).
 
-Estado al 9 de noviembre de 2026: la configuración de hosting, el script de build y las reglas de Firestore están en el repositorio y listas. **La app todavía no está publicada** en `https://pandask-f849d.web.app`. Falta el comando de despliegue (abajo), después del merge.
+Estado al 11 de noviembre de 2026: la configuración de hosting, el script de build y las reglas de Firestore están en el repositorio y listas. El CLI tiene acceso al proyecto `pandask-f849d` y el sitio de Hosting existe (`https://pandask-f849d.web.app`). **La app todavía no está publicada** en esa URL. Falta el comando de despliegue (abajo), después del merge y con el visto bueno de Esteban.
 
 ## Requisitos
 
@@ -51,7 +51,7 @@ Estado al 9 de noviembre de 2026: la configuración de hosting, el script de bui
    - [ ] Crear una tarea y verla en Tareas (persistencia Firestore).
    - [ ] Pedir una sugerencia en «Hablar» y aceptarla (agente Gemini).
    - [ ] Marcar una tarea hecha y ver avance en Progreso.
-   - [ ] (Opcional) Programar un recordatorio en un dispositivo que lo soporte.
+   - [ ] Recordatorios en la **web**: en Ajustes, «El día de cada tarea» activo; con una tarea para hoy o mañana, Pandoro avisa en la burbuja de Inicio. No hay notificaciones locales ni push en esta build (`expo-notifications` no se carga en web). Las notificaciones a las 8:00 a. m. solo aplican en iOS/Android nativo; no se verifican en el sitio publicado.
 
 ## Vista previa sin tocar el canal live
 
