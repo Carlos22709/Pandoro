@@ -2,7 +2,7 @@
 
 Guía para publicar la versión web en Firebase Hosting del proyecto `pandask-f849d`, fuera del entorno de desarrollo del equipo. **Nadie despliega a producción ni a un canal de vista previa sin el visto bueno explícito de Esteban y sin que Carlos haya fusionado el PR en `main`**: el despliegue cambia lo que ven los usuarios de las pruebas (fila 36).
 
-Estado al 11 de noviembre de 2026: la configuración de hosting, el script de build y las reglas de Firestore están en el repositorio y listas. El CLI tiene acceso al proyecto `pandask-f849d` y el sitio de Hosting existe (`https://pandask-f849d.web.app`). **La app todavía no está publicada** en esa URL. Falta el comando de despliegue (abajo), después del merge y con el visto bueno de Esteban.
+Estado al 11 de noviembre de 2026: **Pandask está publicada** en [https://pandask-f849d.web.app](https://pandask-f849d.web.app) (también [https://pandask-f849d.firebaseapp.com](https://pandask-f849d.firebaseapp.com)). Se desplegaron las reglas de Firestore y el hosting del proyecto `pandask-f849d` desde la rama `esteban-cambios`, con el visto bueno de Esteban. La verificación del mismo día (acceso, auth, consentimiento, persistencia, agente, tareas y progreso) quedó en verde; el detalle está más abajo.
 
 ## Requisitos
 
@@ -35,7 +35,7 @@ Estado al 11 de noviembre de 2026: la configuración de hosting, el script de bu
    ```bash
    firebase emulators:start --only hosting --project pandask-f849d
    ```
-5. Publicar las reglas de Firestore y el sitio (estos son los comandos que faltan; **no ejecutarlos sin OK**):
+5. Publicar las reglas de Firestore y el sitio (**no repetir sin un OK nuevo**; ya se ejecutó el 11 nov 2026):
    ```bash
    firebase deploy --only firestore:rules --project pandask-f849d
    firebase deploy --only hosting --project pandask-f849d
@@ -44,15 +44,17 @@ Estado al 11 de noviembre de 2026: la configuración de hosting, el script de bu
    ```bash
    firebase deploy --only firestore:rules,hosting --project pandask-f849d
    ```
-6. Abrir `https://pandask-f849d.web.app` y verificar (checklist):
-   - [ ] Carga la app (no 404 ni pantalla en blanco).
-   - [ ] Registro e inicio de sesión con correo/contraseña.
-   - [ ] Consentimiento de datos (Ley 1581) antes de entrar.
-   - [ ] Crear una tarea y verla en Tareas (persistencia Firestore).
-   - [ ] Pedir una sugerencia en «Hablar» y aceptarla (agente Gemini).
-   - [ ] Marcar una tarea hecha y ver avance en Progreso.
-   - [ ] Recordatorios en la **web**: en Ajustes, «El día de cada tarea» activo; con una tarea para hoy o mañana, Pandoro avisa en la burbuja de Inicio. No hay notificaciones locales ni push en esta build (`expo-notifications` no se carga en web).
-   - Recordatorios nativos en **Android**: verificados el 11 nov 2026 en un emulador Android 14 (API 34). Un aviso a las 8:00 a. m. del día de la tarea aparece como notificación del sistema («Tienes una tarea para hoy. Pandoro te espera en la app.»), sin el nombre de la tarea. El sitio publicado sigue siendo web, así que esta comprobación no sustituye a la lista de arriba.
+6. Abrir `https://pandask-f849d.web.app` y verificar (checklist). Resultado del 11 nov 2026:
+   - [x] Carga la app (no 404 ni pantalla en blanco). HTTP 200 en `web.app` y `firebaseapp.com`.
+   - [x] Registro e inicio de sesión con correo/contraseña.
+   - [x] Consentimiento de datos (Ley 1581) antes de entrar.
+   - [x] Crear una tarea y verla en Tareas (persistencia Firestore; sigue ahí tras un nuevo inicio de sesión).
+   - [x] Pedir una sugerencia en «Hablar» (agente Gemini): apareció una sugerencia editable («Revisa mi sugerencia» / «Sugerencia de Pandoro»).
+   - [x] Marcar una tarea hecha y ver avance en Progreso («1 tareas»).
+   - [ ] Recordatorios en la **web**: no se re-verificó el aviso de Inicio en esta pasada. En la web no hay notificaciones locales ni push (`expo-notifications` no se carga).
+   - Recordatorios nativos en **Android**: verificados el 11 nov 2026 en un emulador Android 14 (API 34). Un aviso a las 8:00 a. m. del día de la tarea aparece como notificación del sistema («Tienes una tarea para hoy. Pandoro te espera en la app.»), sin el nombre de la tarea.
+
+   El registro de eventos (fila 32) vive en memoria en el dispositivo y, en la build de producción, no sale por consola; no se pudo inspeccionar en el sitio publicado. Una lectura a Firestore sin sesión responde 403 (reglas desplegadas).
 
 ## Vista previa sin tocar el canal live
 
