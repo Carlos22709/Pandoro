@@ -133,6 +133,13 @@ export function TasksScreen() {
   const [creating, setCreating] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [startedTaskId, setStartedTaskId] = useState<string | null>(null);
+  const [toggleNotice, setToggleNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toggleNotice) return;
+    const timer = setTimeout(() => setToggleNotice(null), 4_000);
+    return () => clearTimeout(timer);
+  }, [toggleNotice]);
 
   const visibleTasks = useMemo(() => (view === 'all' ? tasks : sortTasksForNow(tasks)), [tasks, view]);
 
@@ -145,11 +152,17 @@ export function TasksScreen() {
   };
 
   // Completar suma un paso y Pandoro avanza por el camino. El lugar nuevo se decide al cerrar la semana.
-  // Desmarcar una tarea de una semana ya cerrada no hace nada: lo ganado no se toca.
+  // Lo ganado no se toca, pero el bloqueo siempre se explica para que el toque no parezca roto.
   const togglePaw = (id: string) => {
     const task = tasks.find((item) => item.id === id);
     if (!task) return;
-    if (!toggleTask(id)) return;
+    if (!toggleTask(id)) {
+      if (task.completed) {
+        setToggleNotice('Esta tarea pertenece a una semana que ya cerró y no puede volver a quedar pendiente.');
+      }
+      return;
+    }
+    setToggleNotice(null);
     recordCompletion(id, !task.completed);
   };
 
@@ -227,6 +240,13 @@ export function TasksScreen() {
         </View>
 
         <SegmentControl value={view} onChange={setView} />
+
+        {toggleNotice ? (
+          <View accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.toggleNotice}>
+            <AppIcon name="checklist" color={palette.lilacDeep} size={18} />
+            <Text style={styles.toggleNoticeText}>{toggleNotice}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.immersiveStage}>
           {visibleTasks.length ? (
@@ -372,6 +392,25 @@ const styles = StyleSheet.create({
     color: palette.inkSoft,
   },
   activeSegmentText: {
+    color: palette.ink,
+  },
+  toggleNotice: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 8,
+    borderRadius: ui.radius.control,
+    backgroundColor: palette.lilacSoft,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 123, 179, 0.24)',
+  },
+  toggleNoticeText: {
+    ...typeScale.small,
+    fontFamily: fonts.semibold,
+    flex: 1,
     color: palette.ink,
   },
   immersiveStage: {

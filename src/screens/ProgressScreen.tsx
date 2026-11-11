@@ -1,5 +1,5 @@
 import { type ComponentRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useNavigation } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +16,8 @@ import { useDemo } from '@/demo/DemoProvider';
 import { pandaTrailFraction } from '@/services/progress/pandaPath';
 import { loadSeen, peekSeen, saveSeen } from '@/services/progress/pandaSeen';
 import { palette } from '@/theme/palette';
-import { typeScale } from '@/theme/typography';
+import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type TabPressNavigation = {
   addListener: (event: 'tabPress', callback: () => void) => () => void;
@@ -36,6 +37,11 @@ const STEP_BASE_MS = 2200;
 const STEP_PER_UNIT_MS = 3000;
 const stepDuration = (from: number, to: number) => STEP_BASE_MS + (to - from) * STEP_PER_UNIT_MS;
 const stepHops = (from: number, to: number) => 5 + Math.round((to - from) * 14);
+const PRESENTATION_MODE_AVAILABLE = (
+  (typeof __DEV__ !== 'undefined' && __DEV__)
+  || process.env.EXPO_PUBLIC_PRESENTATION_MODE === 'true'
+);
+const FINAL_STAGE_ID = PROGRESS_WORLD_STAGES.at(-1)?.id ?? 1;
 
 // Pandoro solo avanza o se queda: nunca retrocede. Su última posición vista se guarda en el dispositivo
 // (src/services/progress/pandaSeen.ts) para poder mostrar el recorrido aunque se haya cerrado la app.
@@ -53,14 +59,18 @@ export function ProgressScreen() {
   const uid = useAuth().user?.uid ?? null;
   const [stepMove, setStepMove] = useState<StepMove | null>(null);
   const [walkMs, setWalkMs] = useState(MAX_WALK_MS);
+  const [presentationPreview, setPresentationPreview] = useState(false);
   const stepKeyRef = useRef(0);
 
   const arriving = phase !== 'idle';
   const arrivalStage = PROGRESS_WORLD_STAGES.find((stage) => stage.id === pendingUnlock);
+  const realCurrentStage = PROGRESS_WORLD_STAGES.find((stage) => stage.id === progress.currentStage);
   // Hasta que Pandoro llega, el mundo se dibuja como estaba antes (también el primer cuadro, sin saltos).
-  const displayedStage = arrivalStage && (phase === 'idle' || phase === 'intro' || phase === 'walking')
+  const realDisplayedStage = arrivalStage && (phase === 'idle' || phase === 'intro' || phase === 'walking')
     ? arrivalStage.id - 1
     : progress.currentStage;
+  // La vista de presentación solo cambia lo dibujado; nunca toca DemoProvider ni Firestore.
+  const displayedStage = presentationPreview ? FINAL_STAGE_ID : realDisplayedStage;
 
   const restT = pandaTrailFraction(progress.completedTasks, progress.stageStartSteps);
   const seen = (uid ? peekSeen(uid) : null) ?? null;
@@ -76,14 +86,15 @@ export function ProgressScreen() {
   const currentStage = stages.find((stage) => stage.status === 'current');
   // Llegada: Pandoro sale de donde se le vio y camina hasta el lugar nuevo; si no, se queda o camina sus pasos.
   const inArrival = arrivalStage !== undefined && (phase === 'idle' || phase === 'intro' || phase === 'walking');
-  const markerFromT = inArrival ? arrivalStartT : stepMove ? stepMove.from : baseT;
-  const markerToT = phase === 'walking' ? 1 : inArrival ? arrivalStartT : stepMove ? stepMove.to : baseT;
+  const markerFromT = presentationPreview ? 0 : inArrival ? arrivalStartT : stepMove ? stepMove.from : baseT;
+  const markerToT = presentationPreview ? 0 : phase === 'walking' ? 1 : inArrival ? arrivalStartT : stepMove ? stepMove.to : baseT;
   const selectedStage = stages.find((stage) => stage.id === selectedStageId) ?? null;
 
   // Con una llegada pendiente, el encuadre deja ver el punto de partida y el destino.
-  const restingScrollY = arrivalStage
+  const realRestingScrollY = arrivalStage
     ? arrivalStage.y - 260
-    : (currentStage?.y ?? 0) - 350;
+    : (realCurrentStage?.y ?? 0) - 350;
+  const restingScrollY = presentationPreview ? 0 : realRestingScrollY;
 
   const scrollToRest = useCallback((animated: boolean) => {
     scrollRef.current?.scrollTo({ y: Math.max(0, restingScrollY), animated });
@@ -207,6 +218,15 @@ export function ProgressScreen() {
     finishUnlock();
   };
 
+  const togglePresentationPreview = () => {
+    const next = !presentationPreview;
+    setPresentationPreview(next);
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({
+      y: next ? 0 : Math.max(0, realRestingScrollY),
+      animated: true,
+    }));
+  };
+
   return (
     <View style={styles.screen}>
       <StatusBar style="dark" />
@@ -219,6 +239,27 @@ export function ProgressScreen() {
             completedWeeks={progress.unlockedWeeks.length}
           />
         </View>
+
+        {PRESENTATION_MODE_AVAILABLE ? (
+          <View style={styles.presentationBar}>
+            <View style={styles.presentationCopy}>
+              <Text style={styles.presentationTitle}>Modo presentación</Text>
+              <Text style={styles.presentationText}>
+                {presentationPreview
+                  ? 'Vista temporal del mundo completo. Tu progreso real no cambió.'
+                  : 'Previsualiza los seis lugares sin guardar progreso.'}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ expanded: presentationPreview }}
+              onPress={togglePresentationPreview}
+              style={({ pressed }) => [styles.presentationButton, pressed && styles.presentationPressed]}
+            >
+              <Text style={styles.presentationButtonText}>{presentationPreview ? 'Volver' : 'Ver todo'}</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <ScrollView
           ref={scrollRef}
@@ -233,12 +274,12 @@ export function ProgressScreen() {
               onLandmarkPress={(stage) => setSelectedStageId(stage.id)}
               markerFromT={markerFromT}
               markerToT={markerToT}
-              markerDuration={phase === 'walking' ? walkMs : stepMove?.duration}
-              markerHops={phase === 'walking'
+              markerDuration={presentationPreview ? undefined : phase === 'walking' ? walkMs : stepMove?.duration}
+              markerHops={presentationPreview ? undefined : phase === 'walking'
                 ? stepHops(arrivalStartT, 1)
                 : stepMove ? stepHops(stepMove.from, stepMove.to) : undefined}
-              markerKey={phase === 'walking' ? -1 : stepMove?.key}
-              bloomingStageId={phase === 'blooming' || phase === 'arrived' ? arrivalStage?.id : undefined}
+              markerKey={presentationPreview ? undefined : phase === 'walking' ? -1 : stepMove?.key}
+              bloomingStageId={!presentationPreview && (phase === 'blooming' || phase === 'arrived') ? arrivalStage?.id : undefined}
             />
           </View>
         </ScrollView>
@@ -277,5 +318,46 @@ const styles = StyleSheet.create({
   title: {
     ...typeScale.title,
     color: palette.ink,
+  },
+  presentationBar: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    backgroundColor: palette.lilacSoft,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(148, 123, 179, 0.2)',
+    zIndex: 2,
+  },
+  presentationCopy: {
+    flex: 1,
+  },
+  presentationTitle: {
+    ...typeScale.caption,
+    fontFamily: fonts.bold,
+    color: palette.lilacDeep,
+  },
+  presentationText: {
+    ...typeScale.caption,
+    color: palette.ink,
+  },
+  presentationButton: {
+    minHeight: 36,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: ui.radius.control,
+    backgroundColor: palette.lilacDeep,
+  },
+  presentationPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.98 }],
+  },
+  presentationButtonText: {
+    ...typeScale.caption,
+    fontFamily: fonts.bold,
+    color: palette.white,
   },
 });
