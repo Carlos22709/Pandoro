@@ -51,7 +51,8 @@ Estado al 11 de noviembre de 2026: la configuración de hosting, el script de bu
    - [ ] Crear una tarea y verla en Tareas (persistencia Firestore).
    - [ ] Pedir una sugerencia en «Hablar» y aceptarla (agente Gemini).
    - [ ] Marcar una tarea hecha y ver avance en Progreso.
-   - [ ] Recordatorios en la **web**: en Ajustes, «El día de cada tarea» activo; con una tarea para hoy o mañana, Pandoro avisa en la burbuja de Inicio. No hay notificaciones locales ni push en esta build (`expo-notifications` no se carga en web). Las notificaciones a las 8:00 a. m. solo aplican en iOS/Android nativo; no se verifican en el sitio publicado.
+   - [ ] Recordatorios en la **web**: en Ajustes, «El día de cada tarea» activo; con una tarea para hoy o mañana, Pandoro avisa en la burbuja de Inicio. No hay notificaciones locales ni push en esta build (`expo-notifications` no se carga en web).
+   - Recordatorios nativos en **Android**: verificados el 11 nov 2026 en un emulador Android 14 (API 34). Un aviso a las 8:00 a. m. del día de la tarea aparece como notificación del sistema («Tienes una tarea para hoy. Pandoro te espera en la app.»), sin el nombre de la tarea. El sitio publicado sigue siendo web, así que esta comprobación no sustituye a la lista de arriba.
 
 ## Vista previa sin tocar el canal live
 

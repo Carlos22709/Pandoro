@@ -55,7 +55,15 @@ Lo que sí se puede comprobar en la web:
 - El aviso **dentro de la app**, en Inicio, si hay tareas pendientes para hoy o mañana (`upcomingNotice`).
 - El texto no incluye el nombre de la tarea.
 
-Las notificaciones locales a las 8:00 a. m. el día de la tarea (sin mostrar su título) solo aplican en la app nativa (iOS o Android con Expo). **No formar parte del criterio de éxito de T6 en estas pruebas web**, y no afirmar que Android quedó verificado por esta sesión.
+Las notificaciones locales a las 8:00 a. m. el día de la tarea (sin mostrar su título) solo aplican en la app nativa (iOS o Android con Expo). **No forman parte del criterio de éxito de T6 en las sesiones web.**
+
+### Verificación en Android (11 nov 2026)
+
+Se comprobó en un emulador Android 14 (API 34, `google_apis` x86_64), no en un teléfono físico ni en la build web:
+
+- Ajustes → «El día de cada tarea» activo programa un aviso a las 8:00 a. m. del `dueDate` de la tarea (las tareas que salen de un plan aceptado llevan ese campo).
+- El sistema mostró la notificación «Pandask» / «Tienes una tarea para hoy. Pandoro te espera en la app.», sin el título de la tarea.
+- Evidencia en el entorno de trabajo del equipo (capturas de la sombra del sistema y `dumpsys notification`), no en este repositorio.
 
 ## Métricas
 
