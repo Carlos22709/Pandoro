@@ -1,6 +1,6 @@
-# Pandoro — demo interactiva
+# Pandask — MVP
 
-Prototipo móvil hecho con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, pantallas de Iniciar sesión y Crear cuenta, y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. Hablar y Nueva tarea convierten texto libre en un plan editable con Google Gemini. La sesión se conserva con Firebase, pero las tareas no se guardan al cerrar la app.
+Aplicación móvil hecha con React Native, Expo, TypeScript y Expo Router. Incluye un onboarding deslizable de cuatro páginas, acceso con Firebase y las rutas Inicio, Tareas, Progreso, Perfil, Hablar y Nueva tarea. Hablar y Nueva tarea convierten texto libre en una sugerencia de plan editable con Google Gemini. La sesión, las tareas, el progreso y las preferencias se conservan con Firebase.
 
 Flujo de entrada:
 
@@ -13,21 +13,18 @@ Bienvenida ⇄ Organiza ⇄ Prioriza ⇄ Avanza
 
 El acceso usa Firebase Authentication con correo y contraseña; sin sesión, las rutas privadas no abren. La configuración está en [docs/FIREBASE.md](docs/FIREBASE.md). Las pantallas de acceso comparten `src/components/auth/` (`AuthLayout`, `AuthInput`, `PandoroBrandMark`).
 
-## Simulación para presentar
-
-La demo cuenta una historia fija que sale igual en cada ensayo:
+## Flujo principal
 
 ```text
-Inicio → Hablar con Pandoro (conversación real con Gemini) → sugerencia de plan editable
-      → Agregar a mis tareas → Tareas
-      → completarla → celebración → Ver mi mundo → Pandoro camina al Bosque de origami
-      → Inicio: el zorro y las flores de origami se despliegan
+Inicio → Hablar con Pandoro → conversación real con Gemini → sugerencia editable
+      → Agregar a mis tareas → Tareas → completar una tarea
+      → celebración → Ver mi mundo → avance de Pandoro
 ```
 
-- **Hablar:** elige tus días y minutos disponibles y escríbele a Pandoro. Si falta algo, pregunta; luego muestra una sugerencia de plan que puedes editar antes de agregarla. Usa el mismo servicio de Gemini que Nueva tarea (`src/services/gemini/`) y la conversación no se guarda. La voz llega con la fila 25.
-- **Guion:** los textos fijos que quedan ( títulos de celebración y burbuja de Inicio) están en `src/demo/demoScript.ts`. Las fechas suponen que la demo se presenta un martes.
-- **Estado:** `src/demo/demoState.ts` guarda tareas y progreso, y `DemoProvider` lo comparte con todas las pantallas. La demo arranca con 24 tareas completadas, así que la tarea que se completa en escena abre el Bosque de origami.
-- **Reiniciar:** Ajustes → Demo → "Reiniciar demo" (pide un segundo toque). Recargar la app también vuelve al inicio, porque nada se guarda en disco.
+- **Hablar:** elige los días y minutos disponibles y escribe tus responsabilidades. Pandoro pregunta lo indispensable que falte y muestra una sugerencia editable antes de guardarla. La voz sigue pendiente.
+- **Persistencia:** al confirmar, cada subtarea se guarda en la misma colección de Tareas con un identificador estable, así que repetir la confirmación no crea duplicados.
+- **Privacidad:** la conversación y el borrador no se guardan. Solo llegan a Firestore las tareas aprobadas.
+- **Reiniciar:** Ajustes → Demo → "Reiniciar demo" pide un segundo toque y borra las tareas y el progreso del usuario.
 
 ## Ejecutar
 

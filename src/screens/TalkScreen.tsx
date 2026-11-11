@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     borderRadius: ui.radius.control,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: ui.surface.card,
+    backgroundColor: ui.surface.base,
     borderWidth: 1,
     borderColor: ui.surface.border,
   },

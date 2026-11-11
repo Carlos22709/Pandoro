@@ -97,8 +97,31 @@ try {
   check(await denied(() => deleteDoc(doc(db, 'users', uidA, 'tasks', 't1'))), 'otra cuenta no puede borrar tareas ajenas');
   await deleteUser(userB);
   results.push('· cuenta B borrada');
-} finally {
+
+  // Volver a entrar comprueba recuperación después de cerrar sesión y después de los fallos de
+  // permisos anteriores. Ninguno de esos fallos puede borrar o reemplazar el estado de la cuenta A.
   await signInWithEmailAndPassword(auth, emailA, password);
+  tasks = await nextTasks(uidA, (list) => list.length === 3);
+  check(
+    tasks.map((item) => item.id).join() === 't1,plan-s1,plan-s2',
+    'las tareas reaparecen intactas al volver a iniciar sesión',
+  );
+  const recoveredProgress = await new Promise((resolve, reject) => {
+    const stop = watchProgress(uidA, (progress) => { stop(); resolve(progress); }, reject);
+  });
+  check(
+    JSON.stringify(recoveredProgress) === JSON.stringify({ currentStage: 1, completedTasks: 1, streak: 0 }),
+    'el progreso reaparece intacto al volver a iniciar sesión',
+  );
+  const recoveredPreferences = await new Promise<Record<string, boolean>>((resolve) => {
+    const stop = watchPreferences(uidA, (saved) => { stop(); resolve(saved); });
+  });
+  check(
+    recoveredPreferences.darkMode === true && recoveredPreferences.sounds === false,
+    'las preferencias reaparecen intactas al volver a iniciar sesión',
+  );
+} finally {
+  if (auth.currentUser?.uid !== uidA) await signInWithEmailAndPassword(auth, emailA, password);
   await deleteAllTasks(uidA);
   await deleteDoc(doc(db, 'users', uidA, 'progress', 'world'));
   await deleteDoc(doc(db, 'users', uidA));
