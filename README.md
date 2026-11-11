@@ -31,12 +31,13 @@ Inicio → Hablar con Pandoro → conversación real con Gemini → sugerencia e
 Requiere Node.js 22.13 o posterior para Expo SDK 58.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env   # completa las claves de Gemini y Firebase
 npm start
 ```
 
-Después, escanea el QR con Expo Go o pulsa `a`, `i` o `w` para abrir Android, iOS o web.
+En web, pulsa `w`. En Android se usa un development build o el APK de distribución interna; Expo
+Go no incluye todos los módulos nativos de Pandask.
 
 Comandos directos:
 
@@ -46,7 +47,13 @@ npm run ios
 npm run web
 npm run typecheck
 npm test
+npm run build:web
+npm run build:android:preview
 ```
+
+La configuración y la evidencia del candidato Android están en
+[`docs/build-candidato.md`](docs/build-candidato.md). El despliegue web está en
+[`docs/despliegue.md`](docs/despliegue.md).
 
 Sin clave de Gemini, la planificación avisa que la IA no está configurada y mantiene la creación manual. Sin la configuración de Firebase, la app abre pero no se puede entrar.
 

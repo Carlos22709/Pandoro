@@ -18,9 +18,23 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {},
+    "android": {
+      "package": "com.pandask.app",
+      "versionCode": 1
+    },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "4adbad44-e34e-4178-a7c6-251ff2b4096a"
+      }
+    },
+    "owner": "carlos22709s-team"
   }
 }
