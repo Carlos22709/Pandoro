@@ -26,9 +26,13 @@ type ProgressWorldProps = {
   currentStage: number;
   stages: ProgressWorldStage[];
   onLandmarkPress: (stage: ProgressWorldStage) => void;
-  // Llegada a un lugar nuevo: Pandoro camina hasta él y después el lugar florece.
-  walkTo?: ProgressWorldStage;
-  walkDuration?: number;
+  // Pandoro camina por el sendero del lugar actual al siguiente: de markerFromT a markerToT (0 a 1).
+  // Al llegar a 1 el lugar nuevo florece (bloomingStageId).
+  markerFromT: number;
+  markerToT: number;
+  markerDuration?: number;
+  markerHops?: number;
+  markerKey?: number;
   bloomingStageId?: number;
 };
 
@@ -129,13 +133,17 @@ export function ProgressWorld({
   currentStage,
   stages,
   onLandmarkPress,
-  walkTo,
-  walkDuration,
+  markerFromT,
+  markerToT,
+  markerDuration,
+  markerHops,
+  markerKey,
   bloomingStageId,
 }: ProgressWorldProps) {
   const { width } = useWindowDimensions();
   const worldWidth = Math.min(width, 480);
   const current = stages.find((stage) => stage.status === 'current');
+  const next = current ? stages.find((stage) => stage.id === current.id + 1) : undefined;
 
   return (
     <View style={[styles.world, { width: worldWidth, height: PROGRESS_WORLD_HEIGHT }]}>
@@ -152,11 +160,14 @@ export function ProgressWorld({
       ))}
       {current ? (
         <PandoroProgressMarker
-          x={current.x}
-          y={current.y}
           worldWidth={worldWidth}
-          walkTo={walkTo}
-          walkDuration={walkDuration}
+          from={current}
+          to={next}
+          startT={markerFromT}
+          endT={markerToT}
+          duration={markerDuration}
+          hops={markerHops}
+          animationKey={markerKey}
         />
       ) : null}
     </View>

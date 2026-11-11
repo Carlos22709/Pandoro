@@ -24,6 +24,7 @@ Inicio → Hablar con Pandoro → conversación real con Gemini → sugerencia e
 - **Hablar:** elige los días y minutos disponibles y escribe tus responsabilidades. Pandoro pregunta lo indispensable que falte y muestra una sugerencia editable antes de guardarla. La voz sigue pendiente.
 - **Persistencia:** al confirmar, cada subtarea se guarda en la misma colección de Tareas con un identificador estable, así que repetir la confirmación no crea duplicados.
 - **Privacidad:** la conversación y el borrador no se guardan. Solo llegan a Firestore las tareas aprobadas.
+- **Semana viva (progreso):** cada tarea completada es un paso y mueve a Pandoro por el sendero. El lugar nuevo se decide al cerrar la semana; los pasos viven en `users/{uid}/completions` y el progreso del mundo en `users/{uid}/progress/world`.
 - **Reiniciar:** Ajustes → Demo → "Reiniciar demo" pide un segundo toque y borra las tareas y el progreso del usuario.
 
 ## Ejecutar

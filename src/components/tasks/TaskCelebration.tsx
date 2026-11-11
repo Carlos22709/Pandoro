@@ -135,10 +135,10 @@ function CelebrationContent({
         </Animated.View>
 
         <View style={styles.card} accessibilityViewIsModal>
-          <Text style={styles.eyebrow}>Tarea completada</Text>
+          <Text style={styles.eyebrow}>Semana completada</Text>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.body}>
-            Llevas {completedTasks} tareas. Se abrió un nuevo lugar en tu mundo:
+            Llevas {completedTasks} tareas completadas. Se abrió un nuevo lugar en tu mundo:
           </Text>
           <View style={styles.placePill}>
             <AppIcon name="sprout" color={palette.greenDeep} size={18} strokeWidth={2.2} />

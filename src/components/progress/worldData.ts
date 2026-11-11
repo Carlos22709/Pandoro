@@ -8,10 +8,18 @@ export type ProgressWorldLandmark =
   | 'starValley'
   | 'panden';
 
+// completedTasks son los pasos del camino (una tarea completada, un paso). Lo ganado solo sube:
+// los lugares y las semanas ganadas no se revierten. `streak` queda por compatibilidad con
+// documentos guardados; la app ya no lo muestra (un contador que se reinicia castigaría la inactividad).
 export type ProgressWorldSnapshot = {
   currentStage: number;
   completedTasks: number;
   streak: number;
+  // Pasos acumulados cuando se ganó el lugar actual: de ahí avanza Pandoro hacia el siguiente.
+  stageStartSteps: number;
+  // Semanas (lunes ISO) que ya dieron un lugar, y última semana cerrada que el usuario ya vio.
+  unlockedWeeks: string[];
+  lastAcknowledgedWeekKey: string | null;
 };
 
 export type ProgressWorldStageDefinition = {
@@ -19,15 +27,12 @@ export type ProgressWorldStageDefinition = {
   title: string;
   description: string;
   landmark: ProgressWorldLandmark;
-  requiredTasks: number;
   x: number;
   y: number;
 };
 
 export type ProgressWorldStage = ProgressWorldStageDefinition & {
   status: ProgressWorldStatus;
-  goalTasks: number;
-  remainingTasks: number;
   isNext: boolean;
 };
 
@@ -46,7 +51,6 @@ export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
     title: 'Estanque de Pandoro',
     description: 'El rincón tranquilo junto al bambú donde Pandoro descansa antes de cada aventura.',
     landmark: 'pond',
-    requiredTasks: 0,
     x: 105,
     y: 1350,
   },
@@ -55,7 +59,6 @@ export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
     title: 'Bosque de origami',
     description: 'Un rincón de papel plegado donde un zorro cuida cada tarea que completas.',
     landmark: 'origamiForest',
-    requiredTasks: 25,
     x: 292,
     y: 1105,
   },
@@ -64,7 +67,6 @@ export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
     title: 'La casa de la Sra. Venus',
     description: 'Una atrapamoscas muy educada vive en su maceta junto a su amiga la flor, siempre lista para recibir visitas.',
     landmark: 'venusHouse',
-    requiredTasks: 40,
     x: 103,
     y: 850,
   },
@@ -73,7 +75,6 @@ export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
     title: 'El rosal del fantasma enamorado',
     description: 'Un fantasma tímido cuida en silencio su rosal, y cada rosa guarda un suspiro.',
     landmark: 'ghostRoses',
-    requiredTasks: 58,
     x: 286,
     y: 610,
   },
@@ -82,7 +83,6 @@ export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
     title: 'El valle de las estrellas ciegas',
     description: 'Aquí florecen estrellas que no ven, pero escuchan con cariño la melodía de un pequeño ángel.',
     landmark: 'starValley',
-    requiredTasks: 80,
     x: 96,
     y: 365,
   },
@@ -91,31 +91,24 @@ export const PROGRESS_WORLD_STAGES: readonly ProgressWorldStageDefinition[] = [
     title: 'El Pandén',
     description: 'El paraíso secreto del mundo de Pandoro: un árbol encantado, una serpiente mística y el fruto que corona todo tu viaje.',
     landmark: 'panden',
-    requiredTasks: 105,
     x: 198,
     y: 128,
   },
 ];
 
 export function buildProgressWorldStages(
-  progress: ProgressWorldSnapshot,
+  progress: Pick<ProgressWorldSnapshot, 'currentStage'>,
 ): ProgressWorldStage[] {
-  return PROGRESS_WORLD_STAGES.map((stage, index) => {
+  return PROGRESS_WORLD_STAGES.map((stage) => {
     const status: ProgressWorldStatus = stage.id < progress.currentStage
       ? 'completed'
       : stage.id === progress.currentStage
         ? 'current'
         : 'locked';
-    const nextStage = PROGRESS_WORLD_STAGES[index + 1];
-    const goalTasks = status === 'current' && nextStage
-      ? nextStage.requiredTasks
-      : stage.requiredTasks;
 
     return {
       ...stage,
       status,
-      goalTasks,
-      remainingTasks: Math.max(0, goalTasks - progress.completedTasks),
       isNext: stage.id === progress.currentStage + 1,
     };
   });

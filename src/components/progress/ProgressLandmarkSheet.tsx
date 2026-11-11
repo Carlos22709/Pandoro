@@ -38,10 +38,10 @@ export function ProgressLandmarkSheet({
   const progressCopy = stage.status === 'completed'
     ? 'Este lugar ya floreció como parte de tu viaje.'
     : stage.status === 'current'
-      ? completedTasks + ' / ' + stage.goalTasks + ' tareas'
+      ? completedTasks + ' tareas completadas'
       : stage.isNext
-        ? 'Te faltan ' + stage.remainingTasks + ' tareas para llegar aquí.'
-        : 'Llegarás aquí al completar ' + stage.requiredTasks + ' tareas.';
+        ? 'Llegarás aquí al completar una semana.'
+        : 'Se abre con el camino que sigue a la próxima parada.';
 
   const stateColor = isNew || stage.status === 'completed'
     ? palette.greenDeep

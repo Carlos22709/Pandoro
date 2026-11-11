@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { ConsentGate, useConsentStatus } from '@/components/auth/ConsentGate';
+import { useWeekClosureWatcher } from '@/components/progress/useWeekClosureWatcher';
 import { RemindersProvider } from '@/components/reminders/RemindersProvider';
 import { TasksProvider } from '@/components/tasks/TasksProvider';
 import { DemoProvider } from '@/demo/DemoProvider';
@@ -43,6 +44,7 @@ function AppStack() {
   }, [redirectTo, router]);
 
   const consentRequired = status === 'signedIn' && !redirectTo && consent === 'missing';
+  useWeekClosureWatcher(status === 'signedIn' && !redirectTo && consent === 'given', firstSegment === 'cierre-semana');
 
   return (
     <>
@@ -60,6 +62,10 @@ function AppStack() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="hablar" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="nueva-tarea" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen
+            name="cierre-semana"
+            options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
+          />
         </Stack>
       </View>
       {/* Cubre la pantalla mientras se comprueba la sesión o se redirige: 'loading' no equivale a sin sesión. */}
