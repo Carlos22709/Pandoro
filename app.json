@@ -9,7 +9,17 @@
     "plugins": [
       "expo-router",
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Pandask usa el micrófono para que le dictes tus pendientes a Pandoro. No guardamos el audio.",
+          "speechRecognitionPermission": "Pandask convierte tu voz en texto para organizar tus pendientes. No guardamos el audio.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
