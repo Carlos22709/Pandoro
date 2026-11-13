@@ -180,6 +180,8 @@ Todo el flujo depende de que el usuario haya autorizado el asistente, si el equi
 - **Android:** al guardar o reprogramar una tarea con fecha, la capa de servicios programa una notificación local en el teléfono. No hace falta servidor. Se puede desactivar en Ajustes y la app pide permiso de notificaciones la primera vez.
 - **Web:** el navegador no puede programar notificaciones que lleguen con la página cerrada sin un servidor de envío, y ese servidor exigiría el plan Blaze. En la web, Pandoro avisa de lo próximo al abrir la app.
 
+- **Implementación (fila 27):** `src/services/reminders/reminderService.ts` (lógica probada con un simulacro de expo-notifications) y `expoNotifications.ts` (adaptador real). Las tareas planeadas guardan `dueDate` y avisan a las 8:00 a. m. de ese día. El texto es genérico («Tienes una tarea para hoy…»), nunca el título ni las notas, porque se ve en la pantalla bloqueada. Las tareas manuales aún no tienen fecha estructurada, así que no generan aviso. El interruptor de Ajustes vive en memoria hasta que exista persistencia (fila 15).
+
 ### 6.5 Sin conexión y errores
 
 - **Sin internet:** Firestore muestra los datos guardados en el dispositivo y deja en cola los cambios hasta que vuelve la conexión. Generar o revisar un plan sí necesita conexión.
@@ -215,7 +217,7 @@ service cloud.firestore {
 }
 ```
 
-Todo lo que no coincide con esa ruta queda denegado. La fila 14 completa estas reglas, por ejemplo con validación de tipos y tamaños de campos.
+Todo lo que no coincide con esa ruta queda denegado. La fila 14 las implementa en `firestore.rules` (ver [seguridad.md](seguridad.md)); más adelante se completan estas reglas, por ejemplo con validación de tipos y tamaños de campos.
 
 **Verificación obligatoria antes del piloto** (decisión 4): pruebas automáticas de las reglas con el emulador de Firestore, que es gratuito, usando dos cuentas. Una no debe poder leer ni modificar los datos de la otra, y un usuario sin sesión no debe poder leer nada. Encaja en las filas 28 y 29.
 
@@ -268,7 +270,7 @@ Siguiendo la regla de coherencia de `AGENTS.md`, estas partes dependen de otras 
 | Tema | Qué necesita la arquitectura | Quién | Fila |
 | --- | --- | --- | --- |
 | SDK de Firebase en Android | **Avance del 2 de noviembre:** el login (fila 16) y la conexión con la IA (fila 17) usan el SDK de JavaScript en todas las plataformas. Se comprobó que `gemini-3.5-flash-lite` responde por AI Logic en el plan Spark y acepta el esquema JSON de `planContract` sin cambios. **Falta:** probarlo en un Android real y decidir si se pasa a React Native Firebase para tener App Check con Play Integrity, o si se acepta el SDK de JavaScript sin App Check en Android. | Santiago, con Carlos | 14, 16, 17 |
-| Modelo de datos | Campos de cada entidad. Si las subtareas son documentos propios o parte de su tarea. Cómo se cuenta el progreso. | Andrea | 10 |
+| Modelo de datos | Resuelto en [`modelo-de-datos.md`](modelo-de-datos.md): las subtareas son parte de su plan y pasan a ser tareas al confirmar; el progreso se cuenta en [`progreso.md`](progreso.md). Quedan por decidir `plans`, `usage` y la disponibilidad. | Andrea | 10 |
 | Autenticación y seguridad | Método de inicio de sesión, reglas completas de Firestore, activación de App Check, manejo de la configuración de Firebase. | Esteban | 14 |
 | Sincronización y plan gratuito | Con Firestore, los datos se sincronizan entre dispositivos de forma natural. El modelo de negocio dejaba la sincronización como función de pago (O04). Hay que decidir si se mantiene esa diferencia o se reemplaza. | Esteban | 3 |
 | Recordatorios en la web | Validar que avisos dentro de la app son suficientes para el MVP. | Esteban | 27 |
@@ -277,7 +279,8 @@ Siguiendo la regla de coherencia de `AGENTS.md`, estas partes dependen de otras 
 | Voz | Decidir si en la web la voz entra en esa misma autorización opcional o se desactiva, y si en Android se exige la transcripción en el dispositivo o se acepta la del sistema. | Andrea y Santiago | 25, 34 |
 | Constancia al eliminar la cuenta | Si se conserva un registro mínimo (fechas de autorización y de eliminación), cuánto tiempo y dónde. Tendría que vivir fuera de `users/{uid}`, con su propia regla de seguridad. | Andrea | 34 |
 | Transmisión internacional | Revisar si el aviso y la política deben mencionar que Firebase y Gemini procesan datos fuera de Colombia (Firestore en `nam5`, Estados Unidos), y qué términos del proveedor lo respaldan. | Andrea | 34 |
-| Aviso de privacidad | Texto corto del registro y política completa, con todo lo anterior. | Andrea | 34 |
+| Aviso de privacidad | Texto corto del registro y política completa, con todo lo anterior. Borrador en [`privacidad.md`](privacidad.md), que también desarrolla las tres filas anteriores como propuestas. | Andrea | 34 |
+| Especificación del agente | Entradas, salidas, límites, formato y descomposición, tal como están implementados: [`agente.md`](agente.md). Queda por decidir si la prioridad es por actividad o por subtarea. | Andrea, con Santiago | 11, 13, 19 |
 | Propiedad del proyecto de Firebase | Quién crea el proyecto y quiénes son administradores. Nadie vincula facturación. | Equipo | — |
 
 ## 10. Relación con el cronograma

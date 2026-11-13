@@ -3,11 +3,13 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useS
 import { useAuth } from '@/components/auth/AuthProvider';
 import type { TaskDraft } from '@/components/tasks/taskTypes';
 import { saveProgress, watchProgress } from '@/services/data/progressRepository';
+import { clearSeen } from '@/services/progress/pandaSeen';
 import { INITIAL_DEMO_STATE, demoReducer, type DemoState } from '@/demo/demoState';
 
 type DemoActions = {
   toggleTask: (id: string) => void;
   recordCompletion: (taskId: string, completed: boolean) => void;
+  acknowledgeClosure: (today?: Date, wonWeeks?: string[]) => void;
   createTask: (draft: TaskDraft) => void;
   updateTask: (id: string, draft: TaskDraft) => void;
   deleteTask: (id: string) => void;
@@ -64,6 +66,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const actions = useMemo<DemoActions>(() => ({
     toggleTask: (id) => dispatch({ type: 'toggleTask', id }),
     recordCompletion: (taskId, completed) => dispatch({ type: 'recordCompletion', taskId, completed }),
+    acknowledgeClosure: (today = new Date(), wonWeeks = []) => (
+      dispatch({ type: 'acknowledgeClosure', todayMs: today.getTime(), wonWeeks })
+    ),
     createTask: (draft) => dispatch({ type: 'createTask', id: `task-${Date.now()}`, draft }),
     updateTask: (id, draft) => dispatch({ type: 'updateTask', id, draft }),
     deleteTask: (id) => dispatch({ type: 'deleteTask', id }),
@@ -71,8 +76,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     dismissCelebration: () => dispatch({ type: 'dismissCelebration' }),
     finishUnlock: () => dispatch({ type: 'finishUnlock' }),
     finishHomeReveal: () => dispatch({ type: 'finishHomeReveal' }),
-    resetDemo: () => dispatch({ type: 'reset' }),
-  }), []);
+    resetDemo: () => {
+      if (uid) clearSeen(uid);
+      dispatch({ type: 'reset' });
+    },
+  }), [uid]);
 
   const value = useMemo(() => ({ ...state, ...actions }), [state, actions]);
 

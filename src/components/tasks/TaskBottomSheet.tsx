@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DatePicker } from '@/components/controls/DatePicker';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import {
@@ -19,8 +20,11 @@ import {
   type TaskDraft,
   type TaskItem,
 } from '@/components/tasks/taskTypes';
+import { formatDay, toIsoDate } from '@/services/planning/planDates';
+import { validateTaskDraft } from '@/services/tasks/taskValidation';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type TaskBottomSheetProps = {
   visible: boolean;
@@ -48,28 +52,40 @@ export function TaskBottomSheet({
   const insets = useSafeAreaInsets();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
-  const [detail, setDetail] = useState('');
+  // La fecha de entrega se elige en el calendario; null = sin fecha.
+  const [dueDate, setDueDate] = useState<string | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const today = useMemo(() => new Date(), []);
   const [duration, setDuration] = useState('');
   const [difficulty, setDifficulty] = useState<TaskDifficulty>('medium');
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     setEditing(creating);
     setTitle(task?.title ?? '');
-    setDetail(task?.detail ?? 'Hoy · 30 min');
+    // Una tarea nueva nace con fecha de hoy; una existente conserva la suya (o ninguna).
+    setDueDate(creating ? toIsoDate(today) : task?.dueDate ?? null);
+    setCalendarOpen(false);
     setDuration(task?.duration ?? '30 min');
     setDifficulty(task?.difficulty ?? 'medium');
-  }, [creating, task, visible]);
+    setFormError(null);
+  }, [creating, task, today, visible]);
 
   const save = () => {
-    const cleanTitle = title.trim();
-    if (!cleanTitle) return;
-    onSave({
-      title: cleanTitle,
-      detail: detail.trim() || 'Sin fecha',
-      duration: duration.trim() || undefined,
+    const result = validateTaskDraft({
+      title,
+      detail: dueDate ? (dueDate === toIsoDate(today) ? 'Hoy' : formatDay(dueDate)) : 'Sin fecha',
+      duration,
       difficulty,
+      dueDate: dueDate ?? undefined,
     });
+    if (!result.ok) {
+      setFormError(result.error);
+      return;
+    }
+    setFormError(null);
+    onSave(result.draft);
     if (!creating) setEditing(false);
   };
 
@@ -128,14 +144,18 @@ export function TaskBottomSheet({
                 />
                 <View style={styles.fieldRow}>
                   <View style={styles.fieldColumn}>
-                    <Text style={styles.inputLabel}>Fecha u hora</Text>
-                    <TextInput
-                      value={detail}
-                      onChangeText={setDetail}
-                      placeholder="Hoy · 5:00 p. m."
-                      placeholderTextColor={palette.inkSoft}
-                      style={styles.input}
-                    />
+                    <Text style={styles.inputLabel}>Fecha</Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={dueDate ? `Fecha: ${formatDay(dueDate)}. Cambiar` : 'Elegir fecha'}
+                      aria-expanded={calendarOpen}
+                      onPress={() => setCalendarOpen((open) => !open)}
+                      style={({ pressed }) => [styles.input, styles.dateButton, pressed && styles.buttonPressed]}
+                    >
+                      <Text style={[styles.dateText, !dueDate && styles.datePlaceholder]}>
+                        {dueDate ? (dueDate === toIsoDate(today) ? 'Hoy' : formatDay(dueDate)) : 'Sin fecha'}
+                      </Text>
+                    </Pressable>
                   </View>
                   <View style={styles.fieldColumnSmall}>
                     <Text style={styles.inputLabel}>Duración</Text>
@@ -148,6 +168,16 @@ export function TaskBottomSheet({
                     />
                   </View>
                 </View>
+                {calendarOpen ? (
+                  <DatePicker
+                    value={dueDate}
+                    today={today}
+                    onChange={(next) => {
+                      setDueDate(next);
+                      setCalendarOpen(false);
+                    }}
+                  />
+                ) : null}
                 <Text style={[styles.inputLabel, styles.difficultyLabel]}>Dificultad</Text>
                 <View style={styles.difficultyOptions}>
                   {(Object.keys(TASK_DIFFICULTY) as TaskDifficulty[]).map((level) => {
@@ -175,6 +205,11 @@ export function TaskBottomSheet({
                     );
                   })}
                 </View>
+                {formError ? (
+                  <Text accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.formError}>
+                    {formError}
+                  </Text>
+                ) : null}
                 <Pressable
                   accessibilityRole="button"
                   disabled={!title.trim()}
@@ -245,6 +280,7 @@ export function TaskBottomSheet({
 }
 
 const styles = StyleSheet.create({
+  formError: { ...typeScale.small, fontFamily: fonts.bold, color: palette.pinkDeep, marginTop: ui.space.md },
   modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(61, 49, 67, 0.24)' },
   keyboardArea: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
@@ -287,6 +323,9 @@ const styles = StyleSheet.create({
   form: { paddingTop: 17 },
   inputLabel: { ...typeScale.caption, fontFamily: fonts.bold, color: palette.inkSoft, marginLeft: 4, marginBottom: 6 },
   input: { minHeight: 48, borderRadius: 12, paddingHorizontal: 15, color: palette.ink, fontFamily: fonts.semibold, fontSize: typeScale.body.fontSize, backgroundColor: palette.white, borderWidth: 1, borderColor: 'rgba(148, 123, 179, 0.2)' },
+  dateButton: { justifyContent: 'center' },
+  dateText: { fontFamily: fonts.semibold, fontSize: typeScale.body.fontSize, color: palette.ink },
+  datePlaceholder: { color: palette.inkSoft },
   fieldRow: { flexDirection: 'row', gap: 10, marginTop: 13 },
   fieldColumn: { flex: 1.45 },
   fieldColumnSmall: { flex: 0.8 },

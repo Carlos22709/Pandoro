@@ -18,11 +18,19 @@ export type TaskItem = {
   detail: string;
   duration?: string;
   notes?: string;
+  // Día local YYYY-MM-DD; solo las tareas con día tienen recordatorio.
+  dueDate?: string;
   priority: number;
   tone: PaletteTone;
   icon: AppIconName;
   difficulty: TaskDifficulty;
   completed: boolean;
+  // Semana viva (src/services/progress): el estado es pendiente, completada (`completed`) o
+  // descartada (`dismissed`). Las fechas son ISO local (dueDate) o milisegundos (los demás).
+  dismissed?: boolean;
+  createdAt?: number;
+  completedAt?: number;
+  dismissedAt?: number;
 };
 
-export type TaskDraft = Pick<TaskItem, 'title' | 'detail' | 'duration' | 'difficulty'>;
+export type TaskDraft = Pick<TaskItem, 'title' | 'detail' | 'duration' | 'difficulty' | 'dueDate'>;

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Pandoro",
+    "name": "Pandask",
     "slug": "pandoro",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,6 +10,7 @@
       "expo-router",
       "expo-status-bar",
       "expo-font",
+      "expo-notifications",
       [
         "expo-speech-recognition",
         {

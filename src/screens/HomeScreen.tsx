@@ -14,11 +14,12 @@ import {
   type OrigamiRevealPhase,
 } from '@/components/home/OrigamiGarden';
 import { ProgressWidget } from '@/components/home/ProgressWidget';
+import { useReminders } from '@/components/reminders/RemindersProvider';
 import { SpeechBubble } from '@/components/home/SpeechBubble';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { useDemo } from '@/demo/DemoProvider';
 import { HOME_BUBBLE } from '@/demo/demoScript';
-import { getStageProgress } from '@/demo/demoState';
+import { pandaTrailFraction } from '@/services/progress/pandaPath';
 import { palette } from '@/theme/palette';
 
 export function HomeScreen() {
@@ -44,7 +45,9 @@ export function HomeScreen() {
     return () => clearTimeout(timer);
   }, [finishHomeReveal, origamiPhase]);
 
-  const bubbleText = hasOrigami && origamiPhase !== 'hidden' ? HOME_BUBBLE.origami : HOME_BUBBLE.initial;
+  const { webNotice } = useReminders();
+  const sceneText = hasOrigami && origamiPhase !== 'hidden' ? HOME_BUBBLE.origami : HOME_BUBBLE.initial;
+  const bubbleText = webNotice ?? sceneText;
 
   return (
     <View style={styles.screen}>
@@ -57,7 +60,7 @@ export function HomeScreen() {
 
       <View style={[styles.safeContent, { paddingTop: insets.top + 9 }]}>
         <View style={styles.topRow}>
-          <ProgressWidget value={getStageProgress(progress)} />
+          <ProgressWidget value={pandaTrailFraction(progress.completedTasks, progress.stageStartSteps)} />
         </View>
 
         <View style={[styles.main, compact && styles.mainCompact]}>
