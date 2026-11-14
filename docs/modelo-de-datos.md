@@ -138,18 +138,15 @@ No es un documento: el catálogo de seis escenarios está en código (`PROGRESS_
 
 ### 2.7 Preferencias — `users/{uid}.preferences`
 
-Mapa de booleanos; los valores que no sean verdadero/falso se ignoran al leer.
+Mapa de booleanos; los valores que no sean verdadero/falso se ignoran al leer. Código: [`src/services/preferences/preferences.ts`](../src/services/preferences/preferences.ts) y `PreferencesProvider`.
 
 | Clave | Por defecto | Descripción |
 | --- | --- | --- |
-| `darkMode` | falso | Modo oscuro |
-| `reduceMotion` | verdadero | Menos animación |
+| `reducedMotion` | falso | Activado: sin animaciones en toda la app. Apagado: se sigue el ajuste del sistema |
+| `pandoroBubble` | verdadero | El globo con lo que dice Pandoro en Inicio |
 | `taskReminders` | verdadero | Recordatorios de tareas (F10) |
-| `weeklySummary` | verdadero | Resumen semanal |
-| `pandoroTips` | verdadero | Mensajes de Pandoro |
-| `sounds` | falso | Sonidos |
-| `haptics` | verdadero | Vibración |
-| `usageAnalytics` | falso | Registro de uso (opcional; por defecto apagado) |
+
+Desde el 13/11/2026 Ajustes solo muestra interruptores que cambian algo. Se retiraron `darkMode`, `weeklySummary`, `sounds`, `haptics` y `usageAnalytics`, que no tenían función detrás, y `reduceMotion` y `pandoroTips` se reemplazaron por claves nuevas para no heredar valores guardados por la versión anterior. Los documentos antiguos pueden conservar esas claves; la app las ignora.
 
 ### 2.8 Consumo de IA — `users/{uid}/usage/{AAAA-MM}` (diseño, no implementado)
 
