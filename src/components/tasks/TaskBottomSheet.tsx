@@ -59,9 +59,27 @@ export function TaskBottomSheet({
   const [duration, setDuration] = useState('');
   const [difficulty, setDifficulty] = useState<TaskDifficulty>('medium');
   const [formError, setFormError] = useState<string | null>(null);
+  // Eliminar no se puede deshacer: pide un segundo toque, como Reiniciar demo en Ajustes.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    const timer = setTimeout(() => setConfirmingDelete(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirmingDelete]);
+
+  const pressDelete = (id: string) => {
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      return;
+    }
+    setConfirmingDelete(false);
+    onDelete(id);
+  };
 
   useEffect(() => {
     if (!visible) return;
+    setConfirmingDelete(false);
     setEditing(creating);
     setTitle(task?.title ?? '');
     // Una tarea nueva nace con fecha de hoy; una existente conserva la suya (o ninguna).
@@ -265,9 +283,14 @@ export function TaskBottomSheet({
                     <AppIcon name="edit" color={palette.lilacDeep} size={21} />
                     <Text style={styles.editText}>Editar</Text>
                   </Pressable>
-                  <Pressable onPress={() => onDelete(task.id)} style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={confirmingDelete ? `Confirmar: eliminar ${task.title}` : `Eliminar ${task.title}`}
+                    onPress={() => pressDelete(task.id)}
+                    style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
+                  >
                     <AppIcon name="trash" color={palette.pinkDeep} size={21} />
-                    <Text style={styles.deleteText}>Eliminar</Text>
+                    <Text style={styles.deleteText}>{confirmingDelete ? 'Toca otra vez' : 'Eliminar'}</Text>
                   </Pressable>
                 </View>
               </>
