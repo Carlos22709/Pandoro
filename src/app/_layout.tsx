@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { ConsentGate, useConsentStatus } from '@/components/auth/ConsentGate';
+import { PreferencesProvider } from '@/components/preferences/PreferencesProvider';
 import { useWeekClosureWatcher } from '@/components/progress/useWeekClosureWatcher';
 import { RemindersProvider } from '@/components/reminders/RemindersProvider';
 import { TasksProvider } from '@/components/tasks/TasksProvider';
@@ -96,6 +97,7 @@ export default function RootLayout() {
     <AppErrorBoundary>
     <SafeAreaProvider>
       <AuthProvider>
+        <PreferencesProvider>
         <TasksProvider>
           <RemindersProvider>
           {/* Las tareas viven en TasksProvider; la demo lleva el progreso del mundo y el guion de Hablar. */}
@@ -107,6 +109,7 @@ export default function RootLayout() {
           </DemoProvider>
           </RemindersProvider>
         </TasksProvider>
+        </PreferencesProvider>
       </AuthProvider>
     </SafeAreaProvider>
     </AppErrorBoundary>

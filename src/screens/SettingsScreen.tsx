@@ -14,26 +14,17 @@ import { ForestScene } from '@/components/art/ForestScene';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
 import { AppIcon } from '@/components/icons/AppIcon';
+import { usePreferences } from '@/components/preferences/PreferencesProvider';
 import { useTasks } from '@/components/tasks/TasksProvider';
 import { useDemo } from '@/demo/DemoProvider';
-import { savePreferences, watchPreferences } from '@/services/data/userRepository';
+import { PRESENTATION_MODE_AVAILABLE } from '@/demo/presentationMode';
 import { useReminders } from '@/components/reminders/RemindersProvider';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
 
-type Preferences = {
-  darkMode: boolean;
-  reduceMotion: boolean;
-  weeklySummary: boolean;
-  pandoroTips: boolean;
-  sounds: boolean;
-  haptics: boolean;
-  usageAnalytics: boolean;
-};
-
-type PreferenceKey = keyof Preferences;
-
+// Solo se muestran interruptores que cambian algo de verdad (revisión del 13 de noviembre).
+// Modo oscuro, sonidos, vibración, resumen semanal y analíticas se retiraron hasta que existan.
 type SettingsColors = {
   background: string;
   wash: string;
@@ -46,17 +37,7 @@ type SettingsColors = {
   switchOff: string;
 };
 
-const DEFAULT_PREFERENCES: Preferences = {
-  darkMode: false,
-  reduceMotion: true,
-  weeklySummary: true,
-  pandoroTips: true,
-  sounds: false,
-  haptics: true,
-  usageAnalytics: false,
-};
-
-const LIGHT_COLORS: SettingsColors = {
+const COLORS: SettingsColors = {
   background: '#EAF4F0',
   wash: 'rgba(244, 248, 240, 0.76)',
   header: 'rgba(239, 247, 238, 0.92)',
@@ -66,18 +47,6 @@ const LIGHT_COLORS: SettingsColors = {
   border: ui.surface.border,
   accent: palette.lilacDeep,
   switchOff: '#D7D0DA',
-};
-
-const DARK_COLORS: SettingsColors = {
-  background: '#211C27',
-  wash: 'rgba(28, 24, 34, 0.84)',
-  header: 'rgba(33, 28, 39, 0.96)',
-  surface: '#302936',
-  text: '#F8F1FA',
-  muted: '#C7BBCB',
-  border: 'rgba(248, 241, 250, 0.12)',
-  accent: '#C9B8EA',
-  switchOff: '#5D5364',
 };
 
 type PreferenceRowProps = {
@@ -126,15 +95,14 @@ function PreferenceRow({
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signOut, user } = useAuth();
-  const uid = user?.uid ?? null;
+  const { signOut } = useAuth();
   const { submit, submitting, error } = useAuthSubmit();
   const { resetDemo } = useDemo();
   const { resetTasks } = useTasks();
-  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const { preferences, setPreference, resetPreferences } = usePreferences();
   const reminders = useReminders();
   const [demoReset, setDemoReset] = useState<'idle' | 'confirming' | 'done'>('idle');
-  const colors = preferences.darkMode ? DARK_COLORS : LIGHT_COLORS;
+  const colors = COLORS;
 
   // Reiniciar pide un segundo toque para no borrar la demo por accidente.
   useEffect(() => {
@@ -156,39 +124,12 @@ export function SettingsScreen() {
   // Al cerrar sesión, la protección de rutas de _layout lleva a Iniciar sesión.
   const logOut = () => submit({ action: signOut });
 
-  // Las preferencias viven en users/{uid}; lo que falte toma el valor por defecto.
-  useEffect(() => {
-    if (!uid) return;
-    return watchPreferences(uid, (saved) => {
-      const known = Object.entries(saved).filter(([key]) => key in DEFAULT_PREFERENCES);
-      setPreferences({ ...DEFAULT_PREFERENCES, ...Object.fromEntries(known) });
-    });
-  }, [uid]);
-
-  const persistPreferences = (next: Preferences) => {
-    setPreferences(next);
-    if (uid) {
-      savePreferences(uid, next).catch((failure: Error) => (
-        console.warn('No se pudieron guardar las preferencias.', failure.message)
-      ));
-    }
-  };
-
-  const updatePreference = (key: PreferenceKey, value: boolean) => {
-    persistPreferences({ ...preferences, [key]: value });
-  };
-
-  const resetPreferences = () => {
-    persistPreferences(DEFAULT_PREFERENCES);
-    reminders.setEnabled(true);
-  };
-
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <StatusBar style={preferences.darkMode ? 'light' : 'dark'} />
+      <StatusBar style="dark" />
       <View
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, styles.scene, preferences.darkMode && styles.sceneDark]}
+        style={[StyleSheet.absoluteFill, styles.scene]}
       >
         <ForestScene />
       </View>
@@ -214,15 +155,17 @@ export function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Apariencia</Text>
         <View style={[styles.sectionSurface, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <PreferenceRow
-            title="Modo oscuro"
-            value={preferences.darkMode}
-            onValueChange={(value) => updatePreference('darkMode', value)}
+            title="Reducir movimiento"
+            description="Quita las animaciones de la app. Apagado, se sigue el ajuste de tu dispositivo."
+            value={preferences.reducedMotion}
+            onValueChange={(value) => setPreference('reducedMotion', value)}
             colors={colors}
           />
           <PreferenceRow
-            title="Reducir movimiento"
-            value={preferences.reduceMotion}
-            onValueChange={(value) => updatePreference('reduceMotion', value)}
+            title="Mensajes de Pandoro"
+            description="El globo con lo que dice Pandoro en Inicio."
+            value={preferences.pandoroBubble}
+            onValueChange={(value) => setPreference('pandoroBubble', value)}
             colors={colors}
             last
           />
@@ -239,38 +182,6 @@ export function SettingsScreen() {
               : 'En la web, Pandoro te cuenta al abrir la app qué tienes para hoy y mañana.'}
             value={reminders.enabled}
             onValueChange={reminders.setEnabled}
-            colors={colors}
-          />
-          <PreferenceRow
-            title="Resumen semanal"
-            description="Cada domingo: tareas terminadas y hasta dónde llegó Pandoro."
-            value={preferences.weeklySummary}
-            onValueChange={(value) => updatePreference('weeklySummary', value)}
-            colors={colors}
-          />
-          <PreferenceRow
-            title="Mensajes de Pandoro"
-            description="Lo que dice cuando terminas algo o llevas días sin pasar."
-            value={preferences.pandoroTips}
-            onValueChange={(value) => updatePreference('pandoroTips', value)}
-            colors={colors}
-            last
-          />
-        </View>
-
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Sonido y vibración</Text>
-        <View style={[styles.sectionSurface, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <PreferenceRow
-            title="Sonidos"
-            description="Un ruidito al marcar una tarea con la huella."
-            value={preferences.sounds}
-            onValueChange={(value) => updatePreference('sounds', value)}
-            colors={colors}
-          />
-          <PreferenceRow
-            title="Vibración"
-            value={preferences.haptics}
-            onValueChange={(value) => updatePreference('haptics', value)}
             colors={colors}
             last
           />
@@ -291,17 +202,11 @@ export function SettingsScreen() {
               </Text>
             </View>
           </Pressable>
-          <View style={[styles.innerDivider, { backgroundColor: colors.border }]} />
-          <PreferenceRow
-            title="Analíticas de uso"
-            description="Datos anónimos sobre cómo usas la app. Nunca el contenido de tus tareas."
-            value={preferences.usageAnalytics}
-            onValueChange={(value) => updatePreference('usageAnalytics', value)}
-            colors={colors}
-            last
-          />
         </View>
 
+        {/* Reiniciar borra las tareas y el progreso de la cuenta: solo en builds de presentación. */}
+        {PRESENTATION_MODE_AVAILABLE ? (
+        <>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Demo</Text>
         <View style={[styles.sectionSurface, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Pressable
@@ -335,6 +240,8 @@ export function SettingsScreen() {
             </View>
           </Pressable>
         </View>
+        </>
+        ) : null}
 
         <Pressable
           accessibilityRole="button"
@@ -379,9 +286,6 @@ const styles = StyleSheet.create({
   },
   scene: {
     opacity: 0.75,
-  },
-  sceneDark: {
-    opacity: 0.28,
   },
   header: {
     minHeight: 66,
@@ -457,10 +361,6 @@ const styles = StyleSheet.create({
     gap: 13,
     paddingHorizontal: 15,
     paddingVertical: 12,
-  },
-  innerDivider: {
-    height: 1,
-    marginHorizontal: 15,
   },
   resetButton: {
     minHeight: 46,

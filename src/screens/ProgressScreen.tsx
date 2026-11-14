@@ -13,6 +13,7 @@ import {
 } from '@/components/progress/worldData';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useDemo } from '@/demo/DemoProvider';
+import { PRESENTATION_MODE_AVAILABLE } from '@/demo/presentationMode';
 import { pandaTrailFraction } from '@/services/progress/pandaPath';
 import { loadSeen, peekSeen, saveSeen } from '@/services/progress/pandaSeen';
 import { palette } from '@/theme/palette';
@@ -37,10 +38,6 @@ const STEP_BASE_MS = 2200;
 const STEP_PER_UNIT_MS = 3000;
 const stepDuration = (from: number, to: number) => STEP_BASE_MS + (to - from) * STEP_PER_UNIT_MS;
 const stepHops = (from: number, to: number) => 5 + Math.round((to - from) * 14);
-const PRESENTATION_MODE_AVAILABLE = (
-  (typeof __DEV__ !== 'undefined' && __DEV__)
-  || process.env.EXPO_PUBLIC_PRESENTATION_MODE === 'true'
-);
 const FINAL_STAGE_ID = PROGRESS_WORLD_STAGES.at(-1)?.id ?? 1;
 
 // Pandoro solo avanza o se queda: nunca retrocede. Su última posición vista se guarda en el dispositivo
