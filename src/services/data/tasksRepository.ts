@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDocs,
   onSnapshot,
@@ -33,8 +34,13 @@ export function createTask(uid: string, task: TaskItem) {
   return setDoc(taskRef(uid, task.id), { ...taskToDoc(task), createdAt: Date.now() });
 }
 
+// Con merge, un campo ausente no se borra: desmarcar quita completedAt y «Sin fecha» quita dueDate.
 export function saveTask(uid: string, task: TaskItem) {
-  return setDoc(taskRef(uid, task.id), taskToDoc(task), { merge: true });
+  const cleared = {
+    ...(task.completedAt === undefined ? { completedAt: deleteField() } : {}),
+    ...(task.dueDate === undefined ? { dueDate: deleteField() } : {}),
+  };
+  return setDoc(taskRef(uid, task.id), { ...taskToDoc(task), ...cleared }, { merge: true });
 }
 
 export function deleteTask(uid: string, id: string) {
