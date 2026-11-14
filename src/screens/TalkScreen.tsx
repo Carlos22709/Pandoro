@@ -22,9 +22,10 @@ import { ProposalEditor } from '@/components/planning/ProposalEditor';
 import { plural } from '@/utils/plural';
 import { PandoroAvatar, PandoroBubble, PandoroRow, ThinkingBubble, UserBubble } from '@/components/talk/ChatBubbles';
 import { HoldToTalkButton } from '@/components/talk/HoldToTalkButton';
-import { TALK_GREETING, type TalkMessage, sendTalkTurn } from '@/components/talk/talkConversation';
+import { TALK_GREETING, type TalkMessage, sendTalkTurn, talkTextProblem } from '@/components/talk/talkConversation';
 import { nextPriority, useTasks } from '@/components/tasks/TasksProvider';
 import { GeminiError, MAX_INPUT_LENGTH, planService, toGeminiError } from '@/services/gemini/geminiService';
+import { minutesPerDayProblem } from '@/services/planning/planInput';
 import { analyzeProposal, proposalToTasks } from '@/services/planning/planLogic';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
 import { useDictation } from '@/services/voice/useDictation';
@@ -66,8 +67,13 @@ export function TalkScreen() {
   });
 
   const availability: Availability = { days, minutesPerDay: Number(minutesPerDay) };
-  const hasAvailability = days.length > 0 && availability.minutesPerDay > 0;
-  const canSend = phase === 'ready' && !dictation.listening && input.trim().length > 0 && hasAvailability;
+  // Las mismas reglas que Nueva tarea: entre 10 minutos y 16 horas por día.
+  const availabilityProblem = !days.length || !minutesPerDay.trim()
+    ? 'Elige tus días y minutos disponibles para empezar'
+    : minutesPerDayProblem(minutesPerDay);
+  const textProblem = input.trim() ? talkTextProblem(messages, input, MAX_INPUT_LENGTH) : null;
+  const canSend = phase === 'ready' && !dictation.listening && input.trim().length > 0
+    && !availabilityProblem && !textProblem;
 
   const issues = useMemo(
     () => (proposal ? analyzeProposal(proposal, availability) : []),
@@ -266,9 +272,7 @@ export function TalkScreen() {
                     ? dictation.partial || 'Te escucho… suelta el botón cuando termines'
                     : dictation.error
                       ? dictation.error
-                      : hasAvailability
-                        ? 'No incluyas nombres, correos ni teléfonos'
-                        : 'Elige tus días y minutos disponibles para empezar'}
+                      : textProblem ?? availabilityProblem ?? 'No incluyas nombres, correos ni teléfonos'}
               </Text>
             </>
           )}

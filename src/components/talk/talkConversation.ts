@@ -30,6 +30,15 @@ export function responsibilitiesText(messages: readonly TalkMessage[]) {
     .join('\n');
 }
 
+// Cada mensaje tiene su límite, pero a Gemini va todo lo dicho: el total tampoco puede pasarse.
+export function talkTextProblem(messages: readonly TalkMessage[], input: string, maxLength: number): string | null {
+  const total = responsibilitiesText([...messages, { id: 'draft', from: 'user', text: input }]);
+  if (total.length > maxLength) {
+    return 'La conversación ya es muy larga. Resume lo que falta o vuelve a empezar desde Inicio.';
+  }
+  return null;
+}
+
 // Un turno: agrega lo que dijo el usuario y pide a Gemini un plan con todo lo dicho hasta ahora.
 // Si falla, el error sale tal cual (GeminiError) y quien llama conserva los mensajes anteriores.
 export async function sendTalkTurn(service: PlanService, { messages, input, availability, today }: TurnInput): Promise<TalkTurnResult> {
