@@ -69,6 +69,8 @@ Es la unidad que el usuario ve y completa.
 | `priority` | número | Sí | Posición en la lista (menor = antes) |
 | `difficulty` | `light` \| `medium` \| `high` | Sí | Fácil, media, difícil |
 | `dueDate` | `YYYY-MM-DD` | No | Fecha de la tarea; sin ella no cuenta para cerrar la semana |
+| `deadline` | `YYYY-MM-DD` | No | Solo tareas de un plan: fecha límite de su actividad, si el usuario la dijo. Agregado el 13/11/2026 para la vista «Ahora» ([priorizacion.md](priorizacion.md)); por confirmar con Andrea (fila 10) |
+| `importance` | `high` \| `medium` \| `low` | No | Solo tareas de un plan: importancia de su actividad. Mismo origen y estado que `deadline` |
 | `completed` | booleano | Sí | Completada |
 | `completedAt` | número (ms) | No | Cuándo se completó |
 | `dismissed`, `dismissedAt` | booleano, número | No | «Ya no aplica»: sale de las listas sin dar ni quitar pasos |
@@ -90,7 +92,7 @@ Las subtareas **no son documentos propios**: en el borrador son parte de su acti
 | `order` | entero | Posición → `priority` |
 | `editedFields` | lista | Solo del borrador (qué corrigió el usuario a mano) |
 
-Relación: una actividad del borrador (`PlanActivity`: título, descripción, `deadline`, `priority`, `prioritySource`, `difficulty`) tiene una o más subtareas. La actividad no se guarda como entidad; su título y su fecha límite quedan copiados en el `detail` y las `notes` de sus tareas.
+Relación: una actividad del borrador (`PlanActivity`: título, descripción, `deadline`, `priority`, `prioritySource`, `difficulty`) tiene una o más subtareas. La actividad no se guarda como entidad; su título y su fecha límite quedan copiados en el `detail` y las `notes` de sus tareas, y desde el 13/11/2026 la fecha límite y la importancia también se guardan como datos (`deadline`, `importance`).
 
 ### 2.4 Plan — borrador y plan confirmado
 

@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { PROGRESS_WORLD_STAGES } from '../src/components/progress/worldData';
 import type { TaskItem } from '../src/components/tasks/taskTypes';
 import { DEMO_PLAN } from '../src/demo/demoScript';
-import { INITIAL_DEMO_STATE, demoPlanTasks, demoReducer, sortTasksForNow } from '../src/demo/demoState';
+import { INITIAL_DEMO_STATE, demoPlanTasks, demoReducer } from '../src/demo/demoState';
 import { pandaTrailFraction } from '../src/services/progress/pandaPath';
 
 // Las tareas viven en TasksProvider; la demo solo lleva el progreso del mundo.
@@ -134,30 +134,12 @@ test('Pandoro avanza con cada paso, cada vez menos, y nunca llega solo al siguie
   assert.ok(pandaTrailFraction(30, 0) - pandaTrailFraction(29, 0) > 0.001);
 });
 
-test('"Ahora" pone primero las pendientes con fecha pasada, sin importar la dificultad', () => {
-  const today = new Date(2026, 10, 11, 12);
-  const sorted = sortTasksForNow([
-    { ...existingTask('hoy', 1), dueDate: '2026-11-11' },
-    { ...existingTask('vencida', 9), dueDate: '2026-11-04' },
-    { ...existingTask('hecha', 0), dueDate: '2026-11-03', completed: true },
-    existingTask('sin-fecha', 2),
-  ], today);
-
-  assert.deepEqual(sorted.map((task) => task.id), ['vencida', 'hoy', 'sin-fecha', 'hecha']);
-});
-
 test('el plan del guion trae fecha real para cada tarea', () => {
   const planned = demoPlanTasks([], new Date(2026, 10, 10, 9));
 
   assert.ok(planned.every((task) => task.dueDate !== undefined));
   assert.equal(planned[0].dueDate, '2026-11-10');
 });
-
-function existingTask(id: string, priority: number): TaskItem {
-  return {
-    id, title: id, detail: '', priority, tone: 'blue', icon: 'checklist', difficulty: 'medium', completed: false,
-  };
-}
 
 const existing = (id: string, priority: number): TaskItem => ({
   id,

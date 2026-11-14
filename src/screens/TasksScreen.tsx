@@ -14,7 +14,7 @@ import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
 import { useTasks } from '@/components/tasks/TasksProvider';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
 import { useDemo } from '@/demo/DemoProvider';
-import { sortTasksForNow } from '@/demo/demoState';
+import { orderForNow } from '@/services/tasks/nowOrder';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -73,12 +73,14 @@ type TaskRowProps = {
   task: TaskItem;
   index: number;
   featured: boolean;
+  // Solo en la sugerencia de «Ahora»: por qué Pandoro la pone primero.
+  reason?: string;
   started: boolean;
   onOpen: () => void;
   onToggle: () => void;
 };
 
-function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowProps) {
+function TaskRow({ task, index, featured, reason, started, onOpen, onToggle }: TaskRowProps) {
   const difficulty = TASK_DIFFICULTY[task.difficulty];
   const difficultyColors = toneColors[difficulty.tone];
 
@@ -110,6 +112,9 @@ function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowPr
             <Text numberOfLines={1} style={[styles.taskDetail, started && styles.startedDetail]}>
               {started ? 'En curso · ' : ''}{task.detail}
             </Text>
+            {reason ? (
+              <Text numberOfLines={2} style={styles.taskReason}>Sugerencia de Pandoro · {reason}</Text>
+            ) : null}
           </View>
         </Pressable>
         <PawToggle
@@ -141,9 +146,11 @@ export function TasksScreen() {
     return () => clearTimeout(timer);
   }, [toggleNotice]);
 
-  const visibleTasks = useMemo(() => (view === 'all' ? tasks : sortTasksForNow(tasks)), [tasks, view]);
+  // «Ahora» sigue la lógica de priorización (docs/priorizacion.md); «Todas», el orden de registro.
+  const now = useMemo(() => orderForNow(tasks), [tasks]);
+  const visibleTasks = view === 'all' ? tasks : now.tasks;
 
-  const priorityTaskId = view === 'now' ? visibleTasks[0]?.id : undefined;
+  const priorityTaskId = view === 'now' ? now.suggestionId ?? undefined : undefined;
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
 
   const closeSheet = () => {
@@ -270,6 +277,7 @@ export function TasksScreen() {
                   task={item}
                   index={index}
                   featured={item.id === priorityTaskId}
+                  reason={item.id === priorityTaskId ? now.reasons[item.id] : undefined}
                   started={item.id === startedTaskId}
                   onOpen={() => openTask(item.id)}
                   onToggle={() => togglePaw(item.id)}
@@ -542,6 +550,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semibold,
     marginTop: 2,
     color: palette.inkSoft,
+  },
+  taskReason: {
+    ...typeScale.caption,
+    fontFamily: fonts.semibold,
+    marginTop: 3,
+    color: palette.lilacDeep,
   },
   startedDetail: {
     fontFamily: fonts.bold,

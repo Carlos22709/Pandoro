@@ -1,4 +1,5 @@
 import type { AppIconName } from '@/components/icons/AppIcon';
+import type { PlanPriority } from '@/services/planning/planTypes';
 import type { PaletteTone } from '@/theme/palette';
 
 export type TaskDifficulty = 'light' | 'medium' | 'high';
@@ -20,6 +21,10 @@ export type TaskItem = {
   notes?: string;
   // Día local YYYY-MM-DD; solo las tareas con día tienen recordatorio.
   dueDate?: string;
+  // Solo en tareas de un plan: fecha límite de su actividad (si el usuario la dijo) e importancia.
+  // En una tarea creada a mano, dueDate hace de fecha límite. Los usa la vista «Ahora» (priority.ts).
+  deadline?: string;
+  importance?: PlanPriority;
   priority: number;
   tone: PaletteTone;
   icon: AppIconName;

@@ -1,6 +1,7 @@
 import type { AppIconName } from '@/components/icons/AppIcon';
 import type { ProgressWorldSnapshot } from '@/components/progress/worldData';
 import { parseIsoDate } from '@/services/planning/planDates';
+import type { PlanPriority } from '@/services/planning/planTypes';
 import type { CompletionEvent } from '@/services/progress/steps';
 import { TASK_DIFFICULTY, type TaskDifficulty, type TaskItem } from '@/components/tasks/taskTypes';
 import type { PaletteTone } from '@/theme/palette';
@@ -14,6 +15,8 @@ const ICONS: readonly AppIconName[] = [
   'home', 'checklist', 'sprout', 'profile', 'settings', 'plus', 'back', 'document', 'mail',
   'book', 'presentation', 'cart', 'phone', 'play', 'edit', 'trash', 'close',
 ];
+
+const IMPORTANCE: readonly PlanPriority[] = ['high', 'medium', 'low'];
 
 const oneOf = <T extends string>(options: readonly T[], value: unknown, fallback: T): T => (
   options.includes(value as T) ? (value as T) : fallback
@@ -48,6 +51,9 @@ export function taskFromDoc(id: string, data: FirestoreData | undefined): TaskIt
     ...(data.dismissed === true ? { dismissed: true } : {}),
     // Sin una fecha de calendario válida no se programa recordatorio ni se calcula la semana.
     ...(isoDate(data.dueDate) ? { dueDate: isoDate(data.dueDate) } : {}),
+    // Tareas guardadas antes del 13 de noviembre no los traen: se ordenan como importancia media.
+    ...(isoDate(data.deadline) ? { deadline: isoDate(data.deadline) } : {}),
+    ...(IMPORTANCE.includes(data.importance as PlanPriority) ? { importance: data.importance as PlanPriority } : {}),
     ...(instant(data.createdAt) ? { createdAt: instant(data.createdAt) } : {}),
     ...(instant(data.completedAt) ? { completedAt: instant(data.completedAt) } : {}),
     ...(instant(data.dismissedAt) ? { dismissedAt: instant(data.dismissedAt) } : {}),
