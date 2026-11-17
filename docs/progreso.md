@@ -30,6 +30,13 @@ Con seis lugares, la historia completa son cinco semanas completas. Los lugares 
 3. **Una tarea completada puede desmarcarse solo en la semana abierta**, lo que quita su paso. Lo completado en una semana cerrada se queda.
 4. **El lugar nuevo se decide únicamente al cerrar la semana** (lunes 00:00 a domingo 23:59, hora local; se calcula por calendario, no sumando 168 horas, para que el cambio de hora no la desplace).
 
+### Animación y sonido de Pandoro
+
+- **Caminata:** en Progreso, Pandoro (`PandoroAnimated`) camina por el sendero moviendo patas, brazos, orejas y cabeza. Las poses son funciones puras en `src/services/progress/pandaPose.ts` (`walkPose`, `celebratePose`), cubiertas por `tests/pandaPose.test.ts`. El marcador (`PandoroProgressMarker`) mueve el conjunto; un paso cada ~0,5 s sin importar la distancia.
+- **Al completar una tarea:** al entrar a Progreso, Pandoro sale de donde se le vio por última vez (`pandaSeen`) y camina hasta su posición nueva; no aparece ya allí.
+- **Llegada a un lugar nuevo:** tras caminar hasta él, Pandoro celebra con un salto (`celebrating`) y suena `assets/audio/audio-panda.mpeg` una vez (`useArrivalSound`, librería `expo-audio`). No suena en la vista de presentación ni en los pasos normales.
+- **Reducir movimiento:** la animación respeta «Efectos de animación» del sistema y el ajuste de Reducir movimiento: con alguno activo, Pandoro salta al destino sin caminar.
+
 ## 3. Cuándo una semana da un lugar
 
 Una semana está **completa** si:

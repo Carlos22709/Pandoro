@@ -70,6 +70,7 @@ El arte está implementado como SVG nativo para conservar nitidez y evitar depen
 
 - Escenario: `src/components/art/ForestScene.tsx`
 - Pandoro: `src/components/art/Pandoro.tsx`
+- Pandoro animado por partes (patas, brazos, orejas, cabeza): `src/components/art/PandoroAnimated.tsx`, con las poses en `src/services/progress/pandaPose.ts`
 - Cabeza del onboarding y del acceso: `src/components/art/PandoroHead.tsx` (recorta la misma cabeza de `Pandoro.tsx`; sus variantes solo cambian el color de las iluminaciones)
 
 El color de Pandoro son iluminaciones de acuarela: óvalos con degradado radial que se desvanecen hasta transparente, agrupados por zona (`HEAD_LIGHTS`, `BODY_LIGHTS`, reflejos de las partes oscuras) y con una intensidad global (`LIGHT_INTENSITY`) en `Pandoro.tsx`.

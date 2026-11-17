@@ -33,7 +33,7 @@ Roles: el equipo de Pandask es el **Responsable** del tratamiento; Firebase (Goo
 Solo lo necesario para planificar (Circular SIC 002, principio de necesidad):
 
 - Texto de las responsabilidades (≤ 4.000 caracteres) tras un filtro local que cambia correos por `[correo]` y teléfonos o documentos por `[número]`; lo mismo para las instrucciones de ajuste.
-- Días y minutos disponibles.
+- Días y horas disponibles (la app las convierte a minutos antes de enviarlas).
 - La fecha de hoy.
 
 **Nunca** se envía el nombre, el correo, el `uid`, el audio ni el historial. El filtro **no detecta nombres propios**; la pantalla recuerda no escribir datos de terceros.
