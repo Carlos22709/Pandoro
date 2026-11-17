@@ -64,7 +64,7 @@ Derechos (Ley 1581, art. 8; Constitución art. 15): conocer, actualizar y rectif
 | --- | --- | --- |
 | Consultar y corregir | Perfil: ver y editar los datos personales | Por confirmar qué cubre Perfil hoy (F13) |
 | Revocar autorizaciones opcionales | Ajustes | Pendiente con la autorización 2 |
-| Eliminar la cuenta y todo el historial | Perfil: explica qué se borra y borra `users/{uid}` y la cuenta. Pide reingresar la contraseña si la sesión es antigua | **Los repositorios tienen `deleteAllTasks` y `deleteAllCompletions`, pero no hay un flujo de eliminar cuenta completo**: por implementar (Santiago/Carlos) |
+| Eliminar la cuenta y todo el historial | Ajustes → Borrar mi cuenta y mis datos: explica qué se borra, pide un segundo toque y, si la sesión es antigua, la contraseña. Borra `users/{uid}` (tareas, pasos, progreso, preferencias y, si existieran, planes y consumo de IA), cancela los recordatorios locales y elimina la cuenta de Authentication | Implementado |
 | Reglas de acceso | Cada usuario solo lee y escribe `users/{uid}`; `firestore.rules` y `scripts/check-firestore.mts` lo comprueban | Implementado; falta verificarlo con dos cuentas antes del piloto |
 
 **Constancia mínima tras eliminar la cuenta — propuesta a ratificar.** Borrar todo lo de `users/{uid}` borra también la prueba del consentimiento. Se propone conservar, fuera de `users/{uid}` y con su propia regla de seguridad, solo: un identificador **no reversible** (hash), la versión del aviso, la fecha de aceptación y la fecha de eliminación. Sin correo, nombre ni contenido. Plazo propuesto: **2 años** desde la eliminación, luego se borra. Validar el plazo con asesoría legal. Si el equipo prefiere no conservar nada, se acepta que no habrá prueba del consentimiento.
@@ -91,7 +91,7 @@ Redacción en lenguaje claro. Los textos entre corchetes son pendientes de defin
 >
 > Pandask, creada por estudiantes de la Universidad de La Sabana, guardará tu correo, las tareas que aceptes, tu progreso y tus ajustes para que tu lista siga ahí cuando vuelvas. Usamos estos datos solo para que la app funcione. No los vendemos ni los usamos para publicidad.
 >
-> Tus datos se guardan con Google Firebase, en servidores fuera de Colombia. Puedes consultarlos, corregirlos, pedir que los eliminemos o retirar tu autorización cuando quieras, desde Perfil.
+> Tus datos se guardan con Google Firebase, en servidores fuera de Colombia. Puedes consultarlos, corregirlos, pedir que los eliminemos o retirar tu autorización cuando quieras, desde Ajustes.
 >
 > ☐ Acepto el tratamiento de mis datos según la [política completa].
 
@@ -117,7 +117,7 @@ La casilla va sin marcar. Cuando el texto cambie, se actualiza `ConsentCheckbox.
 4. Datos de estrés o bienestar: no los pedimos.
 5. Con quién los compartimos: Google Firebase y Gemini (§6) y que están fuera de Colombia.
 6. Cuánto tiempo los conservamos y la constancia mínima tras eliminar la cuenta (§5).
-7. Tus derechos y cómo ejercerlos desde Perfil o por correo; queja ante la Superintendencia de Industria y Comercio.
+7. Tus derechos y cómo ejercerlos desde Ajustes o por correo; queja ante la Superintendencia de Industria y Comercio.
 8. Menores de edad: [por definir; el público objetivo son estudiantes y trabajadores adultos].
 9. Cambios en la política: versión y fecha; si cambia lo esencial, se pide una nueva aceptación.
 10. Fecha y versión. Publicada en [URL por definir].
@@ -128,7 +128,7 @@ La casilla va sin marcar. Cuando el texto cambie, se actualiza `ConsentCheckbox.
 | --- | --- |
 | Ratificar la autorización 2 y construirla (casilla, desactivar «Hablar» y generación sin ella, modo manual) | Equipo; implementa Santiago/Carlos |
 | Ratificar constancia mínima y 2 años; ubicación y regla de seguridad | Equipo + criterio legal |
-| Flujo completo de eliminar cuenta, consulta y edición en Perfil | Equipo (F13 y F14) |
+| Consulta y edición en Perfil; constancia mínima tras eliminar la cuenta | Equipo (F13 y F14). El flujo de borrar la cuenta en Ajustes ya está implementado |
 | Reglas de Firestore, App Check y límite por usuario de AI Logic; prueba con dos cuentas | Esteban (fila 14) |
 | Voz en la web: incluirla en la autorización 2 o desactivarla; exigir transcripción en el dispositivo en Android | Andrea y Santiago |
 | Redacción jurídica de transmisión internacional | Andrea, con apoyo legal |

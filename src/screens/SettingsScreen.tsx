@@ -11,8 +11,10 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ForestScene } from '@/components/art/ForestScene';
+import { AuthInput } from '@/components/auth/AuthInput';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useAuthSubmit } from '@/components/auth/useAuthSubmit';
+import { RecentLoginRequiredError } from '@/services/auth/authService';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { usePreferences } from '@/components/preferences/PreferencesProvider';
 import { useTasks } from '@/components/tasks/TasksProvider';
@@ -95,13 +97,15 @@ function PreferenceRow({
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, deleteAccount } = useAuth();
   const { submit, submitting, error } = useAuthSubmit();
   const { resetDemo } = useDemo();
   const { resetTasks } = useTasks();
   const { preferences, setPreference, resetPreferences } = usePreferences();
   const reminders = useReminders();
   const [demoReset, setDemoReset] = useState<'idle' | 'confirming' | 'done'>('idle');
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirming' | 'reauth'>('idle');
+  const [deletePassword, setDeletePassword] = useState('');
   const colors = COLORS;
 
   // Reiniciar pide un segundo toque para no borrar la demo por accidente.
@@ -110,6 +114,13 @@ export function SettingsScreen() {
     const timer = setTimeout(() => setDemoReset('idle'), demoReset === 'confirming' ? 3000 : 2000);
     return () => clearTimeout(timer);
   }, [demoReset]);
+
+  // El segundo toque de borrar cuenta se cancela solo si no está pidiendo la contraseña.
+  useEffect(() => {
+    if (deleteStep !== 'confirming') return;
+    const timer = setTimeout(() => setDeleteStep('idle'), 8000);
+    return () => clearTimeout(timer);
+  }, [deleteStep]);
 
   const pressResetDemo = () => {
     if (demoReset !== 'confirming') {
@@ -123,6 +134,40 @@ export function SettingsScreen() {
 
   // Al cerrar sesión, la protección de rutas de _layout lleva a Iniciar sesión.
   const logOut = () => submit({ action: signOut });
+
+  const cancelDelete = () => {
+    setDeleteStep('idle');
+    setDeletePassword('');
+  };
+
+  // Tras borrar la cuenta se va a la bienvenida, no a Iniciar sesión.
+  const runDelete = (password?: string) => submit({
+    problem: deleteStep === 'reauth' && !password?.trim() ? 'Escribe tu contraseña.' : null,
+    action: async () => {
+      try {
+        await deleteAccount(password?.trim() ? password : undefined);
+        cancelDelete();
+        router.replace('/');
+      } catch (failure) {
+        if (failure instanceof RecentLoginRequiredError) {
+          setDeleteStep('reauth');
+        }
+        throw failure;
+      }
+    },
+  });
+
+  const pressDeleteAccount = () => {
+    if (deleteStep === 'reauth') {
+      runDelete(deletePassword);
+      return;
+    }
+    if (deleteStep !== 'confirming') {
+      setDeleteStep('confirming');
+      return;
+    }
+    runDelete();
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -149,6 +194,7 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -202,6 +248,88 @@ export function SettingsScreen() {
               </Text>
             </View>
           </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              deleteStep === 'reauth'
+                ? 'Confirmar y borrar la cuenta'
+                : deleteStep === 'confirming'
+                  ? 'Confirmar: borrar mi cuenta y mis datos'
+                  : 'Borrar mi cuenta y mis datos'
+            }
+            disabled={submitting}
+            onPress={pressDeleteAccount}
+            style={({ pressed }) => [styles.accountAction, styles.deleteAction, pressed && styles.pressed]}
+          >
+            <AppIcon
+              name="trash"
+              color={deleteStep === 'idle' ? colors.accent : palette.pinkDeep}
+              size={22}
+              strokeWidth={2.1}
+            />
+            <View style={styles.preferenceCopy}>
+              <Text
+                style={[
+                  styles.preferenceTitle,
+                  { color: deleteStep === 'idle' ? colors.text : palette.pinkDeep },
+                ]}
+              >
+                {deleteStep === 'reauth'
+                  ? 'Confirma con tu contraseña'
+                  : deleteStep === 'confirming'
+                    ? 'Toca otra vez para borrar todo'
+                    : 'Borrar mi cuenta y mis datos'}
+              </Text>
+              <Text style={[styles.preferenceDescription, { color: colors.muted }]}>
+                {deleteStep === 'reauth'
+                  ? 'La sesión es antigua. Escribe tu contraseña para borrar tu cuenta, tus tareas, tu progreso y tus ajustes.'
+                  : deleteStep === 'confirming'
+                    ? 'Se borrarán tu cuenta, tus tareas, tu progreso y tus preferencias. No podrás recuperarlos.'
+                    : 'Elimina tu correo, tus tareas, tu progreso y tus ajustes. Esta acción no se puede deshacer.'}
+              </Text>
+            </View>
+          </Pressable>
+          {deleteStep === 'reauth' ? (
+            <View style={styles.deleteConfirm}>
+              <AuthInput
+                label="Contraseña"
+                value={deletePassword}
+                onChangeText={setDeletePassword}
+                onSubmitEditing={() => runDelete(deletePassword)}
+                placeholder="Tu contraseña"
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="current-password"
+                textContentType="password"
+                returnKeyType="done"
+                editable={!submitting}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Confirmar y borrar"
+                disabled={submitting}
+                onPress={() => runDelete(deletePassword)}
+                style={({ pressed }) => [
+                  styles.deleteButton,
+                  { backgroundColor: palette.pinkDeep },
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.deleteButtonLabel}>
+                  {submitting ? 'Borrando tu cuenta…' : 'Confirmar y borrar'}
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Cancelar"
+                disabled={submitting}
+                onPress={cancelDelete}
+                style={({ pressed }) => [styles.cancelDelete, pressed && styles.pressed]}
+              >
+                <Text style={[styles.resetLabel, { color: colors.accent }]}>Cancelar</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
 
         {/* Reiniciar borra las tareas y el progreso de la cuenta: solo en builds de presentación. */}
@@ -258,7 +386,7 @@ export function SettingsScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Cerrar sesión"
-          disabled={submitting}
+          disabled={submitting || deleteStep !== 'idle'}
           onPress={logOut}
           style={({ pressed }) => [
             styles.resetButton,
@@ -361,6 +489,31 @@ const styles = StyleSheet.create({
     gap: 13,
     paddingHorizontal: 15,
     paddingVertical: 12,
+  },
+  deleteAction: {
+    borderTopColor: ui.surface.border,
+    borderTopWidth: 1,
+  },
+  deleteConfirm: {
+    gap: 10,
+    paddingHorizontal: 15,
+    paddingBottom: 14,
+  },
+  deleteButton: {
+    minHeight: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: ui.radius.control,
+  },
+  deleteButtonLabel: {
+    ...typeScale.small,
+    fontFamily: fonts.bold,
+    color: palette.white,
+  },
+  cancelDelete: {
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resetButton: {
     minHeight: 46,

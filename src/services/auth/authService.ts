@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 
 import { authErrorMessage, NOT_CONFIGURED_MESSAGE } from '@/services/auth/authRules';
+import { deleteAccount as deleteAccountAndData, RecentLoginRequiredError } from '@/services/data/accountDeletion';
 import { saveConsent } from '@/services/data/userRepository';
 import {
   clearLocalData,
@@ -33,11 +34,14 @@ function configuredAuth() {
   return getFirebaseAuth();
 }
 
+export { RecentLoginRequiredError };
+
 // Las pantallas solo ven mensajes en español, nunca el error técnico de Firebase.
 async function friendly<T>(action: () => Promise<T>) {
   try {
     return await action();
   } catch (failure) {
+    if (failure instanceof RecentLoginRequiredError) throw failure;
     const message = failure instanceof Error && failure.message === NOT_CONFIGURED_MESSAGE
       ? NOT_CONFIGURED_MESSAGE
       : authErrorMessage(failure);
@@ -100,5 +104,11 @@ export const authService = {
       await updateProfile(auth.currentUser, { displayName: name.trim() });
       return toAuthUser(auth.currentUser);
     });
+  },
+
+  // Borra Firestore, cancela recordatorios y elimina la cuenta de Authentication.
+  // Si la sesión es antigua, lanza RecentLoginRequiredError para pedir la contraseña.
+  deleteAccount(password?: string) {
+    return friendly(() => deleteAccountAndData(password));
   },
 };

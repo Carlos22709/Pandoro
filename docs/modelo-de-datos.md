@@ -158,7 +158,7 @@ Desde el 13/11/2026 Ajustes solo muestra interruptores que cambian algo. Se reti
 - Los pasos, lugares y semanas ganadas **no se revierten** (la gamificación no castiga).
 - Un documento dañado o de una versión anterior nunca rompe la lista: `taskFromDoc` corrige o ignora, y `progressFromDoc` usa valores por defecto.
 - Confirmar un plan escribe todas sus tareas en un lote: se guardan todas o ninguna.
-- Eliminar la cuenta borra toda la rama `users/{uid}` (flujo completo por implementar; ver [`privacidad.md`](privacidad.md) §5).
+- Eliminar la cuenta (Ajustes → Borrar mi cuenta y mis datos) borra las subcolecciones conocidas (`tasks`, `completions`, `progress`, y si existieran `plans` y `usage`), el documento `users/{uid}`, los recordatorios locales y la cuenta de Authentication. Ver [`privacidad.md`](privacidad.md) §5.
 - Acceso: `request.auth.uid == uid` sobre `users/{uid}/**`; todo lo demás queda denegado.
 
 ## 4. Por confirmar

@@ -13,6 +13,7 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   updateName: (name: string) => Promise<void>;
+  deleteAccount: (password?: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: authService.signOut,
     sendPasswordReset: authService.sendPasswordReset,
     updateName,
+    deleteAccount: authService.deleteAccount,
   }), [status, user, signIn, register, updateName]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

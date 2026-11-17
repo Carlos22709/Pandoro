@@ -22,6 +22,7 @@ test('los códigos de Firebase se traducen a los mensajes acordados', () => {
     'auth/network-request-failed': 'No fue posible conectar con el servicio.',
     'auth/invalid-credential': 'Las credenciales proporcionadas no son válidas.',
     'auth/user-disabled': 'Esta cuenta está deshabilitada.',
+    'auth/requires-recent-login': 'Para borrar tu cuenta, escribe tu contraseña otra vez.',
   };
   for (const [code, message] of Object.entries(expected)) {
     assert.equal(authErrorMessage({ code }), message);
