@@ -17,6 +17,7 @@ import { AppIcon } from '@/components/icons/AppIcon';
 import { useTasks } from '@/components/tasks/TasksProvider';
 import { useDemo } from '@/demo/DemoProvider';
 import { savePreferences, watchPreferences } from '@/services/data/userRepository';
+import { useReminders } from '@/components/reminders/RemindersProvider';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -24,7 +25,6 @@ import { ui } from '@/theme/ui';
 type Preferences = {
   darkMode: boolean;
   reduceMotion: boolean;
-  taskReminders: boolean;
   weeklySummary: boolean;
   pandoroTips: boolean;
   sounds: boolean;
@@ -49,7 +49,6 @@ type SettingsColors = {
 const DEFAULT_PREFERENCES: Preferences = {
   darkMode: false,
   reduceMotion: true,
-  taskReminders: true,
   weeklySummary: true,
   pandoroTips: true,
   sounds: false,
@@ -133,6 +132,7 @@ export function SettingsScreen() {
   const { resetDemo } = useDemo();
   const { resetTasks } = useTasks();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const reminders = useReminders();
   const [demoReset, setDemoReset] = useState<'idle' | 'confirming' | 'done'>('idle');
   const colors = preferences.darkMode ? DARK_COLORS : LIGHT_COLORS;
 
@@ -178,7 +178,10 @@ export function SettingsScreen() {
     persistPreferences({ ...preferences, [key]: value });
   };
 
-  const resetPreferences = () => persistPreferences(DEFAULT_PREFERENCES);
+  const resetPreferences = () => {
+    persistPreferences(DEFAULT_PREFERENCES);
+    reminders.setEnabled(true);
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -228,10 +231,14 @@ export function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recordatorios</Text>
         <View style={[styles.sectionSurface, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <PreferenceRow
-            title="Antes de cada tarea"
-            description="Un aviso cuando se acerque la hora que anotaste."
-            value={preferences.taskReminders}
-            onValueChange={(value) => updatePreference('taskReminders', value)}
+            title="El día de cada tarea"
+            description={reminders.supported
+              ? reminders.status === 'denied'
+                ? 'Activa las notificaciones de Pandask en los ajustes del teléfono para recibir avisos.'
+                : 'Un aviso a las 8:00 a. m. el día de cada tarea planeada. No muestra el nombre de la tarea.'
+              : 'En la web, Pandoro te cuenta al abrir la app qué tienes para hoy y mañana.'}
+            value={reminders.enabled}
+            onValueChange={reminders.setEnabled}
             colors={colors}
           />
           <PreferenceRow
@@ -358,7 +365,7 @@ export function SettingsScreen() {
         </Pressable>
         {error ? <Text style={[styles.prototypeNote, { color: colors.text }]}>{error}</Text> : null}
         <Text style={[styles.prototypeNote, { color: colors.muted }]}>
-          En este prototipo, los cambios se conservan únicamente durante la sesión.
+          Tus tareas, progreso y preferencias se guardan en tu cuenta.
         </Text>
       </ScrollView>
     </View>

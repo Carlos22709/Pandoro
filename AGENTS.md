@@ -61,13 +61,11 @@ npm test             # cuando la rama tenga la carpeta tests/
 
 ## Qué es real y qué está simulado
 
-Revisa el `README.md` de la rama en la que trabajas; cambia a medida que se integran tareas. Al 2 de noviembre de 2026, en `main`:
+Revisa el `README.md` de la rama en la que trabajas; cambia a medida que se integran tareas. Al 11 de noviembre de 2026, en `main`:
 
-- El acceso (inicio de sesión y registro) es solo visual. El registro pide aceptar el consentimiento de datos.
-- La conversación de «Hablar» y el plan que propone siguen un guion fijo (`src/demo/demoScript.ts`). No hay micrófono ni IA.
-- Tareas y progreso viven en memoria (`src/demo/`) y se pierden al cerrar la app.
-
-La rama `santiago-cambios` agrega la generación del plan con Gemini, pero todavía no está integrada en `main`.
+- El registro y el inicio de sesión funcionan con Firebase Authentication. El registro exige aceptar el consentimiento de datos.
+- «Hablar» y «Nueva tarea» usan Gemini por texto, permiten editar la sugerencia y solo guardan las tareas que el usuario confirma. Todavía no hay entrada de voz.
+- Tareas, progreso y preferencias se guardan por usuario en Firestore. La conversación y el borrador del plan permanecen solo en memoria.
 
 ## Convenciones
 

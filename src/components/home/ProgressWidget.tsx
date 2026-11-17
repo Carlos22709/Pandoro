@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     height: 42,
     paddingHorizontal: 10,
     borderRadius: ui.radius.control,
-    backgroundColor: 'rgba(255, 252, 247, 0.9)',
+    backgroundColor: ui.surface.card,
     borderWidth: 1,
     borderColor: ui.surface.border,
     flexDirection: 'row',

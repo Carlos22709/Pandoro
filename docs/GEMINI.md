@@ -50,7 +50,7 @@ Fuente: [precios de la Gemini API](https://ai.google.dev/gemini-api/docs/pricing
 - **Abuso de la cuota:** la configuración de Firebase es pública, así que cualquiera podría usar AI Logic del proyecto fuera de la app. En el plan Spark eso no genera cobros, pero puede agotar la cuota. La protección prevista es App Check y bajar el límite por usuario de AI Logic (fila 14). Ver `docs/arquitectura.md`.
 - **Un solo punto de acceso:** todo pasa por `src/services/gemini/geminiService.ts`. Cambiar de proveedor solo reemplaza `geminiGenerate`.
 - **Datos personales:** antes de enviar, `redactPersonalData.ts` reemplaza correos por `[correo]` y teléfonos o números de documento por `[número]`. No detecta nombres propios.
-- **Sin persistencia:** las tareas y el borrador viven en memoria y se pierden al cerrar la app.
+- **Persistencia controlada:** la conversación y el borrador viven solo en memoria. Al confirmar, las tareas aprobadas se guardan por usuario en Firestore con identificadores estables.
 
 ## Contingencia
 

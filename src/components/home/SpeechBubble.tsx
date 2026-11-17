@@ -3,6 +3,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
+import { ui } from '@/theme/ui';
 
 type SpeechBubbleProps = {
   text: string;
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: palette.cream,
     borderWidth: 1,
-    borderColor: 'rgba(81, 64, 93, 0.1)',
+    borderColor: ui.surface.border,
   },
   // Lo que dice Pandoro va en la tipografía de los títulos: es su voz, no la de la interfaz.
   text: {
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.cream,
     borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderColor: 'rgba(81, 64, 93, 0.1)',
+    borderColor: ui.surface.border,
     transform: [{ rotate: '45deg' }],
   },
 });

@@ -299,6 +299,7 @@ export function proposalToTasks(proposal: PlanProposal, firstPriority: number): 
       title: subtask.title.trim(),
       detail: `${subtask.scheduledDate ? formatDay(subtask.scheduledDate) : 'Sin día'} · ${activity.title.trim()}`,
       duration: formatMinutes(subtask.durationMinutes),
+      dueDate: subtask.scheduledDate ?? undefined,
       notes: [
         subtask.description.trim(),
         activity.deadline ? `Fecha límite: ${formatDay(activity.deadline)}` : '',

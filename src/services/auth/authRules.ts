@@ -5,6 +5,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Mínimo por defecto de Firebase. Si el proyecto exige más, lo rechaza el servidor
 // y llega como auth/password-does-not-meet-requirements.
 export const MIN_PASSWORD_LENGTH = 6;
+export const MAX_NAME_LENGTH = 60;
 
 export const NOT_CONFIGURED_MESSAGE = 'El acceso todavía no está configurado en esta app.';
 const DEFAULT_MESSAGE = 'No pudimos completar la solicitud. Intenta de nuevo.';
@@ -32,6 +33,14 @@ export function authErrorMessage(failure: unknown) {
   return AUTH_MESSAGES[code] ?? DEFAULT_MESSAGE;
 }
 
+export function validateName(name: string) {
+  const clean = name.trim();
+  if (!clean) return 'Escribe tu nombre.';
+  if (clean.length > MAX_NAME_LENGTH) return `El nombre puede tener hasta ${MAX_NAME_LENGTH} caracteres.`;
+  if (!/\p{L}/u.test(clean)) return 'El nombre necesita al menos una letra.';
+  return null;
+}
+
 function validateEmail(email: string) {
   if (!email.trim()) return 'Escribe tu correo electrónico.';
   if (!EMAIL_PATTERN.test(email.trim())) return AUTH_MESSAGES['auth/invalid-email'];
@@ -52,11 +61,13 @@ export function validateRegistration({ name, email, password, confirmation }: {
   password: string;
   confirmation: string;
 }) {
-  if (!name.trim()) return 'Escribe tu nombre.';
+  const nameProblem = validateName(name);
+  if (nameProblem) return nameProblem;
   const emailProblem = validateEmail(email);
   if (emailProblem) return emailProblem;
   if (password.length < MIN_PASSWORD_LENGTH) {
     return `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
   }
+  if (!password.trim()) return 'La contraseña no puede ser solo espacios.';
   return password === confirmation ? null : 'Las contraseñas no coinciden.';
 }

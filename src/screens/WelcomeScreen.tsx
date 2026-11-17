@@ -31,7 +31,7 @@ type OnboardingPage = {
 const PAGES: readonly OnboardingPage[] = [
   {
     id: 'welcome',
-    title: 'PANDORO',
+    title: 'PANDASK',
     description: 'Un panda que te echa una pata con los pendientes.',
     variant: 'splash',
     backgroundColor: palette.onboardingSky,

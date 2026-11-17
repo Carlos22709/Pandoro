@@ -6,7 +6,7 @@
 | **Responsable** | Andrea Sosa |
 | **Código** | [`worldData.ts`](../src/components/progress/worldData.ts) (lugares), [`src/services/progress/`](../src/services/progress/) (pasos, semanas, cierre), [`demoState.ts`](../src/demo/demoState.ts) (aplicación del cierre) |
 | **Pruebas** | [`tests/progress.test.ts`](../tests/progress.test.ts), [`tests/weeks.test.ts`](../tests/weeks.test.ts) |
-| **Decisión** | «Semana viva», registrada el 8 de noviembre de 2026 en [`CONTEXTO.md`](CONTEXTO.md#decisiones), por confirmar con el equipo |
+| **Decisión** | «Semana viva», registrada el 8 de noviembre y confirmada para el MVP el 11 de noviembre de 2026 |
 
 ## 1. Escenarios de la demo final y orden de desbloqueo
 
@@ -56,7 +56,14 @@ Salir sin elegir equivale a «Pasar todo»: nada cambia. Si pasaron varias seman
 - Sin notificaciones ni tareas en segundo plano para el cierre: se calcula al abrir la app.
 - Si el reloj retrocede, no se reevalúan semanas ya reconocidas.
 
-## 6. Cobertura de pruebas
+## 6. Modo de presentación
+
+Los builds internos pueden usar `EXPO_PUBLIC_PRESENTATION_MODE=true`. En Progreso aparece un control
+marcado como **Modo presentación** que permite ver los seis lugares. Es una previsualización local:
+no cambia tareas, semanas, pasos ni documentos de Firestore. En desarrollo también está disponible;
+en un build público queda oculto si la variable no vale `true`.
+
+## 7. Cobertura de pruebas
 
 | Comportamiento | Prueba (`tests/progress.test.ts` salvo indicación) |
 | --- | --- |
@@ -75,10 +82,11 @@ Salir sin elegir equivale a «Pasar todo»: nada cambia. Si pasaron varias seman
 | Cierre el domingo | «el domingo…» |
 | Cambio de hora y año | `weeks.test.ts` |
 
-## 7. Por confirmar
+## 8. Decisiones confirmadas
 
-| Tema | Quién |
+| Tema | Decisión del 11 de noviembre |
 | --- | --- |
-| Ratificar la regla de «semana completa» (interpretación de Andrea) | Equipo |
-| Si cinco semanas bastan para la demo final o se necesitan más escenarios (O07) | Equipo |
-| Que el progreso real use los mismos lugares en la versión desplegada | Carlos / Esteban (QA) |
+| Regla de «semana completa» | Se conserva el criterio de la sección 3. |
+| Racha de días | Se retira: descansar no reduce ni reinicia el progreso. |
+| Tareas de una semana cerrada | No se pueden desmarcar; la interfaz explica el motivo. |
+| Escenarios para la demo final | El progreso real mantiene cinco semanas; el modo de presentación permite previsualizar los seis lugares sin alterar datos. |

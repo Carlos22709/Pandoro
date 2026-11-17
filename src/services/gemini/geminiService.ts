@@ -1,6 +1,7 @@
 import { AIError, GoogleAIBackend, getAI, getGenerativeModel } from 'firebase/ai';
 
 import { getFirebaseApp, isFirebaseConfigured } from '@/services/firebase/firebaseApp';
+import { logError, logEvent, markFlowStart } from '@/services/logging/appLog';
 import { mergeRevision } from '@/services/planning/planLogic';
 import type { Availability, PlanActivity, PlanProposal } from '@/services/planning/planTypes';
 
@@ -180,25 +181,55 @@ export function createPlanService({ generate = geminiGenerate, timeoutMs = REQUE
   return {
     async generatePlan({ text: rawText, availability, today }: GenerateInput): Promise<PlanResult> {
       const text = redactPersonalData(rawText);
-      const parsed = await run(buildGeneratePrompt(text, availability, today), [text]);
-      if (parsed.kind === 'clarification') return parsed;
-      const proposal: PlanProposal = {
-        id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
-        summary: parsed.revision.summary,
-        activities: parsed.revision.activities,
-        revision: 1,
-      };
-      return { kind: 'proposal', proposal, unavailableDates: parsed.unavailableDates, restored: 0 };
+      logEvent('ai_suggestion_requested');
+      const started = Date.now();
+      try {
+        const parsed = await run(buildGeneratePrompt(text, availability, today), [text]);
+        const durationMs = Date.now() - started;
+        if (parsed.kind === 'clarification') {
+          logEvent('ai_clarification_requested', { durationMs });
+          return parsed;
+        }
+        const proposal: PlanProposal = {
+          id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
+          summary: parsed.revision.summary,
+          activities: parsed.revision.activities,
+          revision: 1,
+        };
+        logEvent('ai_suggestion_received', { durationMs });
+        markFlowStart('plan_accept');
+        return { kind: 'proposal', proposal, unavailableDates: parsed.unavailableDates, restored: 0 };
+      } catch (failure) {
+        const durationMs = Date.now() - started;
+        logError('ai_suggestion_failed', failure, { durationMs });
+        logError('agent_error', failure, { durationMs });
+        throw failure;
+      }
     },
 
     async revisePlan({ text: rawText, availability, today, proposal, instruction: rawInstruction }: ReviseInput): Promise<PlanResult> {
       const text = redactPersonalData(rawText);
       const instruction = redactPersonalData(rawInstruction);
       const prompt = buildRevisePrompt(text, instruction, proposal, availability, today);
-      const parsed = await run(prompt, [text, instruction]);
-      if (parsed.kind === 'clarification') return parsed;
-      const { proposal: next, restored } = mergeRevision(proposal, withKnownDeadlines(parsed.revision, proposal));
-      return { kind: 'proposal', proposal: next, unavailableDates: parsed.unavailableDates, restored };
+      logEvent('ai_suggestion_requested');
+      const started = Date.now();
+      try {
+        const parsed = await run(prompt, [text, instruction]);
+        const durationMs = Date.now() - started;
+        if (parsed.kind === 'clarification') {
+          logEvent('ai_clarification_requested', { durationMs });
+          return parsed;
+        }
+        const { proposal: next, restored } = mergeRevision(proposal, withKnownDeadlines(parsed.revision, proposal));
+        logEvent('ai_suggestion_received', { durationMs });
+        markFlowStart('plan_accept');
+        return { kind: 'proposal', proposal: next, unavailableDates: parsed.unavailableDates, restored };
+      } catch (failure) {
+        const durationMs = Date.now() - started;
+        logError('ai_suggestion_failed', failure, { durationMs });
+        logError('agent_error', failure, { durationMs });
+        throw failure;
+      }
     },
   };
 }

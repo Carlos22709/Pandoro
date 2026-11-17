@@ -16,6 +16,7 @@ import {
   saveTask,
   watchTasks,
 } from '@/services/data/tasksRepository';
+import { logEvent, takeFlowDuration } from '@/services/logging/appLog';
 import type { PlanProposal } from '@/services/planning/planTypes';
 import type { CompletionEvent } from '@/services/progress/steps';
 import {
@@ -150,8 +151,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     const changed = next.tasks.find((item) => item.id === id);
     if (!changed) return null;
     sync(saveTask(uid, changed));
-    if (task.completed) sync(removeCompletion(uid, id));
-    else sync(saveCompletion(uid, { taskId: id, completedAt: now.getTime() }));
+    if (task.completed) {
+      sync(removeCompletion(uid, id));
+    } else {
+      sync(saveCompletion(uid, { taskId: id, completedAt: now.getTime() }));
+      logEvent('task_completed');
+    }
     return next;
   }, [allTasks, canToggle, events, sync, uid]);
 
@@ -164,7 +169,6 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     const changed = moveDueDateInList(allTasks, id, dueDate).find((item) => item.id === id);
     if (uid && changed) sync(saveTask(uid, changed));
   }, [allTasks, sync, uid]);
-
   const addTask = useCallback((draft: TaskDraft) => {
     if (!uid) return;
     sync(createTask(uid, {
@@ -175,6 +179,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       icon: 'checklist',
       completed: false,
     }));
+    logEvent('task_created');
   }, [sync, allTasks, uid]);
 
   const updateTask = useCallback((id: string, draft: TaskDraft) => {
@@ -190,7 +195,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const addPlannedTasks = useCallback((planned: TaskItem[]) => {
     const existing = new Set(allTasks.map((task) => task.id));
     const fresh = planned.filter((task) => !existing.has(task.id));
-    if (uid && fresh.length) sync(createTasks(uid, fresh));
+    if (uid && fresh.length) {
+      sync(createTasks(uid, fresh));
+      logEvent('plan_accepted', { durationMs: takeFlowDuration('plan_accept') });
+    }
     return fresh.length;
   }, [sync, allTasks, uid]);
 

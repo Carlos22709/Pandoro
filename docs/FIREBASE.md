@@ -44,7 +44,7 @@ Mientras falte alguna variable obligatoria, la app abre pero nadie puede entrar:
 1. En **Firestore Database**, la base `(default)` debe existir en modo de producción.
 2. En la pestaña **Reglas**, pega el contenido de [`firestore.rules`](../firestore.rules) y pulsa **Publicar**. Ese archivo es la fuente de verdad: si las reglas cambian, se edita y se vuelve a publicar.
 3. Las reglas solo dejan a cada usuario leer y escribir lo suyo. Las validaciones de campos y tamaños quedan para la fila 14 (Esteban).
-4. Para comprobarlo, corre `npm run check:firestore`. Crea dos cuentas temporales, prueba tareas, plan, progreso, preferencias y consentimiento, verifica que una cuenta no pueda leer ni borrar los datos de la otra, y al final borra todo. Córrelo antes del piloto y cada vez que cambien las reglas.
+4. Para comprobarlo, corre `npm run check:firestore`. Crea dos cuentas temporales, prueba tareas, plan, progreso, preferencias y consentimiento, verifica que una cuenta no pueda leer ni borrar los datos de la otra, vuelve a iniciar sesión para comprobar la recuperación y al final borra todo. Córrelo antes del piloto y cada vez que cambien las reglas. La evidencia y los límites conocidos están en [`verificacion-persistencia.md`](verificacion-persistencia.md).
 
 La base `(default)` está en `nam5` (multirregión de Estados Unidos).
 
