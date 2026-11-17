@@ -24,7 +24,7 @@ import { EMPTY_PLANNER, nextPriority, useTasks } from '@/components/tasks/TasksP
 import type { TaskDraft } from '@/components/tasks/taskTypes';
 import { GeminiError, MAX_INPUT_LENGTH, planService, toGeminiError } from '@/services/gemini/geminiService';
 import { analyzeProposal, proposalToTasks } from '@/services/planning/planLogic';
-import { minutesPerDayProblem, planTextProblem } from '@/services/planning/planInput';
+import { hoursPerDayProblem, hoursToMinutes, planTextProblem } from '@/services/planning/planInput';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
@@ -45,19 +45,19 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const [manualVisible, setManualVisible] = useState(false);
 
-  const { stage, text, days, minutesPerDay, instruction, clarification, proposal } = planner;
-  const availability: Availability = { days, minutesPerDay: Number(minutesPerDay) };
+  const { stage, text, days, hoursPerDay, instruction, clarification, proposal } = planner;
+  const availability: Availability = { days, minutesPerDay: hoursToMinutes(hoursPerDay) };
   const busy = pending !== null;
   const textProblem = planTextProblem(text, MAX_INPUT_LENGTH);
-  const minutesProblem = minutesPerDayProblem(minutesPerDay);
+  const hoursProblem = hoursPerDayProblem(hoursPerDay);
   const daysProblem = days.length ? null : 'Elige al menos un día disponible.';
-  const inputProblem = textProblem ?? daysProblem ?? minutesProblem;
+  const inputProblem = textProblem ?? daysProblem ?? hoursProblem;
   const canGenerate = !busy && !inputProblem;
 
   const issues = useMemo(
     () => (proposal ? analyzeProposal(proposal, availability) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [proposal, days, minutesPerDay],
+    [proposal, days, hoursPerDay],
   );
   const blocked = !proposal?.activities.length || issues.some((issue) => issue.blocking);
 
@@ -266,9 +266,9 @@ export function NewTaskScreen({ title = 'Nueva tarea' }: NewTaskScreenProps) {
               <View style={styles.availability}>
                 <AvailabilityPicker
                   days={days}
-                  minutesPerDay={minutesPerDay}
+                  hoursPerDay={hoursPerDay}
                   onChangeDays={(value) => updatePlanner((current) => ({ ...current, days: value }))}
-                  onChangeMinutes={(value) => updatePlanner((current) => ({ ...current, minutesPerDay: value }))}
+                  onChangeHours={(value) => updatePlanner((current) => ({ ...current, hoursPerDay: value }))}
                 />
               </View>
             </View>

@@ -22,6 +22,6 @@ Revisión estática del código de todas las pantallas (`src/screens/*`) y sus c
 
 ## Pendiente (no se tocó a propósito)
 
-- Ajustes y Perfil tienen su propia paleta clara/oscura (`SettingsScreen.tsx`); unificarla con el tema requiere decidir el modo oscuro global.
+- Ajustes y Perfil tienen su propia paleta clara/oscura (`SettingsScreen.tsx`); unificarla con el tema requiere decidir el modo oscuro global. *Actualización del 13/11: el interruptor de modo oscuro se retiró de Ajustes porque solo cambiaba esa pantalla.*
 - Colores de las ilustraciones (camino de progreso, mundo) son parte del arte, no de la interfaz.
 - Componentes y repositorio conservan el nombre «Pandoro» por decisión del equipo.

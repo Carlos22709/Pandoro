@@ -54,12 +54,13 @@ Fuente: [precios de la Gemini API](https://ai.google.dev/gemini-api/docs/pricing
 
 ## Contingencia
 
+- **Modelo saturado:** cuando hay mucha demanda, Gemini responde 500 o 503 ("This model is currently experiencing high demand"). El 17 de noviembre de 2026 pasó en 3 de cada 10 solicitudes, de forma intermitente. La app reintenta sola hasta dos veces, tras 1 s y 2 s, dentro del mismo límite de 60 s, y solo muestra «Gemini tiene un problema temporal» si fallan los tres intentos. La cuota (429), la configuración y las respuestas inválidas no se reintentan.
 - **Inmediata:** la creación y edición manual de tareas no depende de Gemini. Si falla, el texto y los cambios se conservan.
 - **Futura:** Groq API es una alternativa por evaluar (calidad, salidas estructuradas, cuotas y precios). No está implementada.
 
 ## Flujo
 
-1. El usuario escribe en Nueva tarea y marca sus días y minutos disponibles; nada viene preseleccionado.
+1. El usuario escribe en Nueva tarea y marca sus días y horas disponibles; nada viene preseleccionado.
 2. Se quitan correos y números largos del texto, y la solicitud va a Gemini por Firebase AI Logic. Gemini devuelve JSON con esquema definido, que `planContract.ts` revalida. Una fecha límite solo se acepta si puede citarse del texto del usuario.
 3. La propuesta se muestra como borrador editable. Los avisos de sobrecarga, días no disponibles, fechas límite y dependencias se calculan localmente y se actualizan con cada edición, sin llamar a Gemini.
 4. Las instrucciones conversacionales revisan el borrador. Lo editado a mano se conserva salvo que Gemini declare que la instrucción lo contradice, y una subtarea omitida sin declararlo se restaura.

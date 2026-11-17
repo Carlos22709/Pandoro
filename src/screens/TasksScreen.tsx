@@ -9,15 +9,12 @@ import { useRouter } from 'expo-router';
 import { ForestScene } from '@/components/art/ForestScene';
 import { Pandoro } from '@/components/art/Pandoro';
 import { AppIcon } from '@/components/icons/AppIcon';
-import { PROGRESS_WORLD_STAGES } from '@/components/progress/worldData';
 import { PawToggle } from '@/components/tasks/PawToggle';
 import { TaskBottomSheet } from '@/components/tasks/TaskBottomSheet';
 import { useTasks } from '@/components/tasks/TasksProvider';
-import { TaskCelebration } from '@/components/tasks/TaskCelebration';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
 import { useDemo } from '@/demo/DemoProvider';
-import { DEMO_CELEBRATION_TITLES, DEMO_DEFAULT_CELEBRATION_TITLE } from '@/demo/demoScript';
-import { sortTasksForNow } from '@/demo/demoState';
+import { orderForNow } from '@/services/tasks/nowOrder';
 import { palette, toneColors } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -76,12 +73,14 @@ type TaskRowProps = {
   task: TaskItem;
   index: number;
   featured: boolean;
+  // Solo en la sugerencia de «Ahora»: por qué Pandoro la pone primero.
+  reason?: string;
   started: boolean;
   onOpen: () => void;
   onToggle: () => void;
 };
 
-function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowProps) {
+function TaskRow({ task, index, featured, reason, started, onOpen, onToggle }: TaskRowProps) {
   const difficulty = TASK_DIFFICULTY[task.difficulty];
   const difficultyColors = toneColors[difficulty.tone];
 
@@ -113,6 +112,9 @@ function TaskRow({ task, index, featured, started, onOpen, onToggle }: TaskRowPr
             <Text numberOfLines={1} style={[styles.taskDetail, started && styles.startedDetail]}>
               {started ? 'En curso · ' : ''}{task.detail}
             </Text>
+            {reason ? (
+              <Text numberOfLines={2} style={styles.taskReason}>Sugerencia de Pandoro · {reason}</Text>
+            ) : null}
           </View>
         </Pressable>
         <PawToggle
@@ -130,41 +132,44 @@ export function TasksScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { tasks, toggleTask, addTask, updateTask, removeTask } = useTasks();
-  const { progress, celebration, recordCompletion, dismissCelebration } = useDemo();
+  const { recordCompletion } = useDemo();
   const [view, setView] = useState<TasksView>('now');
   const [sheetVisible, setSheetVisible] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [startedTaskId, setStartedTaskId] = useState<string | null>(null);
-  const [celebrationVisible, setCelebrationVisible] = useState(false);
+  const [toggleNotice, setToggleNotice] = useState<string | null>(null);
 
-  const visibleTasks = useMemo(() => (view === 'all' ? tasks : sortTasksForNow(tasks)), [tasks, view]);
-
-  const priorityTaskId = view === 'now' ? visibleTasks[0]?.id : undefined;
-  const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
-
-  // La celebración espera a que la patita termine de rebotar y la lista se acomode.
   useEffect(() => {
-    if (!celebration) {
-      setCelebrationVisible(false);
-      return;
-    }
-    setSheetVisible(false);
-    setCreating(false);
-    const timer = setTimeout(() => setCelebrationVisible(true), 650);
+    if (!toggleNotice) return;
+    const timer = setTimeout(() => setToggleNotice(null), 4_000);
     return () => clearTimeout(timer);
-  }, [celebration]);
+  }, [toggleNotice]);
+
+  // «Ahora» sigue la lógica de priorización (docs/priorizacion.md); «Todas», el orden de registro.
+  const now = useMemo(() => orderForNow(tasks), [tasks]);
+  const visibleTasks = view === 'all' ? tasks : now.tasks;
+
+  const priorityTaskId = view === 'now' ? now.suggestionId ?? undefined : undefined;
+  const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
 
   const closeSheet = () => {
     setSheetVisible(false);
     setCreating(false);
   };
 
-  // La tarea cambia en TasksProvider y el mundo de Pandoro avanza (o retrocede) en la demo.
+  // Completar suma un paso y Pandoro avanza por el camino. El lugar nuevo se decide al cerrar la semana.
+  // Lo ganado no se toca, pero el bloqueo siempre se explica para que el toque no parezca roto.
   const togglePaw = (id: string) => {
     const task = tasks.find((item) => item.id === id);
     if (!task) return;
-    toggleTask(id);
+    if (!toggleTask(id)) {
+      if (task.completed) {
+        setToggleNotice('Esta tarea pertenece a una semana que ya cerró y no puede volver a quedar pendiente.');
+      }
+      return;
+    }
+    setToggleNotice(null);
     recordCompletion(id, !task.completed);
   };
 
@@ -195,11 +200,6 @@ export function TasksScreen() {
     removeTask(id);
     if (startedTaskId === id) setStartedTaskId(null);
     closeSheet();
-  };
-
-  const seeWorld = () => {
-    dismissCelebration();
-    router.navigate('/progreso');
   };
 
   const startTask = (id: string) => {
@@ -248,6 +248,13 @@ export function TasksScreen() {
 
         <SegmentControl value={view} onChange={setView} />
 
+        {toggleNotice ? (
+          <View accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.toggleNotice}>
+            <AppIcon name="checklist" color={palette.lilacDeep} size={18} />
+            <Text style={styles.toggleNoticeText}>{toggleNotice}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.immersiveStage}>
           {visibleTasks.length ? (
             <View pointerEvents="none" style={styles.pandaBehind}>
@@ -270,6 +277,7 @@ export function TasksScreen() {
                   task={item}
                   index={index}
                   featured={item.id === priorityTaskId}
+                  reason={item.id === priorityTaskId ? now.reasons[item.id] : undefined}
                   started={item.id === startedTaskId}
                   onOpen={() => openTask(item.id)}
                   onToggle={() => togglePaw(item.id)}
@@ -303,15 +311,6 @@ export function TasksScreen() {
         onStart={startTask}
         onDelete={deleteTask}
         onSave={saveTask}
-      />
-
-      <TaskCelebration
-        visible={celebrationVisible && celebration !== null}
-        title={(celebration && DEMO_CELEBRATION_TITLES[celebration.taskId]) ?? DEMO_DEFAULT_CELEBRATION_TITLE}
-        completedTasks={progress.completedTasks}
-        placeName={PROGRESS_WORLD_STAGES.find((stage) => stage.id === celebration?.stageId)?.title ?? ''}
-        onSeeWorld={seeWorld}
-        onClose={dismissCelebration}
       />
     </View>
   );
@@ -401,6 +400,25 @@ const styles = StyleSheet.create({
     color: palette.inkSoft,
   },
   activeSegmentText: {
+    color: palette.ink,
+  },
+  toggleNotice: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 8,
+    borderRadius: ui.radius.control,
+    backgroundColor: palette.lilacSoft,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 123, 179, 0.24)',
+  },
+  toggleNoticeText: {
+    ...typeScale.small,
+    fontFamily: fonts.semibold,
+    flex: 1,
     color: palette.ink,
   },
   immersiveStage: {
@@ -532,6 +550,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semibold,
     marginTop: 2,
     color: palette.inkSoft,
+  },
+  taskReason: {
+    ...typeScale.caption,
+    fontFamily: fonts.semibold,
+    marginTop: 3,
+    color: palette.lilacDeep,
   },
   startedDetail: {
     fontFamily: fonts.bold,

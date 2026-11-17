@@ -16,6 +16,8 @@ export type PriorityTask = {
   difficulty: TaskDifficulty;
   remainingMinutes: number;
   scheduledDate: string | null;
+  // Orden que ya tenía la lista (p. ej. el del plan); solo desempata antes del id.
+  position?: number;
 };
 
 export type PriorityContext = {
@@ -119,7 +121,7 @@ function rank(task: PriorityTask, context: PriorityContext): RankedTask {
   };
 }
 
-// Nivel de urgencia, importancia, la más fácil primero, menor holgura y, al final, el id:
+// Nivel de urgencia, importancia, la más fácil primero, menor holgura, la posición y, al final, el id:
 // el mismo conjunto de tareas da siempre el mismo orden.
 export function prioritizeTasks(tasks: readonly PriorityTask[], context: PriorityContext): PriorityResult {
   const byId = new Map(tasks.map((task) => [task.id, task]));
@@ -133,6 +135,7 @@ export function prioritizeTasks(tasks: readonly PriorityTask[], context: Priorit
       || IMPORTANCE_ORDER.indexOf(a.importance) - IMPORTANCE_ORDER.indexOf(b.importance)
       || TASK_DIFFICULTY[a.difficulty].weight - TASK_DIFFICULTY[b.difficulty].weight
       || (first.slackMinutes ?? Infinity) - (second.slackMinutes ?? Infinity)
+      || (a.position ?? 0) - (b.position ?? 0)
       || (first.id < second.id ? -1 : first.id > second.id ? 1 : 0)
     );
   });

@@ -14,12 +14,13 @@ import {
   type OrigamiRevealPhase,
 } from '@/components/home/OrigamiGarden';
 import { ProgressWidget } from '@/components/home/ProgressWidget';
+import { usePreferences } from '@/components/preferences/PreferencesProvider';
 import { useReminders } from '@/components/reminders/RemindersProvider';
 import { SpeechBubble } from '@/components/home/SpeechBubble';
 import { AppIcon } from '@/components/icons/AppIcon';
 import { useDemo } from '@/demo/DemoProvider';
 import { HOME_BUBBLE } from '@/demo/demoScript';
-import { getStageProgress } from '@/demo/demoState';
+import { pandaTrailFraction } from '@/services/progress/pandaPath';
 import { palette } from '@/theme/palette';
 
 export function HomeScreen() {
@@ -46,8 +47,10 @@ export function HomeScreen() {
   }, [finishHomeReveal, origamiPhase]);
 
   const { webNotice } = useReminders();
+  const { preferences } = usePreferences();
   const sceneText = hasOrigami && origamiPhase !== 'hidden' ? HOME_BUBBLE.origami : HOME_BUBBLE.initial;
-  const bubbleText = webNotice ?? sceneText;
+  // Sin «Mensajes de Pandoro» el globo solo aparece para el aviso de tareas (que tiene su propio interruptor).
+  const bubbleText = webNotice ?? (preferences.pandoroBubble ? sceneText : null);
 
   return (
     <View style={styles.screen}>
@@ -60,7 +63,7 @@ export function HomeScreen() {
 
       <View style={[styles.safeContent, { paddingTop: insets.top + 9 }]}>
         <View style={styles.topRow}>
-          <ProgressWidget value={getStageProgress(progress)} />
+          <ProgressWidget value={pandaTrailFraction(progress.completedTasks, progress.stageStartSteps)} />
         </View>
 
         <View style={[styles.main, compact && styles.mainCompact]}>
@@ -68,7 +71,7 @@ export function HomeScreen() {
             {hasOrigami ? (
               <OrigamiGround phase={origamiPhase} foxSize={Math.round(pandaSize * 0.37)} />
             ) : null}
-            <SpeechBubble text={bubbleText} bottomOffset={pandaSize * 0.82} />
+            {bubbleText ? <SpeechBubble text={bubbleText} bottomOffset={pandaSize * 0.82} /> : null}
             <View style={[styles.companionBird, compact && styles.companionBirdCompact]} pointerEvents="none">
               <VoiceBird size={compact ? 48 : 58} />
             </View>

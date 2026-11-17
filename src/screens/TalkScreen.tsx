@@ -21,11 +21,14 @@ import { AvailabilityPicker } from '@/components/planning/AvailabilityPicker';
 import { ProposalEditor } from '@/components/planning/ProposalEditor';
 import { plural } from '@/utils/plural';
 import { PandoroAvatar, PandoroBubble, PandoroRow, ThinkingBubble, UserBubble } from '@/components/talk/ChatBubbles';
-import { TALK_GREETING, type TalkMessage, sendTalkTurn } from '@/components/talk/talkConversation';
+import { HoldToTalkButton } from '@/components/talk/HoldToTalkButton';
+import { TALK_GREETING, type TalkMessage, sendTalkTurn, talkTextProblem } from '@/components/talk/talkConversation';
 import { nextPriority, useTasks } from '@/components/tasks/TasksProvider';
 import { GeminiError, MAX_INPUT_LENGTH, planService, toGeminiError } from '@/services/gemini/geminiService';
+import { hoursPerDayProblem, hoursToMinutes } from '@/services/planning/planInput';
 import { analyzeProposal, proposalToTasks } from '@/services/planning/planLogic';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
+import { useDictation } from '@/services/voice/useDictation';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -42,7 +45,8 @@ const STATUS: Record<TalkPhase, string> = {
 const GREETING: TalkMessage = { id: 'greeting', from: 'pandoro', text: TALK_GREETING };
 
 // «Hablar» conversa con el agente real (geminiService). La conversación solo vive en este estado:
-// se pierde al salir y nunca se guarda ni se registra. La entrada por voz llega en la fila 25.
+// se pierde al salir y nunca se guarda ni se registra. La voz (si el dispositivo la admite) solo
+// llena el mismo campo de texto: el usuario revisa la transcripción y la envía como si la escribiera.
 export function TalkScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -55,17 +59,26 @@ export function TalkScreen() {
   const [error, setError] = useState<GeminiError | null>(null);
   const [proposal, setProposal] = useState<PlanProposal | null>(null);
   const [days, setDays] = useState<string[]>([]);
-  const [minutesPerDay, setMinutesPerDay] = useState('');
+  const [hoursPerDay, setHoursPerDay] = useState('');
   const [savedCount, setSavedCount] = useState(0);
 
-  const availability: Availability = { days, minutesPerDay: Number(minutesPerDay) };
-  const hasAvailability = days.length > 0 && availability.minutesPerDay > 0;
-  const canSend = phase === 'ready' && input.trim().length > 0 && hasAvailability;
+  const dictation = useDictation((text) => {
+    setInput((current) => (current.trim() ? `${current.trimEnd()} ${text}` : text).slice(0, MAX_INPUT_LENGTH));
+  });
+
+  const availability: Availability = { days, minutesPerDay: hoursToMinutes(hoursPerDay) };
+  // Las mismas reglas que Nueva tarea: entre 15 minutos y 16 horas por día.
+  const availabilityProblem = !days.length || !hoursPerDay.trim()
+    ? 'Elige tus días y horas disponibles para empezar'
+    : hoursPerDayProblem(hoursPerDay);
+  const textProblem = input.trim() ? talkTextProblem(messages, input, MAX_INPUT_LENGTH) : null;
+  const canSend = phase === 'ready' && !dictation.listening && input.trim().length > 0
+    && !availabilityProblem && !textProblem;
 
   const issues = useMemo(
     () => (proposal ? analyzeProposal(proposal, availability) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [proposal, days, minutesPerDay],
+    [proposal, days, hoursPerDay],
   );
   const blocked = !proposal?.activities.length || issues.some((issue) => issue.blocking);
 
@@ -185,9 +198,9 @@ export function TalkScreen() {
             <View style={styles.card} pointerEvents={phase === 'thinking' ? 'none' : 'auto'}>
               <AvailabilityPicker
                 days={days}
-                minutesPerDay={minutesPerDay}
+                hoursPerDay={hoursPerDay}
                 onChangeDays={setDays}
-                onChangeMinutes={setMinutesPerDay}
+                onChangeHours={setHoursPerDay}
               />
             </View>
           ) : null}
@@ -214,11 +227,19 @@ export function TalkScreen() {
             </View>
           ) : (
             <>
+              {dictation.available ? (
+                <HoldToTalkButton
+                  listening={dictation.listening}
+                  disabled={phase !== 'ready'}
+                  onPressIn={dictation.start}
+                  onPressOut={dictation.stop}
+                />
+              ) : null}
               <View style={styles.inputRow}>
                 <TextInput
                   value={input}
                   onChangeText={setInput}
-                  editable={phase === 'ready'}
+                  editable={phase === 'ready' && !dictation.listening}
                   multiline
                   maxLength={MAX_INPUT_LENGTH}
                   placeholder="Tengo un parcial el viernes y…"
@@ -240,12 +261,18 @@ export function TalkScreen() {
                   )}
                 </Pressable>
               </View>
-              <Text style={styles.dockLabel}>
+              <Text
+                accessibilityLiveRegion="polite"
+                numberOfLines={2}
+                style={[styles.dockLabel, dictation.error && !dictation.listening ? styles.voiceError : null]}
+              >
                 {phase === 'thinking'
                   ? 'Pandoro está organizando tus responsabilidades…'
-                  : hasAvailability
-                    ? 'No incluyas nombres, correos ni teléfonos'
-                    : 'Elige tus días y minutos disponibles para empezar'}
+                  : dictation.listening
+                    ? dictation.partial || 'Te escucho… suelta el botón cuando termines'
+                    : dictation.error
+                      ? dictation.error
+                      : textProblem ?? availabilityProblem ?? 'No incluyas nombres, correos ni teléfonos'}
               </Text>
             </>
           )}
@@ -344,6 +371,10 @@ const styles = StyleSheet.create({
     ...typeScale.small,
     fontFamily: fonts.semibold,
     color: palette.inkSoft,
+    textAlign: 'center',
+  },
+  voiceError: {
+    color: palette.ink,
   },
   card: {
     padding: ui.space.md,

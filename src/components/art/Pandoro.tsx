@@ -18,28 +18,28 @@ type PandoroProps = { size?: number };
 
 // Silueta de la cabeza: la elipse original (140, 100, 110 × 82) con pequeñas
 // variaciones orgánicas para que no parezca una elipse matemática.
-const PANDORO_HEAD_PATH =
+export const PANDORO_HEAD_PATH =
   'M251.5 100C251.6 108.5 248.9 117.4 245.2 125.5S236.2 141.6 229.5 148.5S214.4 162 205.1 166.8S184.7 175.2 173.8 177.7S151.3 181.5 140 181.4S117.2 179.8 106.2 177.5S83.9 172 74.4 167.3S55.6 156.2 49.1 149.2S38.4 133.5 35.4 125.3S30.8 108.4 31 100S33.2 83 36.5 74.9S44.3 58.5 50.8 51.7S66.5 38.9 75.7 34S95.4 24.8 106.1 22.2S128.7 18.3 140 18.3S163.4 19.3 174 22S194.6 29.7 203.6 34.8S221 45.8 227.8 52.5S240.4 66.8 244.3 74.7S251.3 91.5 251.5 100Z';
 
-type Oval = { cx: number; cy: number; rx: number; ry: number; rotate: number };
+export type Oval = { cx: number; cy: number; rx: number; ry: number; rotate: number };
 
 // Partes oscuras: se dibujan y a la vez recortan sus reflejos.
-const EARS = [
+export const EARS = [
   { cx: 62, cy: 55, r: 40 },
   { cx: 218, cy: 55, r: 40 },
 ] as const;
-const ARMS: readonly Oval[] = [
+export const ARMS: readonly Oval[] = [
   { cx: 106, cy: 193, rx: 24.5, ry: 31, rotate: -18 },
   { cx: 174, cy: 193, rx: 24.5, ry: 31, rotate: 18 },
 ];
-const LEGS: readonly Oval[] = [
+export const LEGS: readonly Oval[] = [
   { cx: 92, cy: 237, rx: 32, ry: 27, rotate: 13 },
   { cx: 188, cy: 237, rx: 32, ry: 27, rotate: -13 },
 ];
 
 // Pigmentos de las iluminaciones. Rosa y lila son protagonistas; azul y amarillo, acentos.
 // Los "rim" son versiones claras para reflejos discretos sobre el morado oscuro.
-const PIGMENTS = {
+export const PIGMENTS = {
   pink: '#F4A3C4',
   lilac: '#C0A2F0',
   blue: '#8FA8F6',
@@ -50,7 +50,7 @@ const PIGMENTS = {
   rimBlue: '#C0D0F8',
 } as const;
 
-type Pigment = keyof typeof PIGMENTS;
+export type Pigment = keyof typeof PIGMENTS;
 
 // Una iluminación es un óvalo con degradado radial que se desvanece hasta transparente,
 // así que nunca muestra un borde. Varias luces solapadas forman una zona orgánica.
@@ -94,7 +94,7 @@ const CHEEK_LIGHTS: readonly Light[] = [
 ];
 
 // Cuerpo: la mayor parte queda crema.
-const BODY_LIGHTS = {
+export const BODY_LIGHTS = {
   chestLight: [
     light(140, 194, 30, 18, 0, 'pink', 0.36),
     light(150, 210, 18, 14, 20, 'lilac', 0.24),
@@ -107,15 +107,15 @@ const BODY_LIGHTS = {
 } satisfies Record<string, readonly Light[]>;
 
 // Reflejos muy discretos en el borde de las partes oscuras.
-const EAR_RIMS: readonly Light[] = [
+export const EAR_RIMS: readonly Light[] = [
   light(28, 24, 30, 14, -45, 'rimPink', 0.3),
   light(252, 24, 30, 14, 45, 'rimBlue', 0.26),
 ];
-const ARM_RIMS: readonly Light[] = [
+export const ARM_RIMS: readonly Light[] = [
   light(78, 180, 9, 24, -18, 'rimLilac', 0.26),
   light(202, 180, 9, 24, 18, 'rimBlue', 0.22),
 ];
-const LEG_RIMS: readonly Light[] = [
+export const LEG_RIMS: readonly Light[] = [
   light(70, 210, 22, 8, 20, 'rimPink', 0.24),
   light(210, 210, 22, 8, -20, 'rimLilac', 0.24),
 ];
@@ -150,9 +150,9 @@ export function usePandoroIds() {
   };
 }
 
-type PandoroIds = ReturnType<typeof usePandoroIds>;
+export type PandoroIds = ReturnType<typeof usePandoroIds>;
 
-const ovalTransform = ({ cx, cy, rotate }: Oval) => `rotate(${rotate} ${cx} ${cy})`;
+export const ovalTransform = ({ cx, cy, rotate }: Oval) => `rotate(${rotate} ${cx} ${cy})`;
 
 type LightsProps = {
   lights: readonly Light[];
@@ -160,7 +160,7 @@ type LightsProps = {
   swaps?: Partial<Record<LightFamily, LightFamily>>;
 };
 
-function Lights({ lights, ids, swaps = {} }: LightsProps) {
+export function Lights({ lights, ids, swaps = {} }: LightsProps) {
   return (
     <>
       {lights.map((item, index) => {
@@ -244,22 +244,29 @@ export function PandoroDefs({ ids }: { ids: PandoroIds }) {
   );
 }
 
-type PandoroHeadGroupProps = { ids: PandoroIds; variant?: PandoroVariant };
+type PandoroHeadGroupProps = {
+  ids: PandoroIds;
+  variant?: PandoroVariant;
+  // Falso cuando las orejas se dibujan aparte (PandoroAnimated las mueve por separado).
+  withEars?: boolean;
+};
 
 // Cabeza completa: orejas, pelaje, iluminaciones y cara. La comparten el Pandoro de
 // Inicio y PandoroHead, así que cualquier cambio aquí se ve en todas las pantallas.
-export function PandoroHeadGroup({ ids, variant = 'splash' }: PandoroHeadGroupProps) {
+export function PandoroHeadGroup({ ids, variant = 'splash', withEars = true }: PandoroHeadGroupProps) {
   const darkFur = `url(#${ids.darkFur})`;
   const swaps = VARIANT_SWAPS[variant];
 
   return (
     <G id="pandoroHead">
-      <G id="pandoroEars">
-        {EARS.map((ear, index) => <Circle key={index} {...ear} fill={darkFur} />)}
-        <G clipPath={`url(#${ids.earsClip})`}>
-          <Lights lights={EAR_RIMS} ids={ids} />
+      {withEars ? (
+        <G id="pandoroEars">
+          {EARS.map((ear, index) => <Circle key={index} {...ear} fill={darkFur} />)}
+          <G clipPath={`url(#${ids.earsClip})`}>
+            <Lights lights={EAR_RIMS} ids={ids} />
+          </G>
         </G>
-      </G>
+      ) : null}
 
       <Path id="pandoroHeadBase" d={PANDORO_HEAD_PATH} fill={`url(#${ids.headFur})`} />
 
@@ -298,6 +305,37 @@ export function PandoroHeadGroup({ ids, variant = 'splash' }: PandoroHeadGroupPr
   );
 }
 
+// Cuerpo: base de pelaje e iluminaciones. Lo comparten Pandoro y PandoroAnimated.
+export function PandoroBodyGroup({ ids }: { ids: PandoroIds }) {
+  return (
+    <G id="pandoroBody">
+      <Ellipse id="pandoroBodyBase" cx="140" cy="190" rx="77" ry="70" fill={`url(#${ids.bodyFur})`} />
+      <G id="bodyLight" clipPath={`url(#${ids.bodyClip})`}>
+        <Lights lights={BODY_LIGHTS.chestLight} ids={ids} />
+        <Lights lights={BODY_LIGHTS.sideLight} ids={ids} />
+        <Lights lights={BODY_LIGHTS.accentLight} ids={ids} />
+      </G>
+    </G>
+  );
+}
+
+// Almohadillas de las patas traseras: 0 = pierna izquierda, 1 = derecha.
+export function PandoroPawPad({ ids, side }: { ids: PandoroIds; side: 0 | 1 }) {
+  return (
+    <G fill={`url(#${ids.pawPad})`}>
+      {side === 0 ? (
+        <>
+          <Ellipse cx="89" cy="239" rx="9.5" ry="11" /><Circle cx="75" cy="229" r="5" /><Circle cx="85" cy="218" r="5" /><Circle cx="98" cy="220" r="5" />
+        </>
+      ) : (
+        <>
+          <Ellipse cx="191" cy="239" rx="9.5" ry="11" /><Circle cx="178" cy="220" r="5" /><Circle cx="191" cy="216" r="5" /><Circle cx="204" cy="228" r="5" />
+        </>
+      )}
+    </G>
+  );
+}
+
 export function Pandoro({ size = 250 }: PandoroProps) {
   const ids = usePandoroIds();
   const darkFur = `url(#${ids.darkFur})`;
@@ -308,14 +346,7 @@ export function Pandoro({ size = 250 }: PandoroProps) {
 
       <Ellipse cx="140" cy="261" rx="88" ry="11" fill="#6F945F" opacity=".23" />
 
-      <G id="pandoroBody">
-        <Ellipse id="pandoroBodyBase" cx="140" cy="190" rx="77" ry="70" fill={`url(#${ids.bodyFur})`} />
-        <G id="bodyLight" clipPath={`url(#${ids.bodyClip})`}>
-          <Lights lights={BODY_LIGHTS.chestLight} ids={ids} />
-          <Lights lights={BODY_LIGHTS.sideLight} ids={ids} />
-          <Lights lights={BODY_LIGHTS.accentLight} ids={ids} />
-        </G>
-      </G>
+      <PandoroBodyGroup ids={ids} />
 
       <PandoroHeadGroup ids={ids} />
 
@@ -329,10 +360,8 @@ export function Pandoro({ size = 250 }: PandoroProps) {
           <Lights lights={LEG_RIMS} ids={ids} />
         </G>
 
-        <G fill={`url(#${ids.pawPad})`}>
-          <Ellipse cx="89" cy="239" rx="9.5" ry="11" /><Circle cx="75" cy="229" r="5" /><Circle cx="85" cy="218" r="5" /><Circle cx="98" cy="220" r="5" />
-          <Ellipse cx="191" cy="239" rx="9.5" ry="11" /><Circle cx="178" cy="220" r="5" /><Circle cx="191" cy="216" r="5" /><Circle cx="204" cy="228" r="5" />
-        </G>
+        <PandoroPawPad ids={ids} side={0} />
+        <PandoroPawPad ids={ids} side={1} />
       </G>
     </Svg>
   );

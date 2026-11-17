@@ -19,7 +19,7 @@ Responde a la pregunta *"¿qué hago ahora?"*. Combina fecha límite, importanci
 | Minutos que faltan | La tarea |
 | Fecha programada (opcional) | El plan confirmado |
 | Fecha de hoy | El dispositivo |
-| Disponibilidad (opcional): días y minutos por día | Lo que registró el usuario (F05) |
+| Disponibilidad (opcional): días y horas por día | Lo que registró el usuario (F05) |
 
 ## Cómo ordena
 
@@ -62,6 +62,16 @@ Los motivos se devuelven como códigos y `describeReason` los convierte en texto
 
 Las cuatro se ajustan cambiando una constante o una regla, y cada una tiene su prueba.
 
-## Pendiente: conectarla a la vista «Ahora»
+## Conexión con la vista «Ahora»
 
-La vista «Ahora» de Tareas todavía usa la fórmula provisional del prototipo (`sortTasksForNow` en `src/demo/demoState.ts`). Para reemplazarla, la tarea tiene que guardar fecha límite, importancia y duración en minutos como datos propios. Hoy `TaskItem` no los tiene, y la fecha límite de los planes queda escrita dentro de la descripción. Esos campos los define el modelo de datos (fila 10, Andrea) y se guardan con la persistencia (fila 15, Carlos).
+Desde el 13 de noviembre de 2026, la vista «Ahora» de Tareas usa esta lógica a través de [`src/services/tasks/nowOrder.ts`](../src/services/tasks/nowOrder.ts) (pruebas en [`tests/nowOrder.test.ts`](../tests/nowOrder.test.ts)). Reemplaza la fórmula provisional del prototipo (`sortTasksForNow`), que se retiró.
+
+- **Tarea de un plan** (id `plan-…`): `deadline` es la fecha límite de su actividad y `dueDate` el día en que el plan la programó.
+- **Tarea creada a mano:** su fecha (`dueDate`) hace de fecha límite.
+- **Importancia:** la del plan (`importance`); sin ella, media.
+- **Minutos que faltan:** la duración escrita (`duration`); si no se entiende, 30 minutos.
+- **Disponibilidad:** todavía no se guarda (modelo de datos, F05), así que se usan las 2 horas por día por defecto y no hay avisos de tiempo.
+- **Desempate final:** antes del identificador, la posición que ya tenía la tarea en la lista (`priority`), para respetar el orden del plan.
+- La primera pendiente se marca como **«Sugerencia de Pandoro»** con su motivo (`describeReason`). Las completadas van al final.
+
+Los dos campos nuevos de la tarea (`deadline` e `importance`) están en el [modelo de datos](modelo-de-datos.md#22-tarea--usersuidtaskstaskid-taskitem). Las tareas guardadas antes de este cambio no los traen y se ordenan con importancia media y sin fecha límite propia.

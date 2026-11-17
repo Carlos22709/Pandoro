@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { responsibilitiesText, sendTalkTurn, type TalkMessage } from '../src/components/talk/talkConversation';
+import { responsibilitiesText, sendTalkTurn, talkTextProblem, type TalkMessage } from '../src/components/talk/talkConversation';
 import { GeminiError, createPlanService } from '../src/services/gemini/geminiService';
 
 // Gemini se reemplaza por una función falsa: estas pruebas no llaman a Firebase.
@@ -118,4 +118,13 @@ test('una propuesta llega como sugerencia editable y Pandoro responde con su res
   assert.equal(result.kind, 'proposal');
   assert.equal(result.messages.at(-1)?.text, 'Te propongo estudiar dos días antes del parcial.');
   if (result.kind === 'proposal') assert.equal(result.proposal.activities[0].subtasks.length, 1);
+});
+
+test('el total de la conversación no puede pasar el límite aunque cada mensaje sí quepa', () => {
+  const said: TalkMessage = { id: 'user-1', from: 'user', text: 'a'.repeat(60) };
+  assert.equal(talkTextProblem([greeting, said], 'b'.repeat(30), 100), null);
+  assert.match(talkTextProblem([greeting, said], 'b'.repeat(50), 100) ?? '', /muy larga/);
+  // El saludo y las preguntas de Pandoro no cuentan: no van a Gemini.
+  const longQuestion: TalkMessage = { id: 'pandoro-2', from: 'pandoro', text: 'c'.repeat(500) };
+  assert.equal(talkTextProblem([greeting, longQuestion], 'b'.repeat(90), 100), null);
 });
