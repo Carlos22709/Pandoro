@@ -14,6 +14,8 @@ import { redactPersonalData } from './redactPersonalData';
 // generatePlan, revisePlan y GeminiError.
 const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const REQUEST_TIMEOUT_MS = 60_000;
+// Pausas antes de cada reintento cuando el modelo está saturado (ver requestWithRetry).
+const RETRY_DELAYS_MS = [1_000, 2_000];
 const MAX_OUTPUT_TOKENS = 12_000;
 export const MAX_INPUT_LENGTH = 4_000;
 
@@ -137,10 +139,40 @@ type PlanResult =
 type GenerateInput = { text: string; availability: Availability; today: Date };
 type ReviseInput = GenerateInput & { proposal: PlanProposal; instruction: string };
 
-type ServiceOptions = { generate?: GenerateFn; timeoutMs?: number };
+type ServiceOptions = { generate?: GenerateFn; timeoutMs?: number; retryDelaysMs?: readonly number[] };
 
-export function createPlanService({ generate = geminiGenerate, timeoutMs = REQUEST_TIMEOUT_MS }: ServiceOptions = {}) {
+function wait(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer);
+      resolve();
+    }, { once: true });
+  });
+}
+
+export function createPlanService({
+  generate = geminiGenerate,
+  timeoutMs = REQUEST_TIMEOUT_MS,
+  retryDelaysMs = RETRY_DELAYS_MS,
+}: ServiceOptions = {}) {
   const inFlight = new Map<string, Promise<string | undefined>>();
+
+  // Gemini responde 5xx cuando el modelo está saturado ("high demand"); suele pasar en segundos.
+  // Solo ese caso se reintenta, y dentro del mismo tiempo de espera: cuota, configuración o una
+  // respuesta inválida no cambian por repetir.
+  const requestWithRetry = async (prompt: string, signal: AbortSignal) => {
+    for (let retry = 0; ; retry += 1) {
+      try {
+        return await generate({ prompt, systemInstruction: PLAN_SYSTEM_INSTRUCTION, schema: PLAN_RESPONSE_SCHEMA, signal });
+      } catch (error) {
+        const delay = retryDelaysMs[retry];
+        if (delay === undefined || toGeminiError(error).code !== 'provider') throw error;
+        await wait(delay, signal);
+        if (signal.aborted) throw error;
+      }
+    }
+  };
 
   const request = (prompt: string) => {
     const running = inFlight.get(prompt);
@@ -154,12 +186,7 @@ export function createPlanService({ generate = geminiGenerate, timeoutMs = REQUE
         reject(new GeminiError('timeout'));
       }, timeoutMs);
     });
-    const call = generate({
-      prompt,
-      systemInstruction: PLAN_SYSTEM_INSTRUCTION,
-      schema: PLAN_RESPONSE_SCHEMA,
-      signal: controller.signal,
-    });
+    const call = requestWithRetry(prompt, controller.signal);
     const pending = Promise.race([call, timeout]).finally(() => {
       clearTimeout(timer);
       inFlight.delete(prompt);

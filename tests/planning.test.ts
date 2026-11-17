@@ -262,12 +262,73 @@ test('agota el tiempo de espera y aborta la solicitud', async () => {
   assert.ok(aborted);
 });
 
+const saturated = () => Object.assign(new Error('This model is currently experiencing high demand'), { status: 500 });
+
+test('reintenta solo cuando Gemini está saturado y entrega el plan', async () => {
+  let calls = 0;
+  const generate: GenerateFn = async () => {
+    calls += 1;
+    if (calls === 1) throw saturated();
+    return twoActivities;
+  };
+  const result = await createPlanService({ generate, retryDelaysMs: [0, 0] }).generatePlan({ text, availability, today });
+  assert.equal(result.kind, 'proposal');
+  assert.equal(calls, 2);
+});
+
+test('tras tres intentos saturados muestra el error del proveedor', async () => {
+  let calls = 0;
+  const generate: GenerateFn = async () => {
+    calls += 1;
+    throw saturated();
+  };
+  await assert.rejects(
+    createPlanService({ generate, retryDelaysMs: [0, 0] }).generatePlan({ text, availability, today }),
+    (error: GeminiError) => error.code === 'provider',
+  );
+  assert.equal(calls, 3);
+});
+
+test('no reintenta la cuota, la configuración ni una respuesta inválida', async () => {
+  const failures: [() => Promise<string | undefined>, string][] = [
+    [async () => { throw Object.assign(new Error('x'), { status: 429 }); }, 'quota'],
+    [async () => { throw Object.assign(new Error('x'), { status: 403 }); }, 'auth'],
+    [async () => '{"status":', 'invalid_response'],
+  ];
+  for (const [fail, code] of failures) {
+    let calls = 0;
+    const generate: GenerateFn = () => {
+      calls += 1;
+      return fail();
+    };
+    await assert.rejects(
+      createPlanService({ generate, retryDelaysMs: [0, 0] }).generatePlan({ text, availability, today }),
+      (error: GeminiError) => error.code === code,
+    );
+    assert.equal(calls, 1, code);
+  }
+});
+
+test('el tiempo de espera cubre los reintentos y los detiene', async () => {
+  let calls = 0;
+  const generate: GenerateFn = async () => {
+    calls += 1;
+    throw saturated();
+  };
+  await assert.rejects(
+    createPlanService({ generate, timeoutMs: 10, retryDelaysMs: [40, 40] }).generatePlan({ text, availability, today }),
+    (error: GeminiError) => error.code === 'timeout',
+  );
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(calls, 1);
+});
+
 test('no repite una solicitud idéntica en curso y permite reintentar tras un fallo', async () => {
   let calls = 0;
   const service = createPlanService({
     generate: async () => {
       calls += 1;
-      if (calls === 1) throw Object.assign(new Error('x'), { status: 503 });
+      if (calls === 1) throw Object.assign(new Error('x'), { status: 429 });
       return twoActivities;
     },
   });
