@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { usePreferences } from '@/components/preferences/PreferencesProvider';
 import { useTasks } from '@/components/tasks/TasksProvider';
 import { reminderService, remindersSupported } from '@/services/reminders/expoNotifications';
 import { upcomingNotice, type SyncResult } from '@/services/reminders/reminderService';
@@ -17,7 +18,9 @@ const RemindersContext = createContext<RemindersValue | null>(null);
 
 export function RemindersProvider({ children }: { children: ReactNode }) {
   const { tasks } = useTasks();
-  const [enabled, setEnabled] = useState(true);
+  // El interruptor vive en las preferencias de la cuenta: apagarlo sobrevive a cerrar la app.
+  const { preferences, setPreference } = usePreferences();
+  const enabled = preferences.taskReminders;
   const [status, setStatus] = useState<SyncResult | null>(null);
 
   // Cada vez que se guarda, reprograma o termina una tarea, se recalculan los avisos.
@@ -39,8 +42,14 @@ export function RemindersProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ enabled, setEnabled, status, supported: remindersSupported, webNotice }),
-    [enabled, status, webNotice],
+    () => ({
+      enabled,
+      setEnabled: (next: boolean) => setPreference('taskReminders', next),
+      status,
+      supported: remindersSupported,
+      webNotice,
+    }),
+    [enabled, setPreference, status, webNotice],
   );
   return <RemindersContext.Provider value={value}>{children}</RemindersContext.Provider>;
 }

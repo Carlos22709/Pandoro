@@ -1,9 +1,9 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
-import type { Firestore } from 'firebase/firestore';
+import { type Firestore, waitForPendingWrites } from 'firebase/firestore';
 
 import { createAuth } from '@/services/firebase/createAuth';
-import { createDb } from '@/services/firebase/createDb';
+import { clearLocalCache, createDb } from '@/services/firebase/createDb';
 
 // Expo solo incorpora estas variables si se escriben literalmente.
 const firebaseConfig = {
@@ -42,4 +42,29 @@ export function getFirebaseDb() {
     db = createDb(getFirebaseApp());
   }
   return db;
+}
+
+// Antes de cerrar sesión: da unos segundos para que lleguen al servidor los cambios recientes,
+// que después ya no se podrían enviar. Sin conexión no espera para siempre.
+export async function flushPendingWrites(timeoutMs = 3000) {
+  if (!db) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    waitForPendingWrites(db).catch(() => undefined),
+    new Promise((resolve) => { timer = setTimeout(resolve, timeoutMs); }),
+  ]);
+  clearTimeout(timer);
+}
+
+// Después de cerrar sesión: borra la copia local (solo existe en la web). El siguiente uso de
+// getFirebaseDb crea una instancia nueva y limpia.
+export async function clearLocalData() {
+  if (!db) return;
+  const current = db;
+  db = null;
+  try {
+    await clearLocalCache(current);
+  } catch (error) {
+    console.warn('No se pudo borrar la copia local de Firestore.', (error as Error).message);
+  }
 }

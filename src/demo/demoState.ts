@@ -4,7 +4,7 @@ import {
 } from '@/components/progress/worldData';
 import { TASK_DIFFICULTY, type TaskDraft, type TaskItem } from '@/components/tasks/taskTypes';
 import { DEMO_PLAN } from '@/demo/demoScript';
-import { toIsoDate, upcomingDays, weekdayLong } from '@/services/planning/planDates';
+import { upcomingDays, weekdayLong } from '@/services/planning/planDates';
 import { acknowledgeClosure } from '@/services/progress/weekClosure';
 
 // Estado de la presentación: vive solo en memoria y vuelve a este punto al recargar
@@ -67,17 +67,6 @@ export const INITIAL_DEMO_STATE: DemoState = {
 // Puntuación de la vista "Ahora": menor va antes y las tareas difíciles suben.
 function nowScore(task: TaskItem) {
   return task.priority - TASK_DIFFICULTY[task.difficulty].weight * 1.5;
-}
-
-// Las pendientes con fecha ya pasada van primero, sin etiqueta; entre sí rige la misma puntuación.
-export function sortTasksForNow(tasks: readonly TaskItem[], today: Date = new Date()) {
-  const todayIso = toIsoDate(today);
-  const overdue = (task: TaskItem) => !task.completed && task.dueDate !== undefined && task.dueDate < todayIso;
-  return [...tasks].sort((first, second) => {
-    if (first.completed !== second.completed) return first.completed ? 1 : -1;
-    if (overdue(first) !== overdue(second)) return overdue(first) ? -1 : 1;
-    return nowScore(first) - nowScore(second);
-  });
 }
 
 // Cada lugar del plan queda por delante de todas las demás en "Ahora", en el orden del plan.

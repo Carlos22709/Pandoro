@@ -188,6 +188,12 @@ test('las tareas planeadas guardan su día para el recordatorio', async () => {
   assert.deepEqual(tasks.map((task) => task.dueDate), ['2026-11-03', '2026-11-04', '2026-11-05']);
 });
 
+test('las tareas planeadas guardan la fecha límite y la importancia de su actividad como datos', async () => {
+  const tasks = proposalToTasks(await firstProposal(), 1);
+  assert.deepEqual(tasks.map((task) => task.deadline), ['2026-11-06', '2026-11-06', undefined]);
+  assert.ok(tasks.every((task) => task.importance === 'medium'));
+});
+
 test('los campos vacíos bloquean la confirmación', async () => {
   const proposal = updateSubtask(await firstProposal(), 's1', { title: '', durationMinutes: 0 });
   assert.ok(analyzeProposal(proposal, availability).filter((issue) => issue.blocking).length >= 2);

@@ -11,7 +11,12 @@ import {
 
 import { authErrorMessage, NOT_CONFIGURED_MESSAGE } from '@/services/auth/authRules';
 import { saveConsent } from '@/services/data/userRepository';
-import { getFirebaseAuth, isFirebaseConfigured } from '@/services/firebase/firebaseApp';
+import {
+  clearLocalData,
+  flushPendingWrites,
+  getFirebaseAuth,
+  isFirebaseConfigured,
+} from '@/services/firebase/firebaseApp';
 
 export type AuthUser = {
   uid: string;
@@ -74,8 +79,14 @@ export const authService = {
     });
   },
 
+  // En la web también se borra la copia local de Firestore (ver createDb.ts).
   signOut() {
-    return friendly(() => signOut(configuredAuth()));
+    return friendly(async () => {
+      const auth = configuredAuth();
+      await flushPendingWrites();
+      await signOut(auth);
+      await clearLocalData();
+    });
   },
 
   sendPasswordReset(email: string) {

@@ -40,6 +40,15 @@ test('editar una tarea conserva su id y reemplaza los campos modificados', () =>
   assert.deepEqual(taskFromDoc(task.id, taskToDoc(edited)), edited);
 });
 
+test('la fecha límite y la importancia de un plan vuelven idénticas; si están dañadas se omiten', () => {
+  const planned: TaskItem = { ...task, deadline: '2026-11-20', importance: 'high' };
+  assert.deepEqual(taskFromDoc(task.id, taskToDoc(planned)), planned);
+
+  const damaged = taskFromDoc(task.id, { ...taskToDoc(task), deadline: 'viernes', importance: 'urgente' });
+  assert.equal(damaged?.deadline, undefined);
+  assert.equal(damaged?.importance, undefined);
+});
+
 test('un documento con valores inesperados no rompe la app', () => {
   const restored = taskFromDoc('x', {
     title: 'Algo',
