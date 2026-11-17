@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 import {
   createReminderService,
+  formatReminderHour,
   reminderDate,
   reminderId,
   REMINDER_CONTENT,
@@ -107,6 +108,34 @@ test('no toca notificaciones ajenas a Pandask', async () => {
   scheduled.set('otra-app', { identifier: 'otra-app', content: { title: '', body: '', data: {} }, trigger: { type: 'date', date: NOW } });
   await createReminderService(adapter, () => NOW).syncReminders([], false);
   assert.ok(scheduled.has('otra-app'));
+});
+
+test('acepta una hora distinta y descarta las que ya pasaron ese mismo día', () => {
+  assert.deepEqual(reminderDate('2026-11-03', NOW, 18), new Date(2026, 10, 3, 18, 0));
+  // A las 10:00, un aviso a las 18:00 de hoy todavía es futuro; a las 8:00 ya no.
+  assert.deepEqual(reminderDate('2026-11-02', NOW, 18), new Date(2026, 10, 2, 18, 0));
+  assert.equal(reminderDate('2026-11-02', NOW, 8), null);
+  assert.deepEqual(reminderDate('2026-11-03', NOW), new Date(2026, 10, 3, 8, 0));
+  assert.deepEqual(reminderDate('2026-11-03', NOW, 24), new Date(2026, 10, 3, 8, 0));
+  assert.deepEqual(reminderDate('2026-11-03', NOW, 7.5), new Date(2026, 10, 3, 8, 0));
+});
+
+test('cambiar la hora reprograma el aviso pendiente', async () => {
+  const { adapter, scheduled } = mockNotifications(granted);
+  const service = createReminderService(adapter, () => NOW);
+  await service.syncReminders([{ id: 'a', completed: false, dueDate: '2026-11-03' }], true, 8);
+  assert.deepEqual(scheduled.get(reminderId('a'))!.trigger.date, new Date(2026, 10, 3, 8, 0));
+
+  await service.syncReminders([{ id: 'a', completed: false, dueDate: '2026-11-03' }], true, 19);
+  assert.equal(scheduled.size, 1);
+  assert.deepEqual(scheduled.get(reminderId('a'))!.trigger.date, new Date(2026, 10, 3, 19, 0));
+});
+
+test('escribe la hora del aviso en español', () => {
+  assert.equal(formatReminderHour(8), '8:00 a. m.');
+  assert.equal(formatReminderHour(0), '12:00 a. m.');
+  assert.equal(formatReminderHour(12), '12:00 p. m.');
+  assert.equal(formatReminderHour(19), '7:00 p. m.');
 });
 
 test('en la web no hay adaptador y se avisa al abrir la app', async () => {

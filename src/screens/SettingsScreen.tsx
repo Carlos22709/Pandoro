@@ -21,6 +21,7 @@ import { useTasks } from '@/components/tasks/TasksProvider';
 import { useDemo } from '@/demo/DemoProvider';
 import { PRESENTATION_MODE_AVAILABLE } from '@/demo/presentationMode';
 import { useReminders } from '@/components/reminders/RemindersProvider';
+import { formatReminderHour } from '@/services/reminders/reminderService';
 import { palette } from '@/theme/palette';
 import { fonts, typeScale } from '@/theme/typography';
 import { ui } from '@/theme/ui';
@@ -90,6 +91,66 @@ function PreferenceRow({
       >
         <View style={[styles.toggleThumb, value && styles.toggleThumbActive]} />
       </Pressable>
+    </View>
+  );
+}
+
+
+type HourRowProps = {
+  hour: number;
+  onChange: (hour: number) => void;
+  enabled: boolean;
+  supported: boolean;
+  colors: SettingsColors;
+  last?: boolean;
+};
+
+function HourRow({ hour, onChange, enabled, supported, colors, last = false }: HourRowProps) {
+  const label = formatReminderHour(hour);
+  return (
+    <View
+      style={[
+        styles.preferenceRow,
+        !last && { borderBottomColor: colors.border, borderBottomWidth: 1 },
+        !enabled && styles.hourDisabled,
+      ]}
+    >
+      <View style={styles.preferenceCopy}>
+        <Text style={[styles.preferenceTitle, { color: colors.text }]}>Hora del aviso</Text>
+        <Text style={[styles.preferenceDescription, { color: colors.muted }]}>
+          {supported
+            ? 'A esta hora te llega el aviso el día de cada tarea.'
+            : 'Esta hora vale en la app del teléfono. En la web no hay avisos programados: Pandoro te cuenta lo pendiente al abrir la app.'}
+        </Text>
+      </View>
+      <View style={styles.hourStepper}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Una hora antes"
+          disabled={!enabled}
+          hitSlop={4}
+          onPress={() => onChange((hour + 23) % 24)}
+          style={({ pressed }) => [styles.hourArrow, pressed && enabled && styles.pressed]}
+        >
+          <Text style={[styles.hourArrowText, { color: colors.accent }]}>‹</Text>
+        </Pressable>
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.hourValue, { color: colors.text }]}
+        >
+          {label}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Una hora después"
+          disabled={!enabled}
+          hitSlop={4}
+          onPress={() => onChange((hour + 1) % 24)}
+          style={({ pressed }) => [styles.hourArrow, pressed && enabled && styles.pressed]}
+        >
+          <Text style={[styles.hourArrowText, { color: colors.accent }]}>›</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -224,10 +285,17 @@ export function SettingsScreen() {
             description={reminders.supported
               ? reminders.status === 'denied'
                 ? 'Activa las notificaciones de Pandask en los ajustes del teléfono para recibir avisos.'
-                : 'Un aviso a las 8:00 a. m. el día de cada tarea planeada. No muestra el nombre de la tarea.'
+                : 'Un aviso el día de cada tarea planeada, a la hora que elijas. No muestra el nombre de la tarea.'
               : 'En la web, Pandoro te cuenta al abrir la app qué tienes para hoy y mañana.'}
             value={reminders.enabled}
             onValueChange={reminders.setEnabled}
+            colors={colors}
+          />
+          <HourRow
+            hour={reminders.hour}
+            onChange={reminders.setHour}
+            enabled={reminders.enabled}
+            supported={reminders.supported}
             colors={colors}
             last
           />
@@ -452,6 +520,30 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 15,
     paddingVertical: 12,
+  },
+  hourDisabled: {
+    opacity: 0.45,
+  },
+  hourStepper: {
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  hourArrow: {
+    width: ui.size.touch,
+    height: ui.size.touch,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hourArrowText: {
+    ...typeScale.heading,
+  },
+  hourValue: {
+    ...typeScale.small,
+    fontFamily: fonts.display,
+    minWidth: 84,
+    textAlign: 'center',
   },
   preferenceCopy: {
     flex: 1,
