@@ -180,7 +180,7 @@ Todo el flujo depende de que el usuario haya autorizado el asistente, si el equi
 - **Android:** al guardar o reprogramar una tarea con fecha, la capa de servicios programa una notificación local en el teléfono. No hace falta servidor. Se puede desactivar en Ajustes y la app pide permiso de notificaciones la primera vez.
 - **Web:** el navegador no puede programar notificaciones que lleguen con la página cerrada sin un servidor de envío, y ese servidor exigiría el plan Blaze. En la web, Pandoro avisa de lo próximo al abrir la app.
 
-- **Implementación (fila 27):** `src/services/reminders/reminderService.ts` (lógica probada con un simulacro de expo-notifications) y `expoNotifications.ts` (adaptador real). Las tareas planeadas guardan `dueDate` y avisan a las 8:00 a. m. de ese día. El texto es genérico («Tienes una tarea para hoy…»), nunca el título ni las notas, porque se ve en la pantalla bloqueada. Las tareas manuales aún no tienen fecha estructurada, así que no generan aviso. El interruptor de Ajustes vive en memoria hasta que exista persistencia (fila 15).
+- **Implementación (fila 27):** `src/services/reminders/reminderService.ts` (lógica probada con un simulacro de expo-notifications) y `expoNotifications.ts` (adaptador real). Las tareas planeadas guardan `dueDate` y avisan a la hora que el usuario eligió en Ajustes (por defecto las 8:00 a. m. de ese día). El texto es genérico («Tienes una tarea para hoy…»), nunca el título ni las notas, porque se ve en la pantalla bloqueada. Las tareas manuales aún no tienen fecha estructurada, así que no generan aviso. La hora se guarda en `users/{uid}.preferences.reminderHour` y el interruptor en `taskReminders`.
 
 ### 6.5 Sin conexión y errores
 

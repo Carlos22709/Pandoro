@@ -15,6 +15,7 @@ import {
 import { saveProgress, watchProgress } from '@/services/data/progressRepository';
 import { createTask, createTasks, deleteAllTasks, deleteTask, saveTask, watchTasks } from '@/services/data/tasksRepository';
 import { authService } from '@/services/auth/authService';
+import { deleteCurrentUserDocuments } from '@/services/data/accountDeletion';
 import { savePreferences, watchPreferences } from '@/services/data/userRepository';
 import { getFirebaseAuth, getFirebaseDb } from '@/services/firebase/firebaseApp';
 
@@ -165,10 +166,7 @@ try {
   );
 } finally {
   if (auth.currentUser?.uid !== uidA) await signInWithEmailAndPassword(auth, emailA, password);
-  await deleteAllTasks(uidA);
-  await deleteAllCompletions(uidA);
-  await deleteDoc(doc(db, 'users', uidA, 'progress', 'world'));
-  await deleteDoc(doc(db, 'users', uidA));
+  await deleteCurrentUserDocuments(uidA);
   await deleteUser(auth.currentUser!);
   results.push('· datos y cuenta A borrados');
 }

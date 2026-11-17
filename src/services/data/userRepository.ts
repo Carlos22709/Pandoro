@@ -23,18 +23,26 @@ export function watchConsent(uid: string, onConsent: (given: boolean) => void, o
   return onSnapshot(userRef(uid), (snapshot) => onConsent(hasConsent(snapshot.data())), onError);
 }
 
-export function savePreferences(uid: string, preferences: Record<string, boolean>) {
+export type PreferenceValue = boolean | number;
+
+// Los booleanos se aceptan siempre. reminderHour es la única clave numérica (hora entera 0–23).
+function isPreferenceValue(key: string, value: unknown): value is PreferenceValue {
+  if (typeof value === 'boolean') return true;
+  return key === 'reminderHour' && typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 23;
+}
+
+export function savePreferences(uid: string, preferences: Record<string, PreferenceValue>) {
   return setDoc(userRef(uid), { preferences }, { merge: true });
 }
 
-// Solo llegan los valores verdadero/falso: un documento dañado no rompe Ajustes.
-export function watchPreferences(uid: string, onPreferences: (saved: Record<string, boolean>) => void) {
+// Un documento dañado no rompe Ajustes: solo pasan booleanos y una hora válida.
+export function watchPreferences(uid: string, onPreferences: (saved: Record<string, PreferenceValue>) => void) {
   return onSnapshot(
     userRef(uid),
     (snapshot) => {
       const raw = snapshot.data()?.preferences;
       const entries = raw && typeof raw === 'object' ? Object.entries(raw as Record<string, unknown>) : [];
-      onPreferences(Object.fromEntries(entries.filter(([, value]) => typeof value === 'boolean')) as Record<string, boolean>);
+      onPreferences(Object.fromEntries(entries.filter(([key, value]) => isPreferenceValue(key, value))) as Record<string, PreferenceValue>);
     },
     (error) => console.warn('No se pudieron leer las preferencias.', error.message),
   );

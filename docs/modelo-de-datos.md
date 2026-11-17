@@ -138,13 +138,14 @@ No es un documento: el catálogo de seis escenarios está en código (`PROGRESS_
 
 ### 2.7 Preferencias — `users/{uid}.preferences`
 
-Mapa de booleanos; los valores que no sean verdadero/falso se ignoran al leer. Código: [`src/services/preferences/preferences.ts`](../src/services/preferences/preferences.ts) y `PreferencesProvider`.
+Mapa de preferencias de Ajustes. Los booleanos que no sean verdadero/falso se ignoran al leer. `reminderHour` es la única clave numérica (hora entera de 0 a 23; cualquier otro valor se ignora y queda en 8). Código: [`src/services/preferences/preferences.ts`](../src/services/preferences/preferences.ts) y `PreferencesProvider`.
 
 | Clave | Por defecto | Descripción |
 | --- | --- | --- |
 | `reducedMotion` | falso | Activado: sin animaciones en toda la app. Apagado: se sigue el ajuste del sistema |
 | `pandoroBubble` | verdadero | El globo con lo que dice Pandoro en Inicio |
-| `taskReminders` | verdadero | Recordatorios de tareas (F10) |
+| `taskReminders` | verdadero | Recordatorios de tareas (F10). El interruptor de Ajustes se guarda en la cuenta. |
+| `reminderHour` | 8 | Hora local del aviso diario (F10), configurable en Ajustes |
 
 Desde el 13/11/2026 Ajustes solo muestra interruptores que cambian algo. Se retiraron `darkMode`, `weeklySummary`, `sounds`, `haptics` y `usageAnalytics`, que no tenían función detrás, y `reduceMotion` y `pandoroTips` se reemplazaron por claves nuevas para no heredar valores guardados por la versión anterior. Los documentos antiguos pueden conservar esas claves; la app las ignora.
 
@@ -158,7 +159,7 @@ Desde el 13/11/2026 Ajustes solo muestra interruptores que cambian algo. Se reti
 - Los pasos, lugares y semanas ganadas **no se revierten** (la gamificación no castiga).
 - Un documento dañado o de una versión anterior nunca rompe la lista: `taskFromDoc` corrige o ignora, y `progressFromDoc` usa valores por defecto.
 - Confirmar un plan escribe todas sus tareas en un lote: se guardan todas o ninguna.
-- Eliminar la cuenta borra toda la rama `users/{uid}` (flujo completo por implementar; ver [`privacidad.md`](privacidad.md) §5).
+- Eliminar la cuenta (Ajustes → Borrar mi cuenta y mis datos) borra las subcolecciones conocidas (`tasks`, `completions`, `progress`, y si existieran `plans` y `usage`), el documento `users/{uid}`, los recordatorios locales y la cuenta de Authentication. Ver [`privacidad.md`](privacidad.md) §5.
 - Acceso: `request.auth.uid == uid` sobre `users/{uid}/**`; todo lo demás queda denegado.
 
 ## 4. Por confirmar

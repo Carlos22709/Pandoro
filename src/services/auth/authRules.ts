@@ -24,6 +24,7 @@ const AUTH_MESSAGES: Record<string, string> = {
   'auth/operation-not-allowed': 'El acceso con correo y contraseña no está habilitado.',
   'auth/invalid-api-key': NOT_CONFIGURED_MESSAGE,
   'auth/configuration-not-found': NOT_CONFIGURED_MESSAGE,
+  'auth/requires-recent-login': 'Para borrar tu cuenta, escribe tu contraseña otra vez.',
 };
 
 export function authErrorMessage(failure: unknown) {
