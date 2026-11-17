@@ -59,7 +59,7 @@ Fuente: [precios de la Gemini API](https://ai.google.dev/gemini-api/docs/pricing
 
 ## Flujo
 
-1. El usuario escribe en Nueva tarea y marca sus días y minutos disponibles; nada viene preseleccionado.
+1. El usuario escribe en Nueva tarea y marca sus días y horas disponibles; nada viene preseleccionado.
 2. Se quitan correos y números largos del texto, y la solicitud va a Gemini por Firebase AI Logic. Gemini devuelve JSON con esquema definido, que `planContract.ts` revalida. Una fecha límite solo se acepta si puede citarse del texto del usuario.
 3. La propuesta se muestra como borrador editable. Los avisos de sobrecarga, días no disponibles, fechas límite y dependencias se calculan localmente y se actualizan con cada edición, sin llamar a Gemini.
 4. Las instrucciones conversacionales revisan el borrador. Lo editado a mano se conserva salvo que Gemini declare que la instrucción lo contradice, y una subtarea omitida sin declararlo se restaura.

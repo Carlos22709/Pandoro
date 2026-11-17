@@ -10,13 +10,13 @@ const DAYS_SHOWN = 21;
 
 type AvailabilityPickerProps = {
   days: string[];
-  minutesPerDay: string;
+  hoursPerDay: string;
   onChangeDays: (days: string[]) => void;
-  onChangeMinutes: (minutes: string) => void;
+  onChangeHours: (hours: string) => void;
 };
 
 // Nada viene marcado: la disponibilidad la declara el usuario, no se supone.
-export function AvailabilityPicker({ days, minutesPerDay, onChangeDays, onChangeMinutes }: AvailabilityPickerProps) {
+export function AvailabilityPicker({ days, hoursPerDay, onChangeDays, onChangeHours }: AvailabilityPickerProps) {
   const calendar = useMemo(() => upcomingDays(new Date(), DAYS_SHOWN), []);
 
   const toggleDay = (day: string) => {
@@ -45,14 +45,14 @@ export function AvailabilityPicker({ days, minutesPerDay, onChangeDays, onChange
         })}
       </View>
 
-      <Text style={[styles.label, styles.minutesLabel]}>¿Cuántos minutos por día?</Text>
+      <Text style={[styles.label, styles.hoursLabel]}>¿Cuántas horas por día?</Text>
       <TextInput
-        value={minutesPerDay}
-        onChangeText={(value) => onChangeMinutes(value.replace(/\D/g, ''))}
-        keyboardType="number-pad"
-        placeholder="120"
+        value={hoursPerDay}
+        onChangeText={(value) => onChangeHours(value.replace(/[^\d.,]/g, '').slice(0, 5))}
+        keyboardType="decimal-pad"
+        placeholder="2"
         placeholderTextColor={palette.inkSoft}
-        accessibilityLabel="Minutos disponibles por día"
+        accessibilityLabel="Horas disponibles por día"
         style={styles.input}
       />
     </View>
@@ -61,7 +61,7 @@ export function AvailabilityPicker({ days, minutesPerDay, onChangeDays, onChange
 
 const styles = StyleSheet.create({
   label: { ...typeScale.caption, fontFamily: fonts.bold, color: palette.inkSoft, marginLeft: 4, marginBottom: 6 },
-  minutesLabel: { marginTop: 14 },
+  hoursLabel: { marginTop: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   day: {
     width: '13%',

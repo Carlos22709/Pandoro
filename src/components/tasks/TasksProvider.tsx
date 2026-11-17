@@ -34,7 +34,7 @@ export type PlannerDraft = {
   stage: PlannerStage;
   text: string;
   days: string[];
-  minutesPerDay: string;
+  hoursPerDay: string;
   instruction: string;
   clarification: string | null;
   proposal: PlanProposal | null;
@@ -46,7 +46,7 @@ export const EMPTY_PLANNER: PlannerDraft = {
   stage: 'compose',
   text: '',
   days: [],
-  minutesPerDay: '',
+  hoursPerDay: '',
   instruction: '',
   clarification: null,
   proposal: null,
