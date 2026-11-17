@@ -31,6 +31,9 @@ Estado al 11 de noviembre de 2026: **Pandask está publicada** en [https://panda
    ```bash
    npm run build:web
    ```
+   Para la demo del equipo (Ajustes → Demo → "Reiniciar demo" y el modo presentación de Progreso
+   también en el celular) se publica con `npm run build:web:demo`, que activa
+   `EXPO_PUBLIC_PRESENTATION_MODE=true`. Así se publicó el 17 nov 2026.
 4. (Opcional) Probarla localmente antes de publicar, sin tocar producción:
    ```bash
    firebase emulators:start --only hosting --project pandask-f849d

@@ -9,6 +9,9 @@
       "environment": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_PRESENTATION_MODE": "true"
       }
     },
     "production": {

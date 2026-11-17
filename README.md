@@ -25,7 +25,7 @@ Inicio → Hablar con Pandoro → conversación real con Gemini → sugerencia e
 - **Persistencia:** al confirmar, cada subtarea se guarda en la misma colección de Tareas con un identificador estable, así que repetir la confirmación no crea duplicados.
 - **Privacidad:** la conversación y el borrador no se guardan. Solo llegan a Firestore las tareas aprobadas.
 - **Semana viva (progreso):** cada tarea completada es un paso y mueve a Pandoro por el sendero. El lugar nuevo se decide al cerrar la semana; los pasos viven en `users/{uid}/completions` y el progreso del mundo en `users/{uid}/progress/world`.
-- **Reiniciar:** solo en desarrollo o en builds con `EXPO_PUBLIC_PRESENTATION_MODE=true`, Ajustes → Demo → "Reiniciar demo" pide un segundo toque y borra las tareas y el progreso del usuario. La versión publicada no lo muestra.
+- **Reiniciar:** solo en desarrollo o en builds con `EXPO_PUBLIC_PRESENTATION_MODE=true`, Ajustes → Demo → "Reiniciar demo" pide un segundo toque y borra las tareas y el progreso del usuario. El APK `preview` (`eas.json`) y la web publicada con `npm run build:web:demo` lo traen activado para poder presentar desde el celular; `npm run build:web` y el perfil `production` no lo muestran.
 
 ## Ejecutar
 
