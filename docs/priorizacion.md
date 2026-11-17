@@ -19,7 +19,7 @@ Responde a la pregunta *"¿qué hago ahora?"*. Combina fecha límite, importanci
 | Minutos que faltan | La tarea |
 | Fecha programada (opcional) | El plan confirmado |
 | Fecha de hoy | El dispositivo |
-| Disponibilidad (opcional): días y minutos por día | Lo que registró el usuario (F05) |
+| Disponibilidad (opcional): días y horas por día | Lo que registró el usuario (F05) |
 
 ## Cómo ordena
 

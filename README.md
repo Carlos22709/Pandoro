@@ -21,7 +21,7 @@ Inicio → Hablar con Pandoro → conversación real con Gemini → sugerencia e
       → celebración → Ver mi mundo → avance de Pandoro
 ```
 
-- **Hablar:** elige los días y minutos disponibles y escribe tus responsabilidades. Pandoro pregunta lo indispensable que falte y muestra una sugerencia editable antes de guardarla. La voz sigue pendiente.
+- **Hablar:** elige los días y horas disponibles y escribe tus responsabilidades. Pandoro pregunta lo indispensable que falte y muestra una sugerencia editable antes de guardarla. La voz sigue pendiente.
 - **Persistencia:** al confirmar, cada subtarea se guarda en la misma colección de Tareas con un identificador estable, así que repetir la confirmación no crea duplicados.
 - **Privacidad:** la conversación y el borrador no se guardan. Solo llegan a Firestore las tareas aprobadas.
 - **Semana viva (progreso):** cada tarea completada es un paso y mueve a Pandoro por el sendero. El lugar nuevo se decide al cerrar la semana; los pasos viven en `users/{uid}/completions` y el progreso del mundo en `users/{uid}/progress/world`.
@@ -70,6 +70,7 @@ El arte está implementado como SVG nativo para conservar nitidez y evitar depen
 
 - Escenario: `src/components/art/ForestScene.tsx`
 - Pandoro: `src/components/art/Pandoro.tsx`
+- Pandoro animado por partes (patas, brazos, orejas, cabeza): `src/components/art/PandoroAnimated.tsx`, con las poses en `src/services/progress/pandaPose.ts`
 - Cabeza del onboarding y del acceso: `src/components/art/PandoroHead.tsx` (recorta la misma cabeza de `Pandoro.tsx`; sus variantes solo cambian el color de las iluminaciones)
 
 El color de Pandoro son iluminaciones de acuarela: óvalos con degradado radial que se desvanecen hasta transparente, agrupados por zona (`HEAD_LIGHTS`, `BODY_LIGHTS`, reflejos de las partes oscuras) y con una intensidad global (`LIGHT_INTENSITY`) en `Pandoro.tsx`.

@@ -140,7 +140,7 @@ sequenceDiagram
     U->>A: Habla (o escribe) sus pendientes
     A->>V: Iniciar dictado
     V-->>A: Texto transcrito (el usuario lo ve y puede corregirlo)
-    U->>A: Marca días y minutos disponibles
+    U->>A: Marca días y horas disponibles
     A->>S: generatePlan(texto, disponibilidad, fecha de hoy)
     S->>S: Quita correos, teléfonos y números de documento del texto
     S->>AI: Solicitud con instrucciones y esquema JSON (+ token de App Check)

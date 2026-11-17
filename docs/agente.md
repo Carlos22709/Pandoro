@@ -20,7 +20,7 @@ Una sola llamada a Gemini (`gemini-3.5-flash-lite`, por Firebase AI Logic) que c
 | Entrada | Origen | Límites |
 | --- | --- | --- |
 | Texto de las responsabilidades | Escrito o transcrito de la voz; el usuario lo ve y lo corrige | Máx. 4.000 caracteres (`MAX_INPUT_LENGTH`). Antes de enviar, `redactPersonalData` cambia correos por `[correo]` y teléfonos o documentos por `[número]` |
-| Disponibilidad (`Availability`) | Lo marca el usuario; nada viene preseleccionado | `days`: fechas `YYYY-MM-DD`; `minutesPerDay`: minutos por día |
+| Disponibilidad (`Availability`) | Lo marca el usuario; nada viene preseleccionado | `days`: fechas `YYYY-MM-DD`; `minutesPerDay`: minutos por día (el usuario escribe **horas por día**, p. ej. «1,5», y la app las convierte a minutos; mínimo 0,25 h, máximo 16 h) |
 | Fecha de hoy | El dispositivo | Para resolver «el viernes», «mañana», etc. |
 | **Solo al revisar:** propuesta vigente + instrucción | La pantalla | La instrucción también pasa por el filtro de datos personales |
 

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { formatMinutes, parseDurationMinutes, validateTaskDraft, DURATION_HINT } from '../src/services/tasks/taskValidation';
-import { minutesPerDayProblem, planTextProblem } from '../src/services/planning/planInput';
+import { hoursPerDayProblem, hoursToMinutes, planTextProblem } from '../src/services/planning/planInput';
 import { validateName, validateRegistration } from '../src/services/auth/authRules';
 
 test('entiende duraciones comunes', () => {
@@ -51,12 +51,22 @@ test('explica por qué una tarea no se guarda', () => {
   assert.match(error({ ...base, duration: '13 h' }) ?? '', /entre 1 minuto y 12 horas/);
 });
 
-test('minutos por día ambiguos o fuera de rango', () => {
-  assert.equal(minutesPerDayProblem('60'), null);
-  assert.match(minutesPerDayProblem('') ?? '', /Escribe cuántos/);
-  assert.match(minutesPerDayProblem('1h') ?? '', /solo el número/);
-  assert.match(minutesPerDayProblem('5') ?? '', /al menos 10/);
-  assert.match(minutesPerDayProblem('2000') ?? '', /16 horas/);
+test('horas por día ambiguas o fuera de rango', () => {
+  assert.equal(hoursPerDayProblem('2'), null);
+  assert.equal(hoursPerDayProblem('1,5'), null);
+  assert.equal(hoursPerDayProblem('0.5'), null);
+  assert.match(hoursPerDayProblem('') ?? '', /Escribe cuántas/);
+  assert.match(hoursPerDayProblem('1h') ?? '', /solo el número/);
+  assert.match(hoursPerDayProblem('1,5,5') ?? '', /solo el número/);
+  assert.match(hoursPerDayProblem('0,1') ?? '', /al menos 0,25/);
+  assert.match(hoursPerDayProblem('17') ?? '', /16 horas/);
+});
+
+test('las horas por día se convierten a minutos para el planificador', () => {
+  assert.equal(hoursToMinutes('2'), 120);
+  assert.equal(hoursToMinutes('1,5'), 90);
+  assert.equal(hoursToMinutes('0.25'), 15);
+  assert.ok(Number.isNaN(hoursToMinutes('dos')));
 });
 
 test('texto de responsabilidades vacío, sin palabras o muy largo', () => {

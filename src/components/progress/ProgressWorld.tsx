@@ -34,6 +34,8 @@ type ProgressWorldProps = {
   markerHops?: number;
   markerKey?: number;
   bloomingStageId?: number;
+  // Pandoro celebra: salta de alegría al llegar al lugar nuevo.
+  markerCelebrating?: boolean;
 };
 
 function ProgressWorldLandscape() {
@@ -139,6 +141,7 @@ export function ProgressWorld({
   markerHops,
   markerKey,
   bloomingStageId,
+  markerCelebrating,
 }: ProgressWorldProps) {
   const { width } = useWindowDimensions();
   const worldWidth = Math.min(width, 480);
@@ -168,6 +171,7 @@ export function ProgressWorld({
           duration={markerDuration}
           hops={markerHops}
           animationKey={markerKey}
+          celebrating={markerCelebrating}
         />
       ) : null}
     </View>

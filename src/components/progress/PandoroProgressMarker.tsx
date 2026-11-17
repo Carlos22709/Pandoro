@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   Easing,
@@ -9,7 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Ellipse } from 'react-native-svg';
 
-import { Pandoro } from '@/components/art/Pandoro';
+import { PandoroAnimated } from '@/components/art/PandoroAnimated';
+import { useArrivalSound } from '@/components/progress/useArrivalSound';
 import { PROGRESS_WORLD_WIDTH, getLandmarkZoom } from '@/components/progress/worldData';
 import { trailPoint, type TrailPoint } from '@/services/progress/pandaPath';
 import { palette } from '@/theme/palette';
@@ -27,13 +28,19 @@ type PandoroProgressMarkerProps = {
   hops?: number;
   // Cambia para repetir el recorrido aunque las posiciones sean las mismas.
   animationKey?: number;
+  // Verdadero al llegar a un lugar nuevo: Pandoro salta de alegría una vez.
+  celebrating?: boolean;
 };
 
 const MARKER_WIDTH = 126;
 const MARKER_HEIGHT = 144;
+// Cuánto se despegan del punto del lugar los pies de Pandoro: poco, para que quede junto al mundo.
+const GROUND_OFFSET = 4;
 const PRINT_SIZE = 16;
 // Huellitas que va dejando por el sendero mientras camina: muestran por dónde pasó.
 const PRINT_COUNT = 6;
+// Cabe dentro de lo que tarda en florecer el lugar nuevo (BLOOM_MS en ProgressScreen).
+const CELEBRATE_MS = 1000;
 
 type PawPrintProps = {
   index: number;
@@ -60,7 +67,7 @@ function PawPrint({ index, walk, from, to, startT, endT, scale, zoom }: PawPrint
       opacity: appear * fadeOut * 0.6,
       transform: [
         { translateX: point.x * scale + 40 * zoom * scale - PRINT_SIZE / 2 + side * 7 },
-        { translateY: point.y - 18 * zoom - PRINT_SIZE - 2 },
+        { translateY: point.y - GROUND_OFFSET * zoom - PRINT_SIZE - 2 },
         { rotate: `${side * 12}deg` },
         { scale: 0.7 + appear * 0.3 },
       ],
@@ -89,18 +96,22 @@ export function PandoroProgressMarker({
   duration = 2600,
   hops = 6,
   animationKey = 0,
+  celebrating = false,
 }: PandoroProgressMarkerProps) {
   const scale = worldWidth / PROGRESS_WORLD_WIDTH;
   const zoom = getLandmarkZoom(worldWidth);
   const target = to ?? from;
   const moving = to !== undefined && startT !== endT;
   const walk = useSharedValue(moving ? 0 : 1);
+  const celebrate = useSharedValue(0);
+  const playArrivalSound = useArrivalSound();
   const fromX = from.x;
   const fromY = from.y;
   const toX = target.x;
   const toY = target.y;
 
-  useEffect(() => {
+  // Antes de pintar: si no, un cuadro dibuja a Pandoro ya en el destino y salta de vuelta al inicio.
+  useLayoutEffect(() => {
     if (!moving) {
       walk.value = 1;
       return;
@@ -109,6 +120,13 @@ export function PandoroProgressMarker({
     // Velocidad casi pareja de principio a fin: se ve caminar, no deslizarse.
     walk.value = withTiming(1, { duration, easing: Easing.inOut(Easing.sin) });
   }, [walk, moving, duration, animationKey, startT, endT]);
+
+  useLayoutEffect(() => {
+    celebrate.value = 0;
+    if (!celebrating) return;
+    celebrate.value = withTiming(1, { duration: CELEBRATE_MS, easing: Easing.linear });
+    playArrivalSound();
+  }, [celebrate, celebrating, playArrivalSound]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const progress = walk.value;
@@ -121,17 +139,18 @@ export function PandoroProgressMarker({
     );
     const walking = progress > 0 && progress < 1;
     // Cada paso: salta, cae aplastándose un poco y se balancea hacia el lado del pie que pisa.
+    // Las patas, los brazos y las orejas se mueven por su cuenta (PandoroAnimated): aquí solo el conjunto.
     const phase = progress * Math.PI * hops;
     const bounce = walking ? Math.abs(Math.sin(phase)) : 0;
-    const lift = bounce * 15;
-    const sway = walking ? Math.sin(phase) * 8 : 0;
-    const squash = walking ? 1 - 0.06 * (1 - bounce) + 0.03 * bounce : 1;
-    const widen = walking ? 1 + 0.05 * (1 - bounce) - 0.02 * bounce : 1;
+    const lift = bounce * 12;
+    const sway = walking ? Math.sin(phase) * 6 : 0;
+    const squash = walking ? 1 - 0.04 * (1 - bounce) + 0.02 * bounce : 1;
+    const widen = walking ? 1 + 0.03 * (1 - bounce) - 0.015 * bounce : 1;
 
     return {
       transform: [
         { translateX: left },
-        { translateY: point.y - MARKER_HEIGHT - 18 * zoom - lift },
+        { translateY: point.y - MARKER_HEIGHT - GROUND_OFFSET * zoom - lift },
         { rotate: `${sway}deg` },
         { scaleX: widen },
         { scaleY: squash },
@@ -161,7 +180,7 @@ export function PandoroProgressMarker({
         accessibilityLabel={moving ? 'Pandoro avanza por el camino' : 'Pandoro está en su camino'}
         style={[styles.container, animatedStyle]}
       >
-        <Pandoro size={108} />
+        <PandoroAnimated size={108} progress={walk} celebrate={celebrate} hops={hops} />
       </Animated.View>
     </>
   );

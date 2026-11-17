@@ -25,7 +25,7 @@ import { HoldToTalkButton } from '@/components/talk/HoldToTalkButton';
 import { TALK_GREETING, type TalkMessage, sendTalkTurn, talkTextProblem } from '@/components/talk/talkConversation';
 import { nextPriority, useTasks } from '@/components/tasks/TasksProvider';
 import { GeminiError, MAX_INPUT_LENGTH, planService, toGeminiError } from '@/services/gemini/geminiService';
-import { minutesPerDayProblem } from '@/services/planning/planInput';
+import { hoursPerDayProblem, hoursToMinutes } from '@/services/planning/planInput';
 import { analyzeProposal, proposalToTasks } from '@/services/planning/planLogic';
 import type { Availability, PlanProposal } from '@/services/planning/planTypes';
 import { useDictation } from '@/services/voice/useDictation';
@@ -59,18 +59,18 @@ export function TalkScreen() {
   const [error, setError] = useState<GeminiError | null>(null);
   const [proposal, setProposal] = useState<PlanProposal | null>(null);
   const [days, setDays] = useState<string[]>([]);
-  const [minutesPerDay, setMinutesPerDay] = useState('');
+  const [hoursPerDay, setHoursPerDay] = useState('');
   const [savedCount, setSavedCount] = useState(0);
 
   const dictation = useDictation((text) => {
     setInput((current) => (current.trim() ? `${current.trimEnd()} ${text}` : text).slice(0, MAX_INPUT_LENGTH));
   });
 
-  const availability: Availability = { days, minutesPerDay: Number(minutesPerDay) };
-  // Las mismas reglas que Nueva tarea: entre 10 minutos y 16 horas por día.
-  const availabilityProblem = !days.length || !minutesPerDay.trim()
-    ? 'Elige tus días y minutos disponibles para empezar'
-    : minutesPerDayProblem(minutesPerDay);
+  const availability: Availability = { days, minutesPerDay: hoursToMinutes(hoursPerDay) };
+  // Las mismas reglas que Nueva tarea: entre 15 minutos y 16 horas por día.
+  const availabilityProblem = !days.length || !hoursPerDay.trim()
+    ? 'Elige tus días y horas disponibles para empezar'
+    : hoursPerDayProblem(hoursPerDay);
   const textProblem = input.trim() ? talkTextProblem(messages, input, MAX_INPUT_LENGTH) : null;
   const canSend = phase === 'ready' && !dictation.listening && input.trim().length > 0
     && !availabilityProblem && !textProblem;
@@ -78,7 +78,7 @@ export function TalkScreen() {
   const issues = useMemo(
     () => (proposal ? analyzeProposal(proposal, availability) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [proposal, days, minutesPerDay],
+    [proposal, days, hoursPerDay],
   );
   const blocked = !proposal?.activities.length || issues.some((issue) => issue.blocking);
 
@@ -198,9 +198,9 @@ export function TalkScreen() {
             <View style={styles.card} pointerEvents={phase === 'thinking' ? 'none' : 'auto'}>
               <AvailabilityPicker
                 days={days}
-                minutesPerDay={minutesPerDay}
+                hoursPerDay={hoursPerDay}
                 onChangeDays={setDays}
-                onChangeMinutes={setMinutesPerDay}
+                onChangeHours={setHoursPerDay}
               />
             </View>
           ) : null}

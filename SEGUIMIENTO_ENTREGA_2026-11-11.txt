@@ -1,0 +1,190 @@
+SEGUIMIENTO DE TAREAS - ANDREA SOSA
+Entrega de seguimiento con el profe: miércoles 11 de noviembre de 2026
+Proyecto: Pandask (Capstone, Universidad de La Sabana)
+Rama: Andrea-cambios   |   Último commit de documentación: fb3fd7a
+
+======================================================================
+1. RESUMEN
+======================================================================
+
+Tareas de Andrea con fecha hasta el 11/11: 8 (filas 2, 6, 10, 11, 13, 19, 34, 35).
+
+  Fila  Fecha  Tarea                                          Estado propuesto
+  ----  -----  ---------------------------------------------  -------------------------
+   2    12/10  Validar disposición real de uso                COMPLETADA (el profe ya la vio)
+   6    24/10  Completar niveles y lugares de Progreso        COMPLETADA (docs/progreso.md)
+  10    21/10  Diseñar el modelo de datos                     COMPLETADA (docs/modelo-de-datos.md)
+  11    21/10  Especificación funcional del agente            COMPLETADA (docs/agente.md §2)
+  13    23/10  Instrucciones y formato de salida del agente   COMPLETADA (docs/agente.md §3)*
+  19    31/10  Descomposición automática de tareas            CASI: falta prueba manual en la app
+  34    11/11  Tratamiento de datos y privacidad              COMO BORRADOR: faltan datos por definir
+  35    11/11  Protocolo de prueba con usuarios               COMPLETADA (docs/protocolo-pruebas.md)
+
+  * Punto abierto en la 13: el cronograma pide "prioridad y fechas" por subtarea;
+    hoy la prioridad está por actividad (todas sus subtareas la heredan) y la fecha
+    por subtarea (scheduledDate). Preguntar al profe/equipo si es aceptable (ver §4).
+
+Nota: el estado oficial vive en el Excel. Actualízalo después de la reunión según lo
+que el profe acepte.
+
+======================================================================
+2. EVIDENCIA POR TAREA (qué abrir y qué decir)
+======================================================================
+
+Todos los documentos están en la carpeta docs/ del repositorio, commit fb3fd7a.
+
+--- Fila 2: Validar disposición real de uso -------------------------------
+Criterio: consultar a 8-10 personas si usarían Pandask, en qué situaciones y qué
+barreras tendrían; consolidar resultados.
+Evidencia: la encuesta y la validación que el profe ya revisó.
+Qué decir: "Estos son los resultados que ya vio; las conclusiones están en
+docs/CONTEXTO.md (Problema y Necesidades de los usuarios)."
+Si el profe pide verlo de nuevo: tener a mano el archivo/enlace de la encuesta.
+
+--- Fila 6: Niveles y lugares de Progreso ---------------------------------
+Criterio: escenarios de la demo final, su orden de desbloqueo y actualización real
+del progreso al completar tareas.
+Mostrar:
+  1) docs/progreso.md  -> §1 (tabla de los 6 lugares y su orden de desbloqueo),
+     §2 (cómo cada tarea completada suma un paso), §3 (cuándo una semana da un lugar).
+  2) En la app: pestaña Progreso. Completar una tarea y ver que Pandoro avanza.
+  3) Pruebas: ejecutar "npm test" en la terminal -> tests/progress.test.ts y
+     tests/weeks.test.ts (debe decir pass 105, fail 0).
+Qué decir: "El lugar nuevo se gana al cerrar la semana (semana viva); el progreso
+nunca se pierde por atrasos."
+Aviso honesto: la regla de "semana completa" es interpretación mía (decisión del
+8/11 en CONTEXTO.md) y está por confirmar con el equipo.
+
+--- Fila 10: Modelo de datos ----------------------------------------------
+Criterio: entidades y campos mínimos de Usuario, Tarea, Subtarea, Plan, Progreso,
+Lugar desbloqueado y Preferencias, con sus relaciones.
+Mostrar:
+  1) docs/modelo-de-datos.md -> §1 (vista general y diagrama ER) y §2 (una sección
+     por entidad, 2.1 a 2.8).
+  2) Código real que lo respalda: src/components/tasks/taskTypes.ts (Tarea),
+     src/components/progress/worldData.ts (Progreso y Lugares),
+     src/services/data/mapping.ts y firestore.rules.
+  3) Opcional: consola de Firebase -> Firestore, ver users/{uid}/tasks, completions
+     y progress/world con datos reales.
+Qué decir: "Las subtareas no son documentos propios: pasan a ser tareas al confirmar
+el plan. Plan confirmado y consumo de IA están diseñados pero no implementados."
+
+--- Fila 11: Especificación funcional del agente --------------------------
+Criterio: entradas, salidas, límites y acciones (interpretar, descomponer, estimar,
+priorizar, distribuir).
+Mostrar: docs/agente.md §2 (entradas 2.1, salidas 2.2, acciones 2.3, límites 2.4,
+reglas de revisión 2.5, errores 2.6).
+Qué decir: "La IA solo interpreta, extrae, descompone y estima; la distribución y la
+priorización las calculan reglas propias, reproducibles y sin cuota."
+
+--- Fila 13: Instrucciones y formato de salida ----------------------------
+Criterio: instrucciones base y formato estructurado convertible en tareas, subtareas,
+duración, dificultad, prioridad y fechas.
+Mostrar:
+  1) docs/agente.md §3.1 (instrucciones por bloques) y §3.2 (campos del JSON).
+  2) §3.3: ejemplo completo de entrada -> JSON -> tareas.
+  3) Código: src/services/gemini/planPrompt.ts y planContract.ts.
+Qué decir: "El formato lo aplica Gemini y lo revalida la app (planContract); si la
+respuesta es inválida no se usa."
+Preguntar: lo de prioridad por actividad vs por subtarea (ver §4).
+
+--- Fila 19: Descomposición automática ------------------------------------
+Criterio: una responsabilidad compleja se convierte en subtareas que el usuario
+revisa antes de guardar.
+Mostrar:
+  1) docs/agente.md §4 (flujo y reglas).
+  2) PRUEBA EN VIVO en la app (ver §3 de este archivo).
+  3) tests/planning.test.ts (tabla de cobertura en agente.md §4.4).
+PENDIENTE: ejecutar la prueba manual y guardar captura/video antes de la reunión.
+
+--- Fila 34: Tratamiento de datos y privacidad ----------------------------
+Criterio: datos recolectados, finalidad, datos sensibles, consentimiento,
+conservación/eliminación y texto de privacidad para el usuario.
+Mostrar docs/privacidad.md:
+  §1 datos y finalidad | §2 qué se envía a la IA | §3 datos sensibles
+  §4 autorizaciones | §5 conservación, eliminación y derechos
+  §6 proveedores y transmisión internacional | §7 textos para el usuario
+Qué decir: "Es un borrador técnico, no asesoría jurídica. Distingue lo implementado
+de lo propuesto."
+Faltantes que debo decir sin que los descubra el profe:
+  - Correo de contacto y URL de la política: por definir.
+  - Segunda casilla de autorización para el asistente de IA: propuesta, no está
+    en el código.
+  - Flujo completo de "eliminar cuenta": por implementar.
+  - Constancia mínima tras eliminar la cuenta (2 años): propuesta por ratificar.
+  - Revisión legal pendiente.
+
+--- Fila 35: Protocolo de prueba con usuarios -----------------------------
+Criterio: tareas, guion y métricas (tiempo de organización, número de pasos,
+claridad, facilidad, calidad de priorización y percepción de presión/estrés).
+Mostrar docs/protocolo-pruebas.md:
+  §5 tareas T1-T4 | §4 guion | §6 tabla de métricas | §7 hoja de observación
+  §8 consolidación y clasificación de hallazgos
+Qué decir: "Mínimo 5 participantes; la meta del 60 % de reducción de estrés se
+calcula comparando el estrés antes y después. Lo ejecuta Esteban en la fila 36."
+
+======================================================================
+3. GUION PARA LA PRUEBA EN VIVO (fila 19)
+======================================================================
+
+Preparación (antes de la reunión):
+  - Tener la app abierta con la sesión iniciada y Firebase configurado (.env).
+  - Probarlo una vez completo antes. Si Gemini no responde (cuota o red), tener
+    capturas/video de una ejecución previa.
+  - No usar nombres reales ni datos personales (el texto se envía a Gemini).
+
+Texto para decirle a Pandask (hoy es miércoles 11/11, "el viernes" = 13/11):
+
+  "Tengo que entregar un ensayo de 10 páginas sobre inteligencia artificial en la
+   educación el viernes. Además necesito estudiar para el parcial de bases de datos
+   del lunes."
+
+Disponibilidad: jueves 12 y viernes 13 de noviembre, de 120 a 180 minutos por día.
+
+Pasos y qué señalar al profe:
+  1) Enviar el texto. Mostrar que Pandoro propone un borrador con subtareas
+     (fuentes y esquema, borrador, revisión...), cada una con duración y dificultad.
+  2) Señalar que NO hay tareas nuevas en la lista todavía: es solo un borrador.
+  3) Editar una duración a mano. Pedir por escrito: "divide la redacción en dos días".
+  4) Mostrar los avisos de carga (sobrecarga) si los hay: no se oculta ninguna tarea.
+  5) Confirmar. Ir a Tareas y mostrar que las subtareas aparecen una vez.
+  6) Opcional: probar "tengo cosas pendientes" -> Pandoro hace UNA pregunta.
+
+Evidencia a guardar: captura del borrador, captura de la lista de Tareas después
+de confirmar, y si se puede un video corto de todo el flujo.
+
+======================================================================
+4. PREGUNTAS PARA EL PROFE
+======================================================================
+
+  1) Fila 13: ¿es aceptable que la prioridad esté por actividad (heredada por sus
+     subtareas) y la fecha por subtarea, o debe ser por subtarea?
+  2) Fila 34: ¿se acepta el documento como borrador técnico mientras se define el
+     correo/URL y se hace la revisión legal, o debe estar completo?
+  3) Fila 34: la autorización aparte para la IA y la constancia mínima de 2 años,
+     ¿le parecen razonables como propuesta?
+  4) Fila 6: ¿5 semanas completas para ver los 6 lugares son suficientes para la
+     demo final?
+
+======================================================================
+5. DESPUÉS DE LA REUNIÓN
+======================================================================
+
+  [ ] Actualizar el Excel con el estado según lo que el profe acepte.
+  [ ] Subir los cambios: git push origin Andrea-cambios y abrir pull request a main.
+  [ ] Guardar capturas/video de la fila 19 en un lugar compartido y anotar el enlace
+      en la fila del Excel.
+  [ ] Completar correo de contacto y URL en docs/privacidad.md (fila 34).
+  [ ] Avisar a Esteban (fila 36) que docs/protocolo-pruebas.md está listo, y que
+      necesita definir el camino mínimo de toques y confirmar el registro de eventos.
+  [ ] Avisar a Santiago/Carlos de lo que depende de ellos (ver "Por confirmar" al
+      final de privacidad.md, modelo-de-datos.md y agente.md).
+
+======================================================================
+6. COMANDOS ÚTILES
+======================================================================
+
+  npm run typecheck        verifica los tipos (debe terminar sin errores)
+  npm test                 corre las pruebas (105 pasan, 0 fallan al 10/11)
+  npm start                inicia la app (a / i / w para Android, iOS o web)
+  git log --oneline -3     muestra el commit fb3fd7a con los documentos
