@@ -37,7 +37,9 @@ const STEP_DELAY_MS = 500;
 const STEP_BASE_MS = 2200;
 const STEP_PER_UNIT_MS = 3000;
 const stepDuration = (from: number, to: number) => STEP_BASE_MS + (to - from) * STEP_PER_UNIT_MS;
-const stepHops = (from: number, to: number) => 5 + Math.round((to - from) * 14);
+// Un pasito cada medio segundo aproximadamente, dure lo que dure el recorrido.
+const STEP_CADENCE_MS = 520;
+const hopsFor = (duration: number) => Math.max(4, Math.round(duration / STEP_CADENCE_MS));
 const FINAL_STAGE_ID = PROGRESS_WORLD_STAGES.at(-1)?.id ?? 1;
 
 // Pandoro solo avanza o se queda: nunca retrocede. Su última posición vista se guarda en el dispositivo
@@ -71,8 +73,9 @@ export function ProgressScreen() {
 
   const restT = pandaTrailFraction(progress.completedTasks, progress.stageStartSteps);
   const seen = (uid ? peekSeen(uid) : null) ?? null;
-  // Con Pandoro ya visto en este tramo, nunca se dibuja detrás de donde estuvo (desmarcar no lo hace retroceder).
-  const baseT = seen && seen.stage === progress.currentStage ? Math.max(seen.t, restT) : restT;
+  // Con Pandoro ya visto en este tramo, se dibuja donde se le vio: si completaste tareas desde entonces,
+  // al entrar camina hasta el punto nuevo (no aparece ya allí y vuelve atrás de golpe), y desmarcar no lo hace retroceder.
+  const baseT = seen && seen.stage === progress.currentStage ? seen.t : restT;
   // Desde dónde sale hacia el lugar nuevo: el último punto donde se le vio en el tramo anterior.
   const arrivalStartT = seen && arrivalStage && seen.stage === arrivalStage.id - 1 ? seen.t : 0;
 
@@ -273,10 +276,11 @@ export function ProgressScreen() {
               markerToT={markerToT}
               markerDuration={presentationPreview ? undefined : phase === 'walking' ? walkMs : stepMove?.duration}
               markerHops={presentationPreview ? undefined : phase === 'walking'
-                ? stepHops(arrivalStartT, 1)
-                : stepMove ? stepHops(stepMove.from, stepMove.to) : undefined}
+                ? hopsFor(walkMs)
+                : stepMove ? hopsFor(stepMove.duration) : undefined}
               markerKey={presentationPreview ? undefined : phase === 'walking' ? -1 : stepMove?.key}
               bloomingStageId={!presentationPreview && (phase === 'blooming' || phase === 'arrived') ? arrivalStage?.id : undefined}
+              markerCelebrating={!presentationPreview && (phase === 'blooming' || phase === 'arrived')}
             />
           </View>
         </ScrollView>
